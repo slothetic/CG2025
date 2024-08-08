@@ -1,5 +1,4 @@
 #include "MyNum.h"
-#include <iostream>
 #include <cassert>
 #include <cstdlib>
 

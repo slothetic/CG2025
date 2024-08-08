@@ -1,8 +1,10 @@
+#pragma once
 #include <iostream>
 #include <jsoncpp/json/json.h>
 #include <fstream>
 #include <iomanip>
 #include <opencv2/opencv.hpp>
+#include "MyNum.h"
 
 using namespace std;
 

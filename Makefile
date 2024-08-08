@@ -13,4 +13,4 @@ data.o: data.cpp data.h
 	g++ -c -Wno-deprecated-declarations data.cpp -O2 -ljsoncpp
 
 clean :
-	rm MyNum data.o main.o MyNum.o
+	rm data.o main.o MyNum.o
