@@ -74,7 +74,8 @@ bool MyNum::operator<(const MyNum& _n){
 }
 
 bool MyNum::operator>(const MyNum& _n){
-	return _n < *this;
+	MyNum tmp = *this - _n;
+	return tmp.den > 0;
 }
 
 bool MyNum::operator<=(const MyNum& _n){
@@ -83,7 +84,8 @@ bool MyNum::operator<=(const MyNum& _n){
 }
 
 bool MyNum::operator>=(const MyNum& _n){
-	return _n <= *this;
+	MyNum tmp = *this - _n;
+	return tmp.den >= 0;
 }
 
 std::ostream& operator<<(std::ostream& out, const MyNum& _n){
@@ -94,7 +96,7 @@ std::ostream& operator<<(std::ostream& out, const MyNum& _n){
 	return out;
 }
 
-double toDouble(){
+double MyNum::toDouble(){
 	double d = this->den;
 	return d / this->num;
 }

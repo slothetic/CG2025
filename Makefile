@@ -1,7 +1,7 @@
 CC=g++
 
-MyNum : data.o MyNum.o main.o
-	g++ -o MyNum data.o MyNum.o main.o -O2 -ljsoncpp `pkg-config --cflags --libs opencv`
+ALG : data.o MyNum.o main.o
+	g++ -o ALG data.o MyNum.o main.o -O2 -ljsoncpp `pkg-config --cflags --libs opencv`
 
 MyNum.o : MyNum.h MyNum.cpp
 	g++ -c -Wno-deprecated-declarations MyNum.cpp -O2 -ljsoncpp
