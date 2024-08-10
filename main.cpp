@@ -17,8 +17,14 @@ int main(int argc, char** argv){
 	std::cout<<n1/n2<<std::endl;
 	std::cout<<-n1<<std::endl;
 	Data dt;
-	cout << "input instance: " << argv[1] << endl;
-	dt.input = argv[1];
-	dt.ReadData();
+	//cout << "input instance: " << argv[1] << endl;
+	//dt.input = argv[1];
+	//dt.ReadData();
+	std::cout << "check obtuse" << std::endl;
+	Point p1(0,0);
+	Point p2(-1,10);
+	Point p3(5,0);
+	Triangle t1(p1, p2, p3);
+	std::cout<<t1.is_obtuse()<<std::endl;
 	return 0;
 }

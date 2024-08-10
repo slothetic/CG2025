@@ -5,18 +5,35 @@
 #include <iomanip>
 #include <opencv2/opencv.hpp>
 #include "MyNum.h"
-
+#include <cmath>
+#define PI 3.1415926535898
+#define EPS 1e-6
 using namespace std;
 
-/*
+
 class Point{
 	public:
-		int x, y;
+		MyNum x, y;
 		Point();
 		Point(int, int);
+		Point(MyNum, MyNum);
 };
-*/
 
+float compute_angle(Point, Point, Point);
+
+class Edge{
+	public:
+		Point s, t;
+		Edge();
+		Edge(Point, Point);
+};
+
+class Triangle{
+	public:
+		Point p1, p2, p3;
+		Triangle(Point, Point, Point);
+		bool is_obtuse();
+};
 // bool is_left(cv::Point, cv::Point, cv::Point);
 
 // class Polygon{
