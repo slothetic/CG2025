@@ -32,6 +32,14 @@ bool Triangle::is_obtuse(){
 	return false;
 }
 
+Polygon::Polygon(std::vector<Point> _vertex, std::vector<std::pair<int, int>> _container, std::vector<std::pair<int, int>> _constraint, std::vector<std::pair<int, int>> _edges ){
+	vertex = _vertex;
+	boundary = _container;
+	constraint = _constraint;
+	// edges = new vector<>(n, 100)
+	//vector<int> edges(n,10);
+
+}
 
 // bool is_left(cv::Point p1, cv::Point p2, cv::Point p3){
 // 	return (p2.x-p1.x)*(p3.y-p1.y)-(p2.y-p1.y)*(p3.x-p1.x)>0;
@@ -94,7 +102,7 @@ bool Triangle::is_obtuse(){
 // 	return true;	
 // }
 
-void Data::ReadData(){
+Polygon Data::ReadData(){
 	cout << "--------------------ReadData--------------------" << endl;
 	x_max= 0;
 	y_max =0;
@@ -108,11 +116,23 @@ void Data::ReadData(){
 	num_points = root["num_points"].asInt();
 	Json::Value _points_x = root["points_x"];
 	Json::Value _points_y = root["points_y"];
-	vector<cv::Point> pts;
+	vector<Point> pts;
 	for (int i=0;i<_points_x.size();i++){
-		pts.push_back(cv::Point(_points_x[i].asInt(), _points_y[i].asInt()));
+		pts.push_back(Point(_points_x[i].asInt(), _points_y[i].asInt()));
 	}
 	Json::Value _region_boundary = root["region_boundary"];
+	std::vector<std::pair<int, int>> region_boundary;
+	for (int i=1;i<_region_boundary.size();i++){
+		region_boundary.push_back(std::make_pair(_region_boundary[i-1].asInt(), _region_boundary[i].asInt()));
+	}
+	region_boundary.push_back(std::make_pair(_region_boundary[_region_boundary.size()-1].asInt(), _region_boundary[0].asInt()));
+	Json::Value _num_constraints = root["num_constraints"];
+	std::vector<std::pair<int, int>> num_constraints;
+	for (int i=1;i<_num_constraints.size();i++){
+		num_constraints.push_back(std::make_pair(_num_constraints[i-1].asInt(), _num_constraints[i].asInt()));
+	}
+	Polygon res(pts, region_boundary, num_constraints, {});
+	return res;
 }
 
 
