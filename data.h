@@ -5,17 +5,14 @@
 #include <iomanip>
 #include <opencv2/opencv.hpp>
 #include "MyNum.h"
+#include <string>
 
-using namespace std;
-
-/*
 class Point{
 	public:
-		int x, y;
+		MyNum x, y;
 		Point();
-		Point(int, int);
+		Point(MyNum, MyNum);
 };
-*/
 
 // bool is_left(cv::Point, cv::Point, cv::Point);
 

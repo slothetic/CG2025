@@ -1,7 +1,7 @@
 #include "data.h"
 
-//Point::Point(){x=0;y=0;}
-//Point::Point(int _x, int _y){x=_x; y=_y;}
+Point::Point(){x=MyNum(0);y=MyNum(0);}
+Point::Point(MyNum _x, MyNum _y){x=_x; y=_y;}
 
 // bool is_left(cv::Point p1, cv::Point p2, cv::Point p3){
 // 	return (p2.x-p1.x)*(p3.y-p1.y)-(p2.y-p1.y)*(p3.x-p1.x)>0;
@@ -80,7 +80,7 @@ void Data::ReadData(){
 	Json::Value _points_y = root["points_y"];
 	vector<cv::Point> pts;
 	for (int i=0;i<_points_x.size();i++){
-		pts.push_back(cv::Point(_points_x[i].asInt(), _points_y[i].asInt()));
+		std::cout<<_points_x[i].asString();
 	}
 	Json::Value _region_boundary = root["region_boundary"];
 }
