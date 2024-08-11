@@ -5,9 +5,8 @@
 #include <iomanip>
 #include <opencv2/opencv.hpp>
 #include "MyNum.h"
+#include <string>
 #include <cmath>
-#define PI 3.1415926535898
-#define EPS 1e-6
 using namespace std;
 
 

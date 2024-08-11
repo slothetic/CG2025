@@ -9,7 +9,7 @@ float compute_angle(Point p1, Point p2, Point p3){
 	MyNum p12y = p2.y-p1.y;
 	MyNum p23x = p2.x-p3.x;
 	MyNum p23y = p2.y-p3.y;
-	return (p12x*p23x+p12y*p23y).toDouble()/(sqrt(pow(p12x.toDouble(),2)+pow(p12y.toDouble(),2))*sqrt(pow(p23x.toDouble(),2)+pow(p23y.toDouble(),2)));
+	return p12x*p23x+p12y*p23y;
 }
 
 Edge::Edge(){s=Point();t=Point();}
@@ -17,15 +17,15 @@ Edge::Edge(Point _s, Point _t){s=_s,t=_t;}
 
 Triangle::Triangle(Point _p1, Point _p2, Point _p3){p1=_p1, p2=_p2, p3=_p3;} // CounterClockwise Order
 bool Triangle::is_obtuse(){
-	if (compute_angle(this->p1, this->p2, this->p3)<-EPS) {
+	if (compute_angle(this->p1, this->p2, this->p3)<0) {
 		//std::cout<< compute_angle(this->p1, this->p2, this->p3)<< std::endl;
 		return true;
 	}
-	if (compute_angle(this->p2, this->p3, this->p1)<-EPS) {
+	if (compute_angle(this->p2, this->p3, this->p1)<0) {
 		//std::cout<< compute_angle(this->p2, this->p3, this->p1)<< std::endl;
 		return true;
 	}
-	if (compute_angle(this->p3, this->p1, this->p2)<-EPS) {
+	if (compute_angle(this->p3, this->p1, this->p2)<0) {
 		//std::cout<< compute_angle(this->p3, this->p1, this->p2)<< std::endl;
 		return true;
 	}
