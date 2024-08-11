@@ -6,14 +6,33 @@
 #include <opencv2/opencv.hpp>
 #include "MyNum.h"
 #include <string>
+#include <cmath>
+using namespace std;
+
 
 class Point{
 	public:
 		MyNum x, y;
 		Point();
+		Point(int, int);
 		Point(MyNum, MyNum);
 };
 
+float compute_angle(Point, Point, Point);
+
+class Edge{
+	public:
+		Point s, t;
+		Edge();
+		Edge(Point, Point);
+};
+
+class Triangle{
+	public:
+		Point p1, p2, p3;
+		Triangle(Point, Point, Point);
+		bool is_obtuse();
+};
 // bool is_left(cv::Point, cv::Point, cv::Point);
 
 // class Polygon{
