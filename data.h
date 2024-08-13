@@ -18,30 +18,27 @@ class Point{
 		Point(MyNum, MyNum);
 };
 
-float compute_angle(Point, Point, Point);
+MyNum compute_angle(Point, Point, Point);
 
-class Edge{
-	public:
-		Point s, t;
-		Edge();
-		Edge(Point, Point);
-};
+struct Edge{
+		int p1, p2;
+}
 
-class Triangle{
-	public:
-		Point p1, p2, p3;
-		Triangle(Point, Point, Point);
-		bool is_obtuse();
+struct Triangle{
+		int p1, p2, p3;
+		int e1, e2, e3;
+		Triangle *t1, *t2, *t3;
 };
 
 class Polygon{
 	public:
-		std::vector<Point> vertex;
+		std::vector<Point> pts;
 		int fv_ind; // fixed_vertex index
-		std::vector<std::pair<int, int>> boundary; //CCW
-		std::vector<std::pair<int, int>> constraint;
+		std::vector<std::pair<int, int>>* boundary; //CCW
+		std::vector<std::pair<int, int>>* constraints;
 		std::vector<std::vector<std::pair<int, int>>>* edges; // Adjacency List, type(0: container, 1: constraint, 2: edge)
 		Polygon(std::vector<Point>, std::vector<std::pair<int, int>>, std::vector<std::pair<int, int>>, std::vector<std::pair<int, int>> );
+		bool is_obtuse(Triangle);
 };
 // bool is_left(cv::Point, cv::Point, cv::Point);
 

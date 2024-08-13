@@ -9,7 +9,10 @@ float compute_angle(Point p1, Point p2, Point p3){
 	MyNum p12y = p2.y-p1.y;
 	MyNum p23x = p2.x-p3.x;
 	MyNum p23y = p2.y-p3.y;
-	return p12x*p23x+p12y*p23y;
+	MyNum ab = p12x * p23x + p12y * p23y;
+	MyNum a = p12x * p12x + p12y * p12y;
+	MyNum b = p23x * p23x + p23y * p23y;
+	return (ab.den >= 0) ? - ab * ab / a / b : ab * ab / a / b;
 }
 
 Edge::Edge(){s=Point();t=Point();}
