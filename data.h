@@ -8,6 +8,7 @@
 #include <string>
 #include <cmath>
 #include <deque>
+#include <set>
 using namespace std;
 
 
@@ -18,9 +19,11 @@ struct Point{
 MyNum angle(Point, Point, Point);
 MyNum sqdist(Point, Point);
 
-struct Triangle{
+class Triangle{
 		int p[3]; //CCW
-		Triangle *t[3]; //neighbors, CCw, from p1p2
+		Triangle *t[3]; //neighbors, CCW, from p1p2
+		Triangle(int, int, int);
+		~Triangle();
 };
 
 class Instance{
@@ -29,12 +32,12 @@ class Instance{
 		std::vector<Point> pts;
 		std::deque<int> boundary; //CCW
 		std::vector<std::pair<int,int>> constraints;
-		std::vector<Triangle> triangles;
+		std::set<Triangle*> triangles;
 		Instance();
 		Instance(int, std::vector<Point> pts, std::deque<int>, std::vector<std::pair<int,int>>);
-		bool is_obtuse(Triangle);
+		bool is_obtuse(Triangle*);
 		bool is_on(std::pair<int, int>, Point);
-		bool is_in(Triangle, Point);
+		bool is_in(Triangle*, Point);
 		void triangulate();
 		void triangulate_polygon(std::vector<int>);
 		void ear_cut(Triangle*, int);

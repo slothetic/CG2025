@@ -17,6 +17,15 @@ MyNum sqdist(Point p, Point q){
 	return xd * xd + yd * yd;
 }
 
+Triangle::Triangle(int a, int b, int c){
+	this->p[0] = a;
+	this->p[1] = b;
+	this->p[2] = c;
+}
+
+Triangle::~Triangle(){
+}
+
 Instance::Instance(){
 	this->fp_ind = 0;
 }
@@ -28,10 +37,10 @@ Instance::Instance(int _fp_ind, std::vector<Point> _pts, std::deque<int> _bounda
 	this->constraints = _constraints;
 }
 
-bool Instance::is_obtuse(Triangle t){
-	Point q1 = pts[t.p[0]];
-	Point q2 = pts[t.p[1]];
-	Point q3 = pts[t.p[2]];
+bool Instance::is_obtuse(Triangle *t){
+	Point q1 = pts[t->p[0]];
+	Point q2 = pts[t->p[1]];
+	Point q3 = pts[t->p[2]];
 	if (compute_angle(q1, q2, q3) > 0) return false;
 	if (compute_angle(q2, q3, q1) > 0) return false;
 	if (compute_angle(q3, q1, q2) > 0) return false;
@@ -56,10 +65,10 @@ bool Instance::is_on(std::pair<int, int> e, Point p){
 	else return false;
 }
 
-bool Instance::is_in(Triangle t, Point p){
-	Point q1 = pts[t.p[0]];
-	Point q2 = pts[t.p[1]];
-	Point q3 = pts[t.p[2]];
+bool Instance::is_in(Triangle *t, Point p){
+	Point q1 = pts[t->p[0]];
+	Point q2 = pts[t->p[1]];
+	Point q3 = pts[t->p[2]];
 	return (turn(q1, q2, p) <= MyNum(0)) && (angle(q1, q2, p) <= angle(q1, q2, q3)) && (angle(q2, q1, p) <= angle(q2, q1, q3));
 }
 
@@ -75,31 +84,25 @@ void Instance::triangulate(){
 
 void Instance::triangulate_polygon(std::deque<int> polygon){
 	if (polygon.size() == 3){
-		Triangle t;
-		t.p[0] = polygon[0];
-		t.p[1] = polygon[1];
-		t.p[2] = polygon[2];
-		t.t[0] = nullptr;
-		t.t[1] = nullptr;
-		t.t[2] = nullptr;
+		Triangle *t = new Triangle(polygon[0], polygon[1], polygon[2]);
+		t->t[0] = nullptr;
+		t->t[1] = nullptr;
+		t->t[2] = nullptr;
 		triangles.push_back(t);
 	}
 	else {
-		while(turn(pts[polygon[polygon.size()-1]], pts[polygon[0]], pts[polygon[1]]) < MyNum(0))
+		while(turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]]) < MyNum(0))
 			polygon.push_front(polygon.pop_back());
-		Triangle t;
-		t.p[0] = polygon[polygon.size()-1];
-		t.p[1] = polygon[0];
-		t.p[2] = polygon[1];
-		t.t[0] = nullptr;
-		t.t[1] = nullptr;
-		t.t[2] = nullptr;
+		Triangle *t = new Triangle(polygon[polygon.size() - 1], polygon[0], polygon[1]);
+		t->t[0] = nullptr;
+		t->t[1] = nullptr;
+		t->t[2] = nullptr;
 		int c = -1;
-		Point q = pts[t.p[1]];
-		MyNum d1 = sqdist(q, pts[t.p[0]]);
-		MyNum d2 = sqdist(q, pts[t.p[2]]);
+		Point q = pts[polygon[0]];
+		MyNum d1 = sqdist(q, pts[t->p[0]]);
+		MyNum d2 = sqdist(q, pts[t->p[2]]);
 		MyNum cdist = (d1 > d2) ? d1 : d2;
-		for (int i = 2; i < polygon.size()-1 ; i++) {
+		for (int i = 3; i < polygon.size() ; i++) {
 			if (is_in(t, pts[polygon[i]])) {
 				MyNum d = sqdist(q, pts.[polygon[i]]);
 				if (d < cdist){
@@ -110,28 +113,26 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 		}
 		if (c == -1){
 			triangles.push_back(t);
-			Triangle *tp = &triangles[triangles.size()-1];
 			polygon.pop_front();
 			triangulate_polygon(polygon);
-			Triangle* tt = find_triangle(t.p[0], t.p[2]);
-			tp->t[2] = tt;
-			if (tt->p[0] == t.p[0])
-				tt->t[0] = tp;
-			else if (tt->p[1] == t.p[0])
-				tt->t[1] = tp;
+			Triangle* tt = find_triangle(t->p[0], t->p[2]);
+			t->t[2] = tt;
+			if (tt->p[0] == t->p[0])
+				tt->t[0] = t;
+			else if (tt->p[1] == t->p[0])
+				tt->t[1] = t;
 			else
-				tt->t[2] = tp;
-			balance_edge(tp, 2);
+				tt->t[2] = t;
 		}
 		else {
 			std::deque<int> poly1, poly2;
 			poly1.insert(poly1.begin(), polygon.begin(), polygon.begin() + i + 1);
 			poly2.insert(poly2.begin(), polygon.begin() + i, polygon.end());
-			poly2.push_back(t.p[1]);
+			poly2.push_back(t->p[1]);
 			triangulate_polygon(poly1);
-			Triangle *t1 = find_triangle(t.p[1], polygon[c]);
+			Triangle *t1 = find_triangle(polygon[c], t->p[1]);
 			triangulate_polygon(poly2);
-			Triangle *t2 = find_triangle(polygon[c], t.p[1]);
+			Triangle *t2 = find_triangle(t->p[1], polygon[c]);
 			if (t1->p[0] == t.p[1])
 				t1->t[0] = t2;
 			else if (t1->p[1] == t.p[1])
