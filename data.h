@@ -7,40 +7,46 @@
 #include "MyNum.h"
 #include <string>
 #include <cmath>
+#include <deque>
 using namespace std;
 
 
-class Point{
-	public:
-		MyNum x, y;
-		Point();
-		Point(int, int);
-		Point(MyNum, MyNum);
+struct Point{
+	MyNum x, y;
 };
 
-MyNum compute_angle(Point, Point, Point);
-
-struct Edge{
-		int p1, p2;
-}
+MyNum angle(Point, Point, Point);
+MyNum sqdist(Point, Point);
 
 struct Triangle{
-		int p1, p2, p3;
-		int e1, e2, e3;
-		Triangle *t1, *t2, *t3;
+		int p[3]; //CCW
+		Triangle *t[3]; //neighbors, CCw, from p1p2
 };
 
-class Polygon{
+class Instance{
 	public:
+		int fp_ind; //fixed points
 		std::vector<Point> pts;
-		int fv_ind; // fixed_vertex index
-		std::vector<std::pair<int, int>>* boundary; //CCW
-		std::vector<std::pair<int, int>>* constraints;
-		std::vector<std::vector<std::pair<int, int>>>* edges; // Adjacency List, type(0: container, 1: constraint, 2: edge)
-		Polygon(std::vector<Point>, std::vector<std::pair<int, int>>, std::vector<std::pair<int, int>>, std::vector<std::pair<int, int>> );
+		std::deque<int> boundary; //CCW
+		std::vector<std::pair<int,int>> constraints;
+		std::vector<Triangle> triangles;
+		Instance();
+		Instance(int, std::vector<Point> pts, std::deque<int>, std::vector<std::pair<int,int>>);
 		bool is_obtuse(Triangle);
+		bool is_on(std::pair<int, int>, Point);
+		bool is_in(Triangle, Point);
+		void triangulate();
+		void triangulate_polygon(std::vector<int>);
+		void ear_cut(Triangle*, int);
+		void insert_point(Point);
+		void insert_point(Point, Triangle*);
+		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
+		void make_non_obtuse();
+		void update_boundary();
+		void update_constraints();
 };
-// bool is_left(cv::Point, cv::Point, cv::Point);
+
+MyNum turn(Point, Point, Point); // if CCw, <0 / if CW, >0 / if colinear, ==0
 
 // class Polygon{
 // 	public:
