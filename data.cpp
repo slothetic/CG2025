@@ -6,6 +6,10 @@ Point::Point(int _x, int _y){x = MyNum(_x); y = MyNum(_y);}
 
 Point::Point(MyNum _x, MyNum _y){x = _x; y = _y;}
 
+bool Point::operator==(const Point& _p) {
+	return (this->x == _p.x) && (this->y == _p.y);
+}
+
 
 MyNum angle(Point p1, Point p2, Point p3){
 	MyNum p12x = p2.x-p1.x;
@@ -33,11 +37,21 @@ Triangle::Triangle(int a, int b, int c){
 Triangle::~Triangle(){
 }
 
+int Triangle::get_ind(int q){
+	if (q==p[0])
+		return 0;
+	if (q==p[1])
+		return 1;
+	if (q==p[2])
+		return 2;
+	return -1;
+}
+
 Instance::Instance(){
 	this->fp_ind = 0;
 }
 
-Instance::Instance(int _fp_ind, std::vector<Point> _pts, std::deque<int> _boundary, std::vector<std::pair<int, int>> _constraints){
+Instance::Instance(int _fp_ind, std::vector<Point> _pts, std::deque<int> _boundary, std::set<std::pair<int, int>> _constraints){
 	this->fp_ind = _fp_ind;
 	this->pts = _pts;
 	this->boundary = _boundary;
@@ -87,6 +101,8 @@ void Instance::triangulate(){
 	for (int i; i < pts.size(); i++)
 		if (!check[i])
 			insert_point(i);
+	for (std::pair<int, int> con : constraints)
+		resolve_cross(con);
 }
 
 void Instance::triangulate_polygon(std::deque<int> polygon){
@@ -111,7 +127,7 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 		MyNum d1 = sqdist(q, pts[t->p[0]]);
 		MyNum d2 = sqdist(q, pts[t->p[2]]);
 		MyNum cdist = (d1 > d2) ? d1 : d2;
-		for (int i = 3; i < polygon.size() ; i++) {
+		for (int i = 2; i < polygon.size() - 1 ; i++) {
 			if (is_in(t, pts[polygon[i]])) {
 				MyNum d = sqdist(q, pts[polygon[i]]);
 				if (d < cdist){
@@ -219,6 +235,70 @@ void Instance::insert_point(int p_ind) {
 	}
 }
 
+void Instance::resolve_cross(std::pair<int, int> con) {
+	int q1 = con.first;
+	int q2 = con.second;
+	for (Triangle *t : triangles) {
+		int i = t->get_ind(q1);
+		if (i != -1) {
+			Point r1 = pts[q1];
+			Point r2 = pts[t->p[(i + 1) % 3]];
+			Point r3 = pts[t->p[(i + 2) % 3]];
+			Point r4 = pts[q2];
+			MyNum ang = angle(r2, r1, r3);
+			while (angle(r2, r1, r4) <= ang && angle(r3, r1, r4) <= ang){
+				t = t->t[i];
+				i = t->get_ind(q1);
+				r2 = pts[t->p[(i + 1) % 3]];
+				r3 = pts[t->p[(i + 2) % 3]];
+				ang = angle(r2, r1, r3);
+			}
+			if (r2 == r4) {
+				Triangle *tt = t->t[i];
+				t->t[i] = nullptr;
+				int j = tt->get_ind(q2);
+				tt->t[j] = nullptr;
+			}
+			else if (r3 == r4) {
+				Triangle *tt = t->t[(i + 2) % 3];
+				t->t[(i + 2) % 3] = nullptr;
+				int j = tt->get_ind(q1);
+				tt->t[j] = nullptr;
+			}
+			else
+				resolve_cross(con, t);
+			return;
+		}
+	}
+}
+
+void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
+	int q1 = con.first;
+	int q2 = con.second;
+	int i = t->get_ind(q1);
+	Triangle *tt = t->t[(i + 1) % 3];
+	int j = (tt->get_ind(t->p[(i + 1) % 3]) + 1) % 3;
+	int r = tt->p[j];
+	Triangle *ti = t->t[(i + 2) % 3];
+	Triangle *tj = tt->t[(j + 2) % 3];
+	t->p[(i + 2) % 3] = r;
+	t->t[(i + 1) % 3] = tj;
+	tt->p[(j + 2) % 3] = q1;
+	tt->t[(j + 1) % 3] = ti;
+	if (r==q2) {
+		t->t[(i + 2) % 3] = nullptr;
+		tt->t[(j + 2) % 3] = nullptr;
+	}
+	else {
+		t->t[(i + 2) % 3] = tt;
+		tt->t[(j + 2) % 3] = t;
+		if (angle(pts[q2], pts[q1], pts[t->p[(i + 1) % 3]]) < angle(pts[r], pts[q1], pts[t->p[(i + 1) % 3]]))
+			resolve_cross(con, t);
+		else
+			resolve_cross(con, tt);
+	}
+}
+
 //TODO
 
 
@@ -295,11 +375,9 @@ MyNum turn(Point p1, Point p2, Point p3){
 // 	return true;	
 // }
 
-/*
-Instance Data::ReadData(){
+
+void Data::ReadData(){
 	cout << "--------------------ReadData--------------------" << endl;
-	x_max= 0;
-	y_max =0;
 	Json::Value root;
 	Json::Reader reader;
 	string path=input;
@@ -315,20 +393,20 @@ Instance Data::ReadData(){
 		pts.push_back(Point(_points_x[i].asInt(), _points_y[i].asInt()));
 	}
 	Json::Value _region_boundary = root["region_boundary"];
-	std::vector<std::pair<int, int>> region_boundary;
-	for (int i=1;i<_region_boundary.size();i++){
-		region_boundary.push_back(std::make_pair(_region_boundary[i-1].asInt(), _region_boundary[i].asInt()));
+	std::deque<int> region_boundary;
+	for (int i=0;i<_region_boundary.size();i++){
+		region_boundary.push_back(_region_boundary[i].asInt());
 	}
-	region_boundary.push_back(std::make_pair(_region_boundary[_region_boundary.size()-1].asInt(), _region_boundary[0].asInt()));
 	Json::Value _num_constraints = root["num_constraints"];
-	std::vector<std::pair<int, int>> num_constraints;
-	for (int i=1;i<_num_constraints.size();i++){
-		num_constraints.push_back(std::make_pair(_num_constraints[i-1].asInt(), _num_constraints[i].asInt()));
+	num_constraints = _num_constraints.asInt();
+	Json::Value _constraints = root["additional_constraints"];
+	std::set<std::pair<int,int>> constraints;
+	for (int i=0; i<_num_constraints.size(); i++){
+		constraints.insert(std::make_pair(_constraints[i][0].asInt(), _constraints[i][1].asInt()));
 	}
-	Instance res(pts, region_boundary, num_constraints, {});
-	return res;
+	inst = new Instance(num_points, pts, region_boundary, constraints);
 }
-*/
+
 
 	// container = Polygon(c_vers);
 	// container.cont = true;

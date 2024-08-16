@@ -91,7 +91,7 @@ std::ostream& operator<<(std::ostream& out, const MyNum& _n){
 	if(_n.num==1)
 		out << _n.den;
 	else
-		out << _n.den << "/" << _n.num;
+		out << "\"" << _n.den << "/" << _n.num << "\"";
 	return out;
 }
 

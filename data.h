@@ -18,6 +18,7 @@ class Point{
 		Point();
 		Point(int, int);
 		Point(MyNum, MyNum);
+		bool operator==(const Point&);
 };
 
 MyNum angle(Point, Point, Point);
@@ -26,9 +27,10 @@ MyNum sqdist(Point, Point);
 class Triangle{
 	public:
 		int p[3]; //CCW
-		Triangle *t[3]; //neighbors, CCW, from p1p2
+		Triangle *t[3]; //neighbors, CCW, from p1p2. nullptr if the edge is boundary or constraint
 		Triangle(int, int, int);
 		~Triangle();
+		int get_ind(int); //find index of vertex. return -1 if not exists
 };
 
 class Instance{
@@ -36,16 +38,18 @@ class Instance{
 		int fp_ind; //fixed points
 		std::vector<Point> pts;
 		std::deque<int> boundary; //CCW
-		std::vector<std::pair<int,int>> constraints;
+		std::set<std::pair<int,int>> constraints;
 		std::set<Triangle*> triangles;
 		Instance();
-		Instance(int, std::vector<Point> pts, std::deque<int>, std::vector<std::pair<int,int>>);
+		Instance(int, std::vector<Point>, std::deque<int>, std::set<std::pair<int,int>>);
 		bool is_obtuse(Triangle*);
 		bool is_on(std::pair<int, int>, Point);
 		bool is_in(Triangle*, Point);
 		void triangulate();
 		void triangulate_polygon(std::deque<int>);
 		void insert_point(int);
+		void resolve_cross(std::pair<int, int>);
+		void resolve_cross(std::pair<int, int>, Triangle*);
 		void ear_cut(Triangle*, int);
 		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
 		void make_non_obtuse();
@@ -85,12 +89,10 @@ class Data{
 		string type;
 		string output;
 		int num_points;
-		int x_max;
-		int x_min;
-		int y_max;
-		int y_min;
+		int num_constraints;
+		Instance *inst;
 
-		Instance ReadData();
+		void ReadData();
 		//void WriteResult();
 		//void DrawResult();
 };
