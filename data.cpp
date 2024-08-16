@@ -407,6 +407,54 @@ void Data::ReadData(){
 	inst = new Instance(num_points, pts, region_boundary, constraints);
 }
 
+void Data::WriteData(){
+	ofstream fout;
+	fout.open("solutions/" + instance_name + ".solution.json");
+	fout << "{" << endl;
+	fout << "  \"content_type\": \"CG_SHOP_2025_Solution\"," << endl;
+	fout << "  \"instance_uid\": \"" << instance_name << "\"," << endl;
+	fout << "  \"steiner_point_x\": [";
+	for (int i = inst->fp_ind; i < inst->pts.size() ; i++){
+		fout << inst->pts[i].x;
+		if (i < inst->pts.size() - 1)
+			fout << ", ";
+	}
+	fout << "]," << endl;
+	fout << "  \"steiner_point_y\": [";
+	for (int i = inst->fp_ind; i < inst->pts.size() ; i++){
+		fout << inst->pts[i].y;
+		if (i < inst->pts.size() - 1)
+			fout << ", ";
+	}
+	fout << "]," << endl;
+	std::set<std::pair<int, int>> const_edges;
+	std::set<std::pair<int, int>> int_edges;
+	for (std::pair<int, int> e : inst->constraints)
+		const_edges.insert(e);
+	for (int i = 1 ; i < inst->boundary.size() ; i++)
+		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
+	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
+	for (Triangle* t : inst->triangles) {
+		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
+		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
+		auto cend = const_edges.end();
+		auto iend = int_edges.end();
+		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+			int_edges.insert(e1);
+	}
+	fout << "  \"edges\": [" << endl;
+	int cnt = 1;
+	for (std::pair<int, int> e : int_edges){
+		fout << "    [" << e.first << ", " << e.second << "]";
+		if (cnt < int_edges.size()) {
+			fout << ",";
+			cnt ++;
+		}
+		fout << endl;
+	}
+	fout << "  ]" << endl << "}" << endl;
+	fout.close();
+}
 
 	// container = Polygon(c_vers);
 	// container.cont = true;

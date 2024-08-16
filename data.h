@@ -93,7 +93,7 @@ class Data{
 		Instance *inst;
 
 		void ReadData();
-		//void WriteResult();
+		void WriteData();
 		//void DrawResult();
 };
 

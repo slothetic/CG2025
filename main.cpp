@@ -10,5 +10,6 @@ int main(int argc, char** argv){
 	std::cout << dt.inst->fp_ind << std::endl;
 	dt.inst->triangulate();
 	std::cout << dt.inst->triangles.size() << std::endl;
+	dt.WriteData();
 	return 0;
 }
