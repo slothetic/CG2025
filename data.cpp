@@ -90,17 +90,23 @@ bool Instance::is_in(Triangle *t, Point p){
 	Point q1 = pts[t->p[0]];
 	Point q2 = pts[t->p[1]];
 	Point q3 = pts[t->p[2]];
-	return (turn(q1, q2, p) <= MyNum(0)) && (angle(q1, q2, p) <= angle(q1, q2, q3)) && (angle(q2, q1, p) <= angle(q2, q1, q3));
+	MyNum zero(0);
+	return (turn(q1, q2, p) >= zero) && (turn(q2, q3, p) >= zero) && (turn(q3, q1, p) >= zero);
 }
 
 void Instance::triangulate(){
 	std::vector<bool> check(pts.size(), false);
 	triangulate_polygon(this->boundary);
+	for (Triangle * t : triangles)
+		std::cout << t->p[0] << ' ' << t->p[1] << ' ' << t->p[2] << std::endl;
+	//std::cout << boundary.size() << " " << triangles.size() << std::endl;
 	for (int d : boundary)
 		check[d] = true;
 	for (int i; i < pts.size(); i++)
-		if (!check[i])
+		if (!check[i]){
 			insert_point(i);
+			//std::cout << "inserted " << i << ": " << triangles.size() << std::endl;
+		}
 	for (std::pair<int, int> con : constraints)
 		resolve_cross(con);
 }
@@ -177,7 +183,13 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 void Instance::insert_point(int p_ind) {
 	Point q = pts[p_ind];
 	for (Triangle* t : triangles) {
+		//std::cout << "triangle " << t->p[0] << " " << t->p[1] << " " << t->p[2] << std::endl;
+		//std::cout << pts[4].x << ' ' << pts[4].y << endl;
+		//std::cout << pts[3].x << ' ' << pts[3].y << endl;
+		//std::cout << pts[2].x << ' ' << pts[2].y << endl;
+		//std::cout << turn(pts[4], pts[3], pts[2]) << endl;
 		if (is_in(t, q)){ 
+			std::cout << p_ind << " is in triangle " << t->p[0] << " " << t->p[1] << " " << t->p[2] << std::endl;
 			Triangle *t1, *t2;
 			Triangle *tt = nullptr;
 			int i, j;
