@@ -24,7 +24,5 @@ int main(int argc, char** argv){
 	Point p1(0,0);
 	Point p2(-1,10);
 	Point p3(5,0);
-	Triangle t1(p1, p2, p3);
-	std::cout<<t1.is_obtuse()<<std::endl;
 	return 0;
 }

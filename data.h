@@ -12,14 +12,19 @@
 using namespace std;
 
 
-struct Point{
-	MyNum x, y;
+class Point{
+	public:
+		MyNum x, y;
+		Point();
+		Point(int, int);
+		Point(MyNum, MyNum);
 };
 
 MyNum angle(Point, Point, Point);
 MyNum sqdist(Point, Point);
 
 class Triangle{
+	public:
 		int p[3]; //CCW
 		Triangle *t[3]; //neighbors, CCW, from p1p2
 		Triangle(int, int, int);
@@ -39,10 +44,9 @@ class Instance{
 		bool is_on(std::pair<int, int>, Point);
 		bool is_in(Triangle*, Point);
 		void triangulate();
-		void triangulate_polygon(std::vector<int>);
+		void triangulate_polygon(std::deque<int>);
+		void insert_point(int);
 		void ear_cut(Triangle*, int);
-		void insert_point(Point);
-		void insert_point(Point, Triangle*);
 		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
 		void make_non_obtuse();
 		void update_boundary();
@@ -86,7 +90,7 @@ class Data{
 		int y_max;
 		int y_min;
 
-		Polygon ReadData();
+		Instance ReadData();
 		//void WriteResult();
 		//void DrawResult();
 };
