@@ -57,7 +57,7 @@ class Instance{
 		void update_constraints();
 };
 
-MyNum turn(Point, Point, Point); // if CCw, <0 / if CW, >0 / if colinear, ==0
+MyNum turn(Point, Point, Point); // if CCw, >0 / if CW, <0 / if colinear, ==0
 
 // class Polygon{
 // 	public:
