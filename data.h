@@ -94,6 +94,6 @@ class Data{
 
 		void ReadData();
 		void WriteData();
-		//void DrawResult();
+		void DrawResult();
 };
 
