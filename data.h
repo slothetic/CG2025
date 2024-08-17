@@ -9,6 +9,7 @@
 #include <cmath>
 #include <deque>
 #include <set>
+#include <random>
 using namespace std;
 
 
@@ -95,6 +96,6 @@ class Data{
 
 		void ReadData();
 		void WriteData();
-		//void DrawResult();
+		void DrawResult();
 };
 

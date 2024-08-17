@@ -457,25 +457,21 @@ void Data::WriteData(){
 	for (int i = 1 ; i < inst->boundary.size() ; i++)
 		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
 	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
+	cout<<"Number of Triangles: "<< inst->triangles.size() <<endl;
 	for (Triangle* t : inst->triangles) {
 		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
-		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[0]);
+		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
-		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+		// if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+		// 	int_edges.insert(e1);
+		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend)
 			int_edges.insert(e1);
-		e1 = std::make_pair(t->p[1], t->p[2]);
-		e2 = std::make_pair(t->p[2], t->p[1]);
-		cend = const_edges.end();
-		iend = int_edges.end();
-		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
-			int_edges.insert(e1);
-		e1 = std::make_pair(t->p[0], t->p[2]);
-		e2 = std::make_pair(t->p[2], t->p[0]);
-		cend = const_edges.end();
-		iend = int_edges.end();
-		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
-			int_edges.insert(e1);
+		if (const_edges.find(e2) == cend && int_edges.find(e2) == iend)
+			int_edges.insert(e2);
+		if (const_edges.find(e3) == cend && int_edges.find(e3) == iend)
+			int_edges.insert(e3);
 	}
 	fout << "  \"edges\": [" << endl;
 	int cnt = 1;
@@ -491,126 +487,82 @@ void Data::WriteData(){
 	fout.close();
 }
 
-	// container = Polygon(c_vers);
-	// container.cont = true;
-	// int ind = 0;
-	// for (auto& item:root["items"]){
-	// 	int _value = item["vlaue"].asInt();
-	// 	vector<cv::Point> i_vers;
+void Data::DrawResult(){
+	
+	MyNum minx(inst->pts[0].x);
+	MyNum miny(inst->pts[0].y);
+	MyNum maxx(inst->pts[0].x);
+	MyNum maxy(inst->pts[0].y);
+	for (int i = 0; i < inst->pts.size() ; i++){
+		if (minx>MyNum(inst->pts[i].x)) minx=MyNum(inst->pts[i].x);
+		if (miny>MyNum(inst->pts[i].y)) miny=MyNum(inst->pts[i].y);
+		if (maxx<MyNum(inst->pts[i].x)) maxx=MyNum(inst->pts[i].x);
+		if (maxy<MyNum(inst->pts[i].y)) maxy=MyNum(inst->pts[i].y);
+	}
+	long long int width = (long long int)(maxx-minx).toDouble();
+	long long int height = (long long int)(maxy-miny).toDouble();
+	float rad = 1000./width;
+	width = (int)width*rad+40;
+	height = (int)height*rad+40;
+	int minw = 20;
+	int minh = height-(int)miny.toDouble()*rad+20;
 
-	//   for (int i=0;i<_container["x"].size();i++){
-	// 	  c_vers.push_back(cv::Point(_container["x"][i].asInt(), _container["y"][i].asInt()));
-	//   }
-	// 	Polygon P = Polygon(c_vers);
-	// 	P.value = _value;
-	// 	P.index = ind;
-	// 	ind++;
-	// 	for (int j=0;j<item["quantity"].asInt();j++){
-	// 		items.push_back(P);
-	// 	}
+
+	cv::Mat img(height, width, CV_8UC3, cv::Scalar(255,255,255));
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dis(220, 255);
+	for (Triangle* t : inst->triangles) {
+		cv::Point triangle_pt[1][3]; 
+		triangle_pt[0][0] = cv::Point(minw+(int)inst->pts[t->p[0]].x.toDouble()*rad, minh-(int)inst->pts[t->p[0]].y.toDouble()*rad); 
+		triangle_pt[0][1] = cv::Point(minw+(int)inst->pts[t->p[1]].x.toDouble()*rad, minh-(int)inst->pts[t->p[1]].y.toDouble()*rad); 
+		triangle_pt[0][2] = cv::Point(minw+(int)inst->pts[t->p[2]].x.toDouble()*rad, minh-(int)inst->pts[t->p[2]].y.toDouble()*rad); 
+		const cv::Point* ppt[1] = { triangle_pt[0] };
+		int npt[] = { 3 };
 		
-	// }
+		fillPoly(img, ppt, npt, 1, cv::Scalar(dis(gen), dis(gen), dis(gen)), 8);
+	}
 
-	// type = root["type"].asString();
-	// cout << "-number of items: " << items.size() << endl;
+	std::set<std::pair<int, int>> const_edges;
+	std::set<std::pair<int, int>> int_edges;
+	for (std::pair<int, int> e : inst->constraints){
+		const_edges.insert(e);
+		cv::line(img, cv::Point(minw+(int)inst->pts[e.first].x.toDouble()*rad,minh-(int)inst->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e.second].x.toDouble()*rad+20,minh-(int)inst->pts[e.second].y.toDouble()*rad), cv::Scalar(0,0,255), 2);
+	}
+	cout<<inst->boundary.size()<<endl;
+	for (int i = 1 ; i < inst->boundary.size() ; i++){
+		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
+		cv::line(img, cv::Point(minw+(int)inst->pts[inst->boundary[i-1]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[i-1]].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[inst->boundary[i]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[i]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
+	}
+	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
+	//cout<<"const edges"<<endl;
+	for (std::pair<int, int> e:const_edges)
+		//cout<<e.first<<" "<<e.second<<endl;
+	cv::line(img, cv::Point(minw+(int)inst->pts[inst->boundary[0]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[inst->boundary[inst->boundary.size()-1]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[inst->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
+	//cout<<"new edges"<<endl;
+	for (Triangle* t : inst->triangles) {
+		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
+		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
+		auto cend = const_edges.end();
+		auto iend = int_edges.end();
+		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend){
+			int_edges.insert(e1);
+			cv::line(img, cv::Point(minw+(int)inst->pts[e1.first].x.toDouble()*rad,minh-(int)inst->pts[e1.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e1.second].x.toDouble()*rad,minh-(int)inst->pts[e1.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
+		}
+		if (const_edges.find(e2) == cend && int_edges.find(e2) == iend){
+			int_edges.insert(e2);
+			cv::line(img, cv::Point(minw+(int)inst->pts[e2.first].x.toDouble()*rad,minh-(int)inst->pts[e2.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e2.second].x.toDouble()*rad,minh-(int)inst->pts[e2.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
+		}
+		if (const_edges.find(e3) == cend && int_edges.find(e3) == iend){
+			int_edges.insert(e3);
+			cv::line(img, cv::Point(minw+(int)inst->pts[e3.first].x.toDouble()*rad,minh-(int)inst->pts[e3.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e3.second].x.toDouble()*rad,minh-(int)inst->pts[e3.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
+		}
+	}
+	for (int i = 0; i < inst->pts.size() ; i++){
+		if (i<inst->fp_ind) cv::circle(img, cv::Point(minw+(int)inst->pts[i].x.toDouble()*rad,minh-(int)inst->pts[i].y.toDouble()*rad),5,cv::Scalar(0,0,0),cv::FILLED);
+		else cv::circle(img, cv::Point(minw+(int)inst->pts[i].x.toDouble()*rad,minh-(int)inst->pts[i].y.toDouble()*rad),5,cv::Scalar(255,0,0),cv::FILLED);
+	}
 
-// void Feasible::WriteResult(){
-// 	cout << "--------------------WriteResult--------------------" << endl;
-
-// 	int num_item=0;
-// 	int value_item=0;
-// 	vector<int> item_indices;
-// 	vector<int> x_trans;
-// 	vector<int> y_trans;
-// 	for (auto& item:items){
-// 		if (item.use) {
-// 			num_item++;
-// 			value_item=value_item+item.value;
-// 			item_indices.push_back(item.index);
-// 			x_trans.push_back(item.x_loc);
-// 			y_trans.push_back(item.y_loc);
-// 		}
-// 	}
-// 	string filename;
-// 	filename = instance_name+"_result.json";
-// 	ofstream solution(filename);
-
-// 	solution<<"{\"type\": \"cgshop2024_solution\",\n";
-// 	solution<<"\"instance_name\": \""<< instance_name <<"\",\n";
-// 	solution<<"\"num_included_items\": \""<< num_item <<"\",\n";
-// 	/*
-// 	solution<<"\"total_value\": \""<< value_item <<"\",\n";
-// 	solution<<"\"container\": {\"x\": [";
-// 	for (int i=0;i<container.vers.size();i++){
-// 		if (i<container.vers.size()-1){
-// 			solution<<container.x_vers[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<container.x_vers[i]<<"],\n";
-// 		}
-// 	}
-// 	solution<<"\"y\": [";
-// 	for (int i=0;i<container.vers.size();i++){
-// 		if (i<container.vers.size()-1){
-// 			solution<<container.y_vers[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<container.y_vers[i]<<"]},\n";
-// 		}
-
-// 	}
-// 	solution<<"\"items\": [";
-// 	solution<<"]\n";
-// 	*/
-
-// 	solution<<"\"item_indices\": "<< "[";
-// 	for (int i=0;i<item_indices.size();i++){
-// 		if (i<item_indices.size()-1){
-// 			solution<<item_indices[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<item_indices[i];
-// 		}
-// 	}
-// 	solution<<"],\n";
-
-// 	solution<<"\"x_trans\": "<< "[";
-// 	for (int i=0;i<x_trans.size();i++){
-// 		if (i<x_trans.size()-1){
-// 			solution<<x_trans[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<x_trans[i];
-// 		}
-// 	}
-// 	solution<<"],\n";
-// 	solution<<"\"y_trans\": "<< "[";
-// 	for (int i=0;i<y_trans.size();i++){
-// 		if (i<y_trans.size()-1){
-// 			solution<<y_trans[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<y_trans[i];
-// 		}
-// 	}
-// 	solution<<"],\n";
-//   solution<<"}\n";
-// 	solution.close();
-// }
-
-
-// void Feasible::DrawResult(){
-// 	cout << "--------------------DrawResult--------------------" << endl;
-// 	float xy_max = min(x_max, y_max);
-// 	float ratio = 400./xy_max;
-// 	cv::Mat img(int(ratio*x_max*1.08), int(ratio*y_max*1.08), CV_8UC3, cv::Scalar(255, 255, 255));
-// 	vector<cv::Point> vers;
-// 	for (auto p:container.vers){
-// 		vers.push_back(cv::Point(int(p.x*ratio), int(p.y*ratio)));
-// 	}
-// 	cv::polylines(img, vers, true, cv::Scalar(255, 0, 255), 2);
-
-// 	cv::imwrite("check.bmp", img, vector<int>());
-// }
-
-
+	cv::imwrite("solutions/" + instance_name + ".solution.png", img);
+}
