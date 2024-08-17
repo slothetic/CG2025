@@ -10,8 +10,14 @@ bool Point::operator==(const Point& _p) {
 	return (this->x == _p.x) && (this->y == _p.y);
 }
 
+bool Point::operator!=(const Point&_p) {
+	return (this->x != _p.x) || (this->y != _p.y);
+}
+
 
 MyNum angle(Point p1, Point p2, Point p3){
+	assert(p1 != p2);
+	assert(p2 != p3);
 	MyNum p12x = p2.x-p1.x;
 	MyNum p12y = p2.y-p1.y;
 	MyNum p23x = p2.x-p3.x;
@@ -97,8 +103,6 @@ bool Instance::is_in(Triangle *t, Point p){
 void Instance::triangulate(){
 	std::vector<bool> check(pts.size(), false);
 	triangulate_polygon(this->boundary);
-	for (Triangle * t : triangles)
-		std::cout << t->p[0] << ' ' << t->p[1] << ' ' << t->p[2] << std::endl;
 	//std::cout << boundary.size() << " " << triangles.size() << std::endl;
 	for (int d : boundary)
 		check[d] = true;
@@ -107,11 +111,12 @@ void Instance::triangulate(){
 			insert_point(i);
 			//std::cout << "inserted " << i << ": " << triangles.size() << std::endl;
 		}
-	for (std::pair<int, int> con : constraints)
-		resolve_cross(con);
+	//for (std::pair<int, int> con : constraints)
+	//	resolve_cross(con);
 }
 
 void Instance::triangulate_polygon(std::deque<int> polygon){
+	std::cout << polygon.size() << std::endl;
 	if (polygon.size() == 3){
 		Triangle *t = new Triangle(polygon[0], polygon[1], polygon[2]);
 		t->t[0] = nullptr;
@@ -120,9 +125,15 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 		triangles.insert(t);
 	}
 	else {
-		while(turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]]) < MyNum(0)){
-			polygon.push_front(polygon[polygon.size() - 1]);
-			polygon.pop_back();
+		int cnt = 0;
+		while(turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]]) > MyNum(0)){
+			polygon.push_back(polygon[0]);
+			polygon.pop_front();
+			cnt ++;
+			if (cnt == polygon.size()) {
+				for (int d : polygon) 
+					std::cout << d << ": (" << pts[d].x << ", " << pts[d].y << ")" << std::endl; 
+			}
 		}
 		Triangle *t = new Triangle(polygon[polygon.size() - 1], polygon[0], polygon[1]);
 		t->t[0] = nullptr;
@@ -189,7 +200,6 @@ void Instance::insert_point(int p_ind) {
 		//std::cout << pts[2].x << ' ' << pts[2].y << endl;
 		//std::cout << turn(pts[4], pts[3], pts[2]) << endl;
 		if (is_in(t, q)){ 
-			std::cout << p_ind << " is in triangle " << t->p[0] << " " << t->p[1] << " " << t->p[2] << std::endl;
 			Triangle *t1, *t2;
 			Triangle *tt = nullptr;
 			int i, j;
@@ -327,7 +337,7 @@ Triangle* Instance::find_triangle(int q1, int q2){
 }
 
 MyNum turn(Point p1, Point p2, Point p3){
-	return (p2.x - p1.x) * (p3.y - p1.y)- (p2.y - p1.y) * (p3.x - p1.x);
+	return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
 
 // Polygon::Polygon(){vers.assign(1, cv::Point());x_loc=0;y_loc=0;}
@@ -413,7 +423,7 @@ void Data::ReadData(){
 	num_constraints = _num_constraints.asInt();
 	Json::Value _constraints = root["additional_constraints"];
 	std::set<std::pair<int,int>> constraints;
-	for (int i=0; i<_num_constraints.size(); i++){
+	for (int i=0; i<_constraints.size(); i++){
 		constraints.insert(std::make_pair(_constraints[i][0].asInt(), _constraints[i][1].asInt()));
 	}
 	inst = new Instance(num_points, pts, region_boundary, constraints);
@@ -441,16 +451,29 @@ void Data::WriteData(){
 	fout << "]," << endl;
 	std::set<std::pair<int, int>> const_edges;
 	std::set<std::pair<int, int>> int_edges;
-	for (std::pair<int, int> e : inst->constraints)
+	for (std::pair<int, int> e : inst->constraints){
 		const_edges.insert(e);
+	}
 	for (int i = 1 ; i < inst->boundary.size() ; i++)
 		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
 	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
 	for (Triangle* t : inst->triangles) {
 		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
-		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[0]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
+		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+			int_edges.insert(e1);
+		e1 = std::make_pair(t->p[1], t->p[2]);
+		e2 = std::make_pair(t->p[2], t->p[1]);
+		cend = const_edges.end();
+		iend = int_edges.end();
+		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+			int_edges.insert(e1);
+		e1 = std::make_pair(t->p[0], t->p[2]);
+		e2 = std::make_pair(t->p[2], t->p[0]);
+		cend = const_edges.end();
+		iend = int_edges.end();
 		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
 			int_edges.insert(e1);
 	}
