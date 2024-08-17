@@ -536,23 +536,16 @@ void Data::DrawResult(){
 		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
-		// if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend){
-		// 	int_edges.insert(e1);
-		// 	cv::line(img, cv::Point(minw+(int)inst->pts[e1.first].x.toDouble()*rad,minh-(int)inst->pts[e1.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e1.second].x.toDouble()*rad,minh-(int)inst->pts[e1.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
-		// }
 		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend){
 			int_edges.insert(e1);
-			//cout<<e1.first<<" "<<e1.second<<endl;
 			cv::line(img, cv::Point(minw+(int)inst->pts[e1.first].x.toDouble()*rad,minh-(int)inst->pts[e1.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e1.second].x.toDouble()*rad,minh-(int)inst->pts[e1.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
 		}
 		if (const_edges.find(e2) == cend && int_edges.find(e2) == iend){
 			int_edges.insert(e2);
-			//cout<<e1.first<<" "<<e1.second<<endl;
 			cv::line(img, cv::Point(minw+(int)inst->pts[e2.first].x.toDouble()*rad,minh-(int)inst->pts[e2.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e2.second].x.toDouble()*rad,minh-(int)inst->pts[e2.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
 		}
 		if (const_edges.find(e3) == cend && int_edges.find(e3) == iend){
 			int_edges.insert(e3);
-			//cout<<e1.first<<" "<<e1.second<<endl;
 			cv::line(img, cv::Point(minw+(int)inst->pts[e3.first].x.toDouble()*rad,minh-(int)inst->pts[e3.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e3.second].x.toDouble()*rad,minh-(int)inst->pts[e3.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
 		}
 	}
@@ -563,127 +556,3 @@ void Data::DrawResult(){
 
 	cv::imwrite("solutions/" + instance_name + ".solution.png", img);
 }
-
-	// container = Polygon(c_vers);
-	// container.cont = true;
-	// int ind = 0;
-	// for (auto& item:root["items"]){
-	// 	int _value = item["vlaue"].asInt();
-	// 	vector<cv::Point> i_vers;
-
-	//   for (int i=0;i<_container["x"].size();i++){
-	// 	  c_vers.push_back(cv::Point(_container["x"][i].asInt(), _container["y"][i].asInt()));
-	//   }
-	// 	Polygon P = Polygon(c_vers);
-	// 	P.value = _value;
-	// 	P.index = ind;
-	// 	ind++;
-	// 	for (int j=0;j<item["quantity"].asInt();j++){
-	// 		items.push_back(P);
-	// 	}
-		
-	// }
-
-	// type = root["type"].asString();
-	// cout << "-number of items: " << items.size() << endl;
-
-// void Feasible::WriteResult(){
-// 	cout << "--------------------WriteResult--------------------" << endl;
-
-// 	int num_item=0;
-// 	int value_item=0;
-// 	vector<int> item_indices;
-// 	vector<int> x_trans;
-// 	vector<int> y_trans;
-// 	for (auto& item:items){
-// 		if (item.use) {
-// 			num_item++;
-// 			value_item=value_item+item.value;
-// 			item_indices.push_back(item.index);
-// 			x_trans.push_back(item.x_loc);
-// 			y_trans.push_back(item.y_loc);
-// 		}
-// 	}
-// 	string filename;
-// 	filename = instance_name+"_result.json";
-// 	ofstream solution(filename);
-
-// 	solution<<"{\"type\": \"cgshop2024_solution\",\n";
-// 	solution<<"\"instance_name\": \""<< instance_name <<"\",\n";
-// 	solution<<"\"num_included_items\": \""<< num_item <<"\",\n";
-// 	/*
-// 	solution<<"\"total_value\": \""<< value_item <<"\",\n";
-// 	solution<<"\"container\": {\"x\": [";
-// 	for (int i=0;i<container.vers.size();i++){
-// 		if (i<container.vers.size()-1){
-// 			solution<<container.x_vers[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<container.x_vers[i]<<"],\n";
-// 		}
-// 	}
-// 	solution<<"\"y\": [";
-// 	for (int i=0;i<container.vers.size();i++){
-// 		if (i<container.vers.size()-1){
-// 			solution<<container.y_vers[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<container.y_vers[i]<<"]},\n";
-// 		}
-
-// 	}
-// 	solution<<"\"items\": [";
-// 	solution<<"]\n";
-// 	*/
-
-// 	solution<<"\"item_indices\": "<< "[";
-// 	for (int i=0;i<item_indices.size();i++){
-// 		if (i<item_indices.size()-1){
-// 			solution<<item_indices[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<item_indices[i];
-// 		}
-// 	}
-// 	solution<<"],\n";
-
-// 	solution<<"\"x_trans\": "<< "[";
-// 	for (int i=0;i<x_trans.size();i++){
-// 		if (i<x_trans.size()-1){
-// 			solution<<x_trans[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<x_trans[i];
-// 		}
-// 	}
-// 	solution<<"],\n";
-// 	solution<<"\"y_trans\": "<< "[";
-// 	for (int i=0;i<y_trans.size();i++){
-// 		if (i<y_trans.size()-1){
-// 			solution<<y_trans[i]<<", ";
-// 		}
-// 		else{
-// 			solution<<y_trans[i];
-// 		}
-// 	}
-// 	solution<<"],\n";
-//   solution<<"}\n";
-// 	solution.close();
-// }
-
-
-// void Feasible::DrawResult(){
-// 	cout << "--------------------DrawResult--------------------" << endl;
-// 	float xy_max = min(x_max, y_max);
-// 	float ratio = 400./xy_max;
-// 	cv::Mat img(int(ratio*x_max*1.08), int(ratio*y_max*1.08), CV_8UC3, cv::Scalar(255, 255, 255));
-// 	vector<cv::Point> vers;
-// 	for (auto p:container.vers){
-// 		vers.push_back(cv::Point(int(p.x*ratio), int(p.y*ratio)));
-// 	}
-// 	cv::polylines(img, vers, true, cv::Scalar(255, 0, 255), 2);
-
-// 	cv::imwrite("check.bmp", img, vector<int>());
-// }
-
-
