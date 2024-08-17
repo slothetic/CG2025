@@ -328,6 +328,7 @@ Triangle* Instance::find_triangle(int q1, int q2){
 
 MyNum turn(Point p1, Point p2, Point p3){
 	return (p2.x - p1.x) * (p3.y - p1.y)- (p2.y - p1.y) * (p3.x - p1.x);
+	//return (p2.x - p1.x) * (p3.x - p2.x)+ (p2.y - p1.y) * (p3.y - p2.y);
 }
 
 // Polygon::Polygon(){vers.assign(1, cv::Point());x_loc=0;y_loc=0;}
@@ -446,13 +447,21 @@ void Data::WriteData(){
 	for (int i = 1 ; i < inst->boundary.size() ; i++)
 		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
 	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
+	cout<<"Number of Triangles: "<< inst->triangles.size() <<endl;
 	for (Triangle* t : inst->triangles) {
 		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
 		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
-		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+		// if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
+		// 	int_edges.insert(e1);
+		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend)
 			int_edges.insert(e1);
+		if (const_edges.find(e2) == cend && int_edges.find(e2) == iend)
+			int_edges.insert(e2);
+		if (const_edges.find(e3) == cend && int_edges.find(e3) == iend)
+			int_edges.insert(e3);
 	}
 	fout << "  \"edges\": [" << endl;
 	int cnt = 1;
@@ -490,9 +499,18 @@ void Data::DrawResult(){
 
 
 	cv::Mat img(height, width, CV_8UC3, cv::Scalar(255,255,255));
-	for (int i = 0; i < inst->pts.size() ; i++){
-		if (i<inst->fp_ind) cv::circle(img, cv::Point(minw+(int)inst->pts[i].x.toDouble()*rad,minh-(int)inst->pts[i].y.toDouble()*rad),5,cv::Scalar(0,0,0),cv::FILLED);
-		else cv::circle(img, cv::Point(minw+(int)inst->pts[i].x.toDouble()*rad,minh-(int)inst->pts[i].y.toDouble()*rad),5,cv::Scalar(255,0,0),cv::FILLED);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dis(0, 255);
+	for (Triangle* t : inst->triangles) {
+		cv::Point rook_points[1][3]; 
+		rook_points[0][0] = cv::Point(minw+(int)inst->pts[t->p[0]].x.toDouble()*rad, minh-(int)inst->pts[t->p[0]].y.toDouble()*rad); 
+		rook_points[0][1] = cv::Point(minw+(int)inst->pts[t->p[1]].x.toDouble()*rad, minh-(int)inst->pts[t->p[1]].y.toDouble()*rad); 
+		rook_points[0][2] = cv::Point(minw+(int)inst->pts[t->p[2]].x.toDouble()*rad, minh-(int)inst->pts[t->p[2]].y.toDouble()*rad); 
+		const cv::Point* ppt[1] = { rook_points[0] };
+		int npt[] = { 3 };
+		
+		fillPoly(img, ppt, npt, 1, cv::Scalar(dis(gen), dis(gen), dis(gen)), 8);
 	}
 
 	std::set<std::pair<int, int>> const_edges;
@@ -507,22 +525,42 @@ void Data::DrawResult(){
 		cv::line(img, cv::Point(minw+(int)inst->pts[inst->boundary[i-1]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[i-1]].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[inst->boundary[i]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[i]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	}
 	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
-	cout<<"const edges"<<endl;
+	//cout<<"const edges"<<endl;
 	for (std::pair<int, int> e:const_edges)
-		cout<<e.first<<" "<<e.second<<endl;
+		//cout<<e.first<<" "<<e.second<<endl;
 	cv::line(img, cv::Point(minw+(int)inst->pts[inst->boundary[0]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[inst->boundary[inst->boundary.size()-1]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[inst->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
-	cout<<"new edges"<<endl;
+	//cout<<"new edges"<<endl;
 	for (Triangle* t : inst->triangles) {
 		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
 		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
-		if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend){
+		// if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend){
+		// 	int_edges.insert(e1);
+		// 	cv::line(img, cv::Point(minw+(int)inst->pts[e1.first].x.toDouble()*rad,minh-(int)inst->pts[e1.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e1.second].x.toDouble()*rad,minh-(int)inst->pts[e1.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
+		// }
+		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend){
 			int_edges.insert(e1);
-			cout<<e1.first<<" "<<e1.second<<endl;
+			//cout<<e1.first<<" "<<e1.second<<endl;
 			cv::line(img, cv::Point(minw+(int)inst->pts[e1.first].x.toDouble()*rad,minh-(int)inst->pts[e1.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e1.second].x.toDouble()*rad,minh-(int)inst->pts[e1.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
 		}
+		if (const_edges.find(e2) == cend && int_edges.find(e2) == iend){
+			int_edges.insert(e2);
+			//cout<<e1.first<<" "<<e1.second<<endl;
+			cv::line(img, cv::Point(minw+(int)inst->pts[e2.first].x.toDouble()*rad,minh-(int)inst->pts[e2.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e2.second].x.toDouble()*rad,minh-(int)inst->pts[e2.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
+		}
+		if (const_edges.find(e3) == cend && int_edges.find(e3) == iend){
+			int_edges.insert(e3);
+			//cout<<e1.first<<" "<<e1.second<<endl;
+			cv::line(img, cv::Point(minw+(int)inst->pts[e3.first].x.toDouble()*rad,minh-(int)inst->pts[e3.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e3.second].x.toDouble()*rad,minh-(int)inst->pts[e3.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
+		}
 	}
+	for (int i = 0; i < inst->pts.size() ; i++){
+		if (i<inst->fp_ind) cv::circle(img, cv::Point(minw+(int)inst->pts[i].x.toDouble()*rad,minh-(int)inst->pts[i].y.toDouble()*rad),5,cv::Scalar(0,0,0),cv::FILLED);
+		else cv::circle(img, cv::Point(minw+(int)inst->pts[i].x.toDouble()*rad,minh-(int)inst->pts[i].y.toDouble()*rad),5,cv::Scalar(255,0,0),cv::FILLED);
+	}
+
 	cv::imwrite("solutions/" + instance_name + ".solution.png", img);
 }
 
