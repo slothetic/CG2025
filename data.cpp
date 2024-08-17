@@ -501,13 +501,13 @@ void Data::DrawResult(){
 	cv::Mat img(height, width, CV_8UC3, cv::Scalar(255,255,255));
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> dis(0, 255);
+	std::uniform_int_distribution<int> dis(220, 255);
 	for (Triangle* t : inst->triangles) {
-		cv::Point rook_points[1][3]; 
-		rook_points[0][0] = cv::Point(minw+(int)inst->pts[t->p[0]].x.toDouble()*rad, minh-(int)inst->pts[t->p[0]].y.toDouble()*rad); 
-		rook_points[0][1] = cv::Point(minw+(int)inst->pts[t->p[1]].x.toDouble()*rad, minh-(int)inst->pts[t->p[1]].y.toDouble()*rad); 
-		rook_points[0][2] = cv::Point(minw+(int)inst->pts[t->p[2]].x.toDouble()*rad, minh-(int)inst->pts[t->p[2]].y.toDouble()*rad); 
-		const cv::Point* ppt[1] = { rook_points[0] };
+		cv::Point triangle_pt[1][3]; 
+		triangle_pt[0][0] = cv::Point(minw+(int)inst->pts[t->p[0]].x.toDouble()*rad, minh-(int)inst->pts[t->p[0]].y.toDouble()*rad); 
+		triangle_pt[0][1] = cv::Point(minw+(int)inst->pts[t->p[1]].x.toDouble()*rad, minh-(int)inst->pts[t->p[1]].y.toDouble()*rad); 
+		triangle_pt[0][2] = cv::Point(minw+(int)inst->pts[t->p[2]].x.toDouble()*rad, minh-(int)inst->pts[t->p[2]].y.toDouble()*rad); 
+		const cv::Point* ppt[1] = { triangle_pt[0] };
 		int npt[] = { 3 };
 		
 		fillPoly(img, ppt, npt, 1, cv::Scalar(dis(gen), dis(gen), dis(gen)), 8);
