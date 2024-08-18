@@ -240,7 +240,7 @@ void Instance::insert_point(int p_ind) {
 				t->t[(i + 1) % 3] = t1;
 				tt->p[(j + 1) % 3] = p_ind;
 				tt->t[j] = t1;
-				tt->t[(i + 1) % 3] = t2;
+				tt->t[(j + 1) % 3] = t2;
 			}
 			else {
 				t1 = new Triangle(p_ind, t->p[1], t->p[2]);
@@ -317,6 +317,9 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	}
 	if (turn(pts[q1], pts[t->p[(i + 2) % 3]], pts[r]) >= MyNum(0)) {
 		std::cout << "flip tt2" << std::endl;
+		std::cout << pts[tt->p[j]] << std::endl;
+		std::cout << pts[tt->p[(j + 1) % 3]] << std::endl;
+		std::cout << pts[tt->p[(j + 2) % 3]] << std::endl;
 		flip(tt, (j + 2) % 3);
 		return resolve_cross(con, t);
 	}
@@ -348,6 +351,10 @@ void Instance::flip(Triangle* t, int i) {
 	int pi = t->p[(i + 2) % 3];
 	int pj = tt->p[(j + 2) % 3];
 	std::cout << "In flip:" << std::endl;
+	std::cout << t->p[i] << ":" << pts[t->p[i]] << std::endl;
+	std::cout << t->p[(i+1)%3] << ":" << pts[t->p[(i+1)%3]] << std::endl;
+	std::cout << t->p[(i+2)%3] << ":" << pts[t->p[(i+2)%3]] << std::endl;
+	std::cout << "-------------------" << std::endl;
 	std::cout << pts[pi] << std::endl;
 	std::cout << pts[t->p[i]] << std::endl;
 	std::cout << pts[tt->p[j]] << std::endl;
