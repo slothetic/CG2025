@@ -116,8 +116,8 @@ void Instance::triangulate(){
 			insert_point(i);
 			//std::cout << "inserted " << i << ": " << triangles.size() << std::endl;
 		}
-	//for (std::pair<int, int> con : constraints)
-		//resolve_cross(con);
+	for (std::pair<int, int> con : constraints)
+		resolve_cross(con);
 }
 
 void Instance::triangulate_polygon(std::deque<int> polygon){
@@ -316,7 +316,7 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 		return resolve_cross(con, t);
 	}
 	if (turn(pts[q1], pts[t->p[(i + 2) % 3]], pts[r]) >= MyNum(0)) {
-		std::cout << "flip tt" << std::endl;
+		std::cout << "flip tt2" << std::endl;
 		flip(tt, (j + 2) % 3);
 		return resolve_cross(con, t);
 	}
