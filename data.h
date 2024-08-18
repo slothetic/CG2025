@@ -53,6 +53,7 @@ class Instance{
 		void insert_point(int);
 		void resolve_cross(std::pair<int, int>);
 		void resolve_cross(std::pair<int, int>, Triangle*);
+		void flip(Triangle*, int);
 		void ear_cut(Triangle*, int);
 		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
 		void make_non_obtuse();
