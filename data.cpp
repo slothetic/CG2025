@@ -519,7 +519,7 @@ void Data::DrawResult(){
 	std::set<std::pair<int, int>> int_edges;
 	for (std::pair<int, int> e : inst->constraints){
 		const_edges.insert(e);
-		cv::line(img, cv::Point(minw+(int)inst->pts[e.first].x.toDouble()*rad,minh-(int)inst->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e.second].x.toDouble()*rad+20,minh-(int)inst->pts[e.second].y.toDouble()*rad), cv::Scalar(0,0,255), 2);
+		cv::line(img, cv::Point(minw+(int)inst->pts[e.first].x.toDouble()*rad,minh-(int)inst->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e.second].x.toDouble()*rad,minh-(int)inst->pts[e.second].y.toDouble()*rad), cv::Scalar(0,0,255), 2);
 	}
 	cout<<inst->boundary.size()<<endl;
 	for (int i = 1 ; i < inst->boundary.size() ; i++){
