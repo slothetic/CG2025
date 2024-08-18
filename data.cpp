@@ -10,12 +10,11 @@ bool Point::operator==(const Point& _p) {
 	return (this->x == _p.x) && (this->y == _p.y);
 }
 
-<<<<<<< HEAD
 std::ostream& operator<<(std::ostream& out, const Point& _p){
 	out << "(" << _p.x << ", " << _p.y << ")";
 	return out;
 }
-=======
+
 bool Point::operator!=(const Point&_p) {
 	return (this->x != _p.x) || (this->y != _p.y);
 }
@@ -109,11 +108,6 @@ bool Instance::is_in(Triangle *t, Point p){
 void Instance::triangulate(){
 	std::vector<bool> check(pts.size(), false);
 	triangulate_polygon(this->boundary);
-<<<<<<< HEAD
-	//for (Triangle * t : triangles)
-	//	std::cout << t->p[0] << ' ' << t->p[1] << ' ' << t->p[2] << std::endl;
-=======
->>>>>>> c3a05d56a08f5b413fa84dbf5c981792da04ab75
 	//std::cout << boundary.size() << " " << triangles.size() << std::endl;
 	for (int d : boundary)
 		check[d] = true;
@@ -123,11 +117,10 @@ void Instance::triangulate(){
 			//std::cout << "inserted " << i << ": " << triangles.size() << std::endl;
 		}
 	//for (std::pair<int, int> con : constraints)
-	//	resolve_cross(con);
+		//resolve_cross(con);
 }
 
 void Instance::triangulate_polygon(std::deque<int> polygon){
-	std::cout << polygon.size() << std::endl;
 	if (polygon.size() == 3){
 		Triangle *t = new Triangle(polygon[0], polygon[1], polygon[2]);
 		t->t[0] = nullptr;
@@ -137,7 +130,7 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 	}
 	else {
 		int cnt = 0;
-		while(turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]]) > MyNum(0)){
+		while(turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]]) < MyNum(0)){
 			polygon.push_back(polygon[0]);
 			polygon.pop_front();
 			cnt ++;
@@ -147,9 +140,7 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 			}
 		}
 		Triangle *t = new Triangle(polygon[polygon.size() - 1], polygon[0], polygon[1]);
-		std::cout << polygon[polygon.size() - 1] << ' ' << polygon[0] << ' ' << polygon[1] << std::endl;
 		//cout<<pts[polygon[polygon.size() - 1]].x<<","<<pts[polygon[polygon.size() - 1]].y << " " << pts[polygon[0]].x<<","<<pts[polygon[0]].y<<" "<< pts[polygon[1]].x<<","<<pts[polygon[1]].y<<endl;
-		//cout<<turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]])<<endl;
 		t->t[0] = nullptr;
 		t->t[1] = nullptr;
 		t->t[2] = nullptr;
@@ -282,13 +273,8 @@ void Instance::resolve_cross(std::pair<int, int> con) {
 			Point r3 = pts[t->p[(i + 2) % 3]];
 			Point r4 = pts[q2];
 			MyNum ang = angle(r2, r1, r3);
-			while (angle(r2, r1, r4) <= ang && angle(r3, r1, r4) <= ang){
-				t = t->t[i];
-				i = t->get_ind(q1);
-				r2 = pts[t->p[(i + 1) % 3]];
-				r3 = pts[t->p[(i + 2) % 3]];
-				ang = angle(r2, r1, r3);
-			}
+			if (turn(r1, r2, r4) < MyNum(0) || turn(r1, r3, r4) > MyNum(0))
+				continue;
 			if (r2 == r4) {
 				Triangle *tt = t->t[i];
 				t->t[i] = nullptr;
@@ -301,8 +287,11 @@ void Instance::resolve_cross(std::pair<int, int> con) {
 				int j = tt->get_ind(q1);
 				tt->t[j] = nullptr;
 			}
-			else
+			else{
+				std::cout << turn(r1, r2, r4) << std::endl;
+				std::cout << turn(r1, r3, r4) << std::endl;
 				resolve_cross(con, t);
+			}
 			return;
 		}
 	}
@@ -315,6 +304,22 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	Triangle *tt = t->t[(i + 1) % 3];
 	int j = (tt->get_ind(t->p[(i + 1) % 3]) + 1) % 3;
 	int r = tt->p[j];
+	std::cout << "resolving cross" << std::endl;
+	std::cout << pts[q1] << std::endl;
+	std::cout << pts[t->p[(i + 1) % 3]] << std::endl;
+	std::cout << pts[t->p[(i + 2) % 3]] << std::endl;
+	std::cout << pts[r] << std::endl;
+	std::cout << pts[q2] << std::endl;
+	if (turn(pts[q1], pts[t->p[(i + 1) % 3]], pts[r]) <= MyNum(0)) {
+		std::cout << "flip tt" << std::endl;
+		flip(tt, j);
+		return resolve_cross(con, t);
+	}
+	if (turn(pts[q1], pts[t->p[(i + 2) % 3]], pts[r]) >= MyNum(0)) {
+		std::cout << "flip tt" << std::endl;
+		flip(tt, (j + 2) % 3);
+		return resolve_cross(con, t);
+	}
 	Triangle *ti = t->t[(i + 2) % 3];
 	Triangle *tj = tt->t[(j + 2) % 3];
 	t->p[(i + 2) % 3] = r;
@@ -324,6 +329,7 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	if (r==q2) {
 		t->t[(i + 2) % 3] = nullptr;
 		tt->t[(j + 2) % 3] = nullptr;
+		std::cout << "happy~" << std::endl;
 	}
 	else {
 		t->t[(i + 2) % 3] = tt;
@@ -333,6 +339,35 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 		else
 			resolve_cross(con, tt);
 	}
+}
+
+void Instance::flip(Triangle* t, int i) {
+	Triangle* tt = t->t[i];
+	assert(tt);
+	int j = tt->get_ind(t->p[(i + 1) % 3]);
+	int pi = t->p[(i + 2) % 3];
+	int pj = tt->p[(j + 2) % 3];
+	std::cout << "In flip:" << std::endl;
+	std::cout << pts[pi] << std::endl;
+	std::cout << pts[t->p[i]] << std::endl;
+	std::cout << pts[tt->p[j]] << std::endl;
+	std::cout << pts[pj] << std::endl;
+	if (turn(pts[pi], pts[t->p[i]], pts[pj]) <= MyNum(0)){
+		flip(tt, (j + 2) % 3);
+		return flip(t, i);
+	}
+	if (turn(pts[pi], pts[tt->p[j]], pts[pj]) >= MyNum(0)){
+		flip(tt, (j + 1) % 3);
+		return flip(t, i);
+	}
+	Triangle *ti = t->t[(i + 1) % 3];
+	Triangle *tj = t->t[(j + 1) % 3];
+	t->p[(i + 1) % 3] = pj;
+	t->t[i] = tj;
+	t->t[(i + 1) % 3] = tt;
+	tt->p[(j + 1) % 3] = pi;
+	tt->t[j] = ti;
+	tt->t[(j + 1) % 3] = t;
 }
 
 //TODO
@@ -351,91 +386,7 @@ Triangle* Instance::find_triangle(int q1, int q2){
 }
 
 MyNum turn(Point p1, Point p2, Point p3){
-<<<<<<< HEAD
-=======
 	return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
-}
-
-// Polygon::Polygon(){vers.assign(1, cv::Point());x_loc=0;y_loc=0;}
-
-// Polygon::Polygon(vector<cv::Point> _vers){
-// 	vers = _vers;
-// 	x_loc=0;
-// 	y_loc=0;
-// 	for (int i=0;i<vers.size();i++){
-// 		x_vers.push_back(vers[i].x);
-// 		y_vers.push_back(vers[i].y);
-// 	}
-// 	use=false;
-// }
-
-// Polygon::Polygon(vector<int> _x_vers, vector<int> _y_vers){
-// 	x_vers = _x_vers;
-// 	y_vers = _y_vers;
-// 	x_loc=0;
-// 	y_loc=0;
-// 	for (int i=0;i<x_vers.size();i++){
-// 		vers.push_back(cv::Point(x_vers[i], y_vers[i]));
-// 	}
-// 	use=false;
-// }
-
-// Polygon Polygon::make_convex(){
-// 	vector<cv::Point> vers;
-// 	int max_x = 0;
-// 	int max_x_ind = 0;
-// 	for (int i=0;i<this->vers.size();i++){
-// 		if (this->x_vers[i]>max_x){
-// 			max_x = this->x_vers[i];
-// 			max_x_ind = i;
-// 		}
-// 	}
-// 	vers.push_back(this->vers[max_x_ind]);
-// 	for (int i=0;i<this->vers.size();i++){
-// 		int ind = (i+max_x_ind+1)%(this->vers.size());
-// 		if (vers.size()==1){
-// 			vers.push_back(this->vers[ind]);
-// 		}
-// 		else{
-// 			while(is_left(vers[-2], vers[-1], this->vers[ind])) {
-// 				vers.pop_back();
-// 				if (vers.size()==1) break;
-// 			}
-// 			vers.push_back(this->vers[ind]);
-// 		}
-// 	}
-// 	vers.pop_back();
-// 	Polygon newP = Polygon(vers);
-// 	return newP;
-// }
-
-// bool Polygon::intersect(Polygon P){
-// 	return true;	
-// }
->>>>>>> c3a05d56a08f5b413fa84dbf5c981792da04ab75
-
-	//return (p2.x - p1.x) * (p3.y - p1.y)- (p2.y - p1.y) * (p3.x - p1.x);
-	// cout<<p1<<p2<<p3<<endl;
-	// cout<<p3.x - p1.x<<endl;
-	// cout<<p2.y - p1.y<<endl;
-	// cout<<p3.y - p1.y<<endl;
-	// cout<<p2.x - p1.x<<endl;
-	// cout<<(p3.x - p1.x) * (p2.y - p1.y)<<endl;
-	// cout<<(p3.y - p1.y) * (p2.x - p1.x)<<endl;
-	// double p13x = (p3.x-p1.x).toDouble();
-	// double p13y = (p3.y-p1.y).toDouble();
-	// double p12x = (p2.x-p1.x).toDouble();
-	// double p12y = (p2.y-p1.y).toDouble();
-	// double maxp = max({fabs(p13x),fabs(p13y),fabs(p12x),fabs(p12y),1.});
-	// p13x/=maxp;
-	// p13y/=maxp;
-	// p12x/=maxp;
-	// p12y/=maxp;
-	// if (-p13x*p12y+p13y*p12x>0) return MyNum(1);
-	// if (-p13x*p12y+p13y*p12x<0) return MyNum(-1);
-	// else return MyNum(0);
-	//return MyNum(-p13x*p12y+p13y*p12x);
-	return -(p3.x - p1.x) * (p2.y - p1.y)+(p3.y - p1.y) * (p2.x - p1.x);
 }
 
 void Data::ReadData(){

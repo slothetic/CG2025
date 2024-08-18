@@ -48,7 +48,7 @@ MyNum MyNum::operator*(const MyNum& _n){
 	long long int nden, nnum;
 	nden = this->den * _n.den;
 	nnum = this->num * _n.num;
-	//std::cout<<this->den<<"/"<<this->num<<" * "<<_n.den<<"/"<<_n.num<<" = "<<nden<<"/"<<nnum<<std::endl;
+//	std::cout<<this->den<<"/"<<this->num<<" * "<<_n.den<<"/"<<_n.num<<" = "<<nden<<"/"<<nnum<<std::endl;
 	return MyNum(nden, nnum);
 }
 
