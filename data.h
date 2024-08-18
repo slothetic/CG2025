@@ -38,6 +38,7 @@ class Triangle{
 
 class Instance{
 	public:
+		string instance_name;
 		int fp_ind; //fixed points
 		std::vector<Point> pts;
 		std::deque<int> boundary; //CCW
@@ -59,6 +60,7 @@ class Instance{
 		void make_non_obtuse();
 		void update_boundary();
 		void update_constraints();
+		void DrawResult(string);
 };
 
 MyNum turn(Point, Point, Point); // if CCw, >0 / if CW, <0 / if colinear, ==0
