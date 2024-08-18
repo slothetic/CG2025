@@ -48,6 +48,7 @@ MyNum MyNum::operator*(const MyNum& _n){
 	long long int nden, nnum;
 	nden = this->den * _n.den;
 	nnum = this->num * _n.num;
+	//std::cout<<this->den<<"/"<<this->num<<" * "<<_n.den<<"/"<<_n.num<<" = "<<nden<<"/"<<nnum<<std::endl;
 	return MyNum(nden, nnum);
 }
 
@@ -103,8 +104,8 @@ double MyNum::toDouble(){
 void MyNum::abbr(){
 	bool sgn = this->den * this->num > 0;
 	long long int n1, n2, tmp;
-	n1 = abs(this->den);
-	n2 = abs(this->num);
+	n1 = llabs(this->den);
+	n2 = llabs(this->num);
 	while(n1 % n2 != 0){
 		n1 %= n2;
 		tmp = n2;
@@ -113,7 +114,7 @@ void MyNum::abbr(){
 	}
 	this->den /= n2;
 	this->num /= n2;
-	this->den = sgn ? abs(this->den) : -abs(this->den);
-	this->num = abs(this->num);
+	this->den = sgn ? llabs(this->den) : -llabs(this->den);
+	this->num = llabs(this->num);
 }
 

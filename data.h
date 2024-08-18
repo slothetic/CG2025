@@ -21,6 +21,7 @@ class Point{
 		Point(MyNum, MyNum);
 		bool operator==(const Point&);
 		bool operator!=(const Point&);
+		friend std::ostream& operator<<(std::ostream&, const Point&);
 };
 
 MyNum angle(Point, Point, Point);

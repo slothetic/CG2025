@@ -10,10 +10,17 @@ bool Point::operator==(const Point& _p) {
 	return (this->x == _p.x) && (this->y == _p.y);
 }
 
+<<<<<<< HEAD
+std::ostream& operator<<(std::ostream& out, const Point& _p){
+	out << "(" << _p.x << ", " << _p.y << ")";
+	return out;
+}
+=======
 bool Point::operator!=(const Point&_p) {
 	return (this->x != _p.x) || (this->y != _p.y);
 }
 
+>>>>>>> c3a05d56a08f5b413fa84dbf5c981792da04ab75
 
 MyNum angle(Point p1, Point p2, Point p3){
 	assert(p1 != p2);
@@ -103,6 +110,11 @@ bool Instance::is_in(Triangle *t, Point p){
 void Instance::triangulate(){
 	std::vector<bool> check(pts.size(), false);
 	triangulate_polygon(this->boundary);
+<<<<<<< HEAD
+	//for (Triangle * t : triangles)
+	//	std::cout << t->p[0] << ' ' << t->p[1] << ' ' << t->p[2] << std::endl;
+=======
+>>>>>>> c3a05d56a08f5b413fa84dbf5c981792da04ab75
 	//std::cout << boundary.size() << " " << triangles.size() << std::endl;
 	for (int d : boundary)
 		check[d] = true;
@@ -136,6 +148,9 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 			}
 		}
 		Triangle *t = new Triangle(polygon[polygon.size() - 1], polygon[0], polygon[1]);
+		std::cout << polygon[polygon.size() - 1] << ' ' << polygon[0] << ' ' << polygon[1] << std::endl;
+		//cout<<pts[polygon[polygon.size() - 1]].x<<","<<pts[polygon[polygon.size() - 1]].y << " " << pts[polygon[0]].x<<","<<pts[polygon[0]].y<<" "<< pts[polygon[1]].x<<","<<pts[polygon[1]].y<<endl;
+		//cout<<turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]])<<endl;
 		t->t[0] = nullptr;
 		t->t[1] = nullptr;
 		t->t[2] = nullptr;
@@ -337,6 +352,8 @@ Triangle* Instance::find_triangle(int q1, int q2){
 }
 
 MyNum turn(Point p1, Point p2, Point p3){
+<<<<<<< HEAD
+=======
 	return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
 
@@ -396,7 +413,31 @@ MyNum turn(Point p1, Point p2, Point p3){
 // bool Polygon::intersect(Polygon P){
 // 	return true;	
 // }
+>>>>>>> c3a05d56a08f5b413fa84dbf5c981792da04ab75
 
+	//return (p2.x - p1.x) * (p3.y - p1.y)- (p2.y - p1.y) * (p3.x - p1.x);
+	// cout<<p1<<p2<<p3<<endl;
+	// cout<<p3.x - p1.x<<endl;
+	// cout<<p2.y - p1.y<<endl;
+	// cout<<p3.y - p1.y<<endl;
+	// cout<<p2.x - p1.x<<endl;
+	// cout<<(p3.x - p1.x) * (p2.y - p1.y)<<endl;
+	// cout<<(p3.y - p1.y) * (p2.x - p1.x)<<endl;
+	// double p13x = (p3.x-p1.x).toDouble();
+	// double p13y = (p3.y-p1.y).toDouble();
+	// double p12x = (p2.x-p1.x).toDouble();
+	// double p12y = (p2.y-p1.y).toDouble();
+	// double maxp = max({fabs(p13x),fabs(p13y),fabs(p12x),fabs(p12y),1.});
+	// p13x/=maxp;
+	// p13y/=maxp;
+	// p12x/=maxp;
+	// p12y/=maxp;
+	// if (-p13x*p12y+p13y*p12x>0) return MyNum(1);
+	// if (-p13x*p12y+p13y*p12x<0) return MyNum(-1);
+	// else return MyNum(0);
+	//return MyNum(-p13x*p12y+p13y*p12x);
+	return -(p3.x - p1.x) * (p2.y - p1.y)+(p3.y - p1.y) * (p2.x - p1.x);
+}
 
 void Data::ReadData(){
 	cout << "--------------------ReadData--------------------" << endl;
@@ -504,8 +545,9 @@ void Data::DrawResult(){
 	float rad = 1000./width;
 	width = (int)width*rad+40;
 	height = (int)height*rad+40;
-	int minw = 20;
-	int minh = height-(int)miny.toDouble()*rad+20;
+	int minw = 20-(int)minx.toDouble()*rad;
+	int minh = height+(int)miny.toDouble()*rad-20;
+	//cout<<"miny: "<<miny<<" maxy:" <<maxy<< " minh: "<<minh<<endl;
 
 
 	cv::Mat img(height, width, CV_8UC3, cv::Scalar(255,255,255));
@@ -566,3 +608,62 @@ void Data::DrawResult(){
 
 	cv::imwrite("solutions/" + instance_name + ".solution.png", img);
 }
+
+
+// Polygon::Polygon(){vers.assign(1, cv::Point());x_loc=0;y_loc=0;}
+
+// Polygon::Polygon(vector<cv::Point> _vers){
+// 	vers = _vers;
+// 	x_loc=0;
+// 	y_loc=0;
+// 	for (int i=0;i<vers.size();i++){
+// 		x_vers.push_back(vers[i].x);
+// 		y_vers.push_back(vers[i].y);
+// 	}
+// 	use=false;
+// }
+
+// Polygon::Polygon(vector<int> _x_vers, vector<int> _y_vers){
+// 	x_vers = _x_vers;
+// 	y_vers = _y_vers;
+// 	x_loc=0;
+// 	y_loc=0;
+// 	for (int i=0;i<x_vers.size();i++){
+// 		vers.push_back(cv::Point(x_vers[i], y_vers[i]));
+// 	}
+// 	use=false;
+// }
+
+// Polygon Polygon::make_convex(){
+// 	vector<cv::Point> vers;
+// 	int max_x = 0;
+// 	int max_x_ind = 0;
+// 	for (int i=0;i<this->vers.size();i++){
+// 		if (this->x_vers[i]>max_x){
+// 			max_x = this->x_vers[i];
+// 			max_x_ind = i;
+// 		}
+// 	}
+// 	vers.push_back(this->vers[max_x_ind]);
+// 	for (int i=0;i<this->vers.size();i++){
+// 		int ind = (i+max_x_ind+1)%(this->vers.size());
+// 		if (vers.size()==1){
+// 			vers.push_back(this->vers[ind]);
+// 		}
+// 		else{
+// 			while(is_left(vers[-2], vers[-1], this->vers[ind])) {
+// 				vers.pop_back();
+// 				if (vers.size()==1) break;
+// 			}
+// 			vers.push_back(this->vers[ind]);
+// 		}
+// 	}
+// 	vers.pop_back();
+// 	Polygon newP = Polygon(vers);
+// 	return newP;
+// }
+
+// bool Polygon::intersect(Polygon P){
+// 	return true;	
+// }
+

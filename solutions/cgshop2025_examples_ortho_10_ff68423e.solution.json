@@ -1,0 +1,17 @@
+{
+  "content_type": "CG_SHOP_2025_Solution",
+  "instance_uid": "cgshop2025_examples_ortho_10_ff68423e",
+  "steiner_point_x": [],
+  "steiner_point_y": [],
+  "edges": [
+    [2, 4],
+    [4, 6],
+    [4, 7],
+    [7, 4],
+    [8, 1],
+    [8, 2],
+    [8, 4],
+    [9, 0],
+    [9, 1]
+  ]
+}
