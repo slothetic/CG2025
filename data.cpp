@@ -229,11 +229,17 @@ void Instance::insert_point(int p_ind) {
 					j = 2;
 				t1 = new Triangle(p_ind, t->p[(i + 1) % 3], t->p[(i + 2) % 3]);
 				t1->t[0] = tt;
-				t1->t[1] = t->t[(i + 1) % 3];
+				Triangle *ti = t->t[(i + 1) % 3];
+				t1->t[1] = ti;
+				if (ti)
+					ti->t[ti->get_ind(t1->p[2])] = t1;
 				t1->t[2] = t;
 				t2 = new Triangle(p_ind, tt->p[(j + 1) % 3], tt->p[(j + 2) % 3]);
 				t2->t[0] = t;
-				t2->t[1] = tt->t[(j + 1) % 3];
+				Triangle *tj = tt->t[(j + 1) % 3];
+				t2->t[1] = tj;
+				if (tj)
+					tj->t[tj->get_ind(t2->p[2])] = t2;
 				t2->t[2] = tt;
 				t->p[(i + 1) % 3] = p_ind;
 				t->t[i] = t2;
@@ -244,9 +250,15 @@ void Instance::insert_point(int p_ind) {
 			}
 			else {
 				t1 = new Triangle(p_ind, t->p[1], t->p[2]);
-				t1->t[1] = t->t[1];
+				Triangle *tt1 = t->t[1];
+				t1->t[1] = tt1;
+				if (tt1)
+					tt1->t[tt1->get_ind(t->p[2])] = t1;
 				t2 = new Triangle(p_ind, t->p[2], t->p[0]);
-				t2->t[1] = t->t[2];
+				Triangle *tt2 = t->t[2];
+				t2->t[1] = tt2;
+				if (tt2)
+					tt2->t[tt2->get_ind(t->p[0])] = t2;
 				t->p[2] = p_ind;
 				t->t[1] = t1;
 				t->t[2] = t2;
@@ -317,9 +329,9 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	}
 	if (turn(pts[q1], pts[t->p[(i + 2) % 3]], pts[r]) >= MyNum(0)) {
 		std::cout << "flip tt2" << std::endl;
-		std::cout << pts[tt->p[j]] << std::endl;
-		std::cout << pts[tt->p[(j + 1) % 3]] << std::endl;
-		std::cout << pts[tt->p[(j + 2) % 3]] << std::endl;
+		//std::cout << pts[tt->p[j]] << std::endl;
+		//std::cout << pts[tt->p[(j + 1) % 3]] << std::endl;
+		//std::cout << pts[tt->p[(j + 2) % 3]] << std::endl;
 		flip(tt, (j + 2) % 3);
 		return resolve_cross(con, t);
 	}
@@ -327,8 +339,12 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	Triangle *tj = tt->t[(j + 2) % 3];
 	t->p[(i + 2) % 3] = r;
 	t->t[(i + 1) % 3] = tj;
+	if (tj)
+		tj->t[tj->get_ind(r)] = t;
 	tt->p[(j + 2) % 3] = q1;
 	tt->t[(j + 1) % 3] = ti;
+	if (ti)
+		ti->t[ti->get_ind(q1)] = tt;
 	if (r==q2) {
 		t->t[(i + 2) % 3] = nullptr;
 		tt->t[(j + 2) % 3] = nullptr;
@@ -351,13 +367,9 @@ void Instance::flip(Triangle* t, int i) {
 	int pi = t->p[(i + 2) % 3];
 	int pj = tt->p[(j + 2) % 3];
 	std::cout << "In flip:" << std::endl;
-	std::cout << t->p[i] << ":" << pts[t->p[i]] << std::endl;
-	std::cout << t->p[(i+1)%3] << ":" << pts[t->p[(i+1)%3]] << std::endl;
-	std::cout << t->p[(i+2)%3] << ":" << pts[t->p[(i+2)%3]] << std::endl;
-	std::cout << "-------------------" << std::endl;
-	std::cout << pts[pi] << std::endl;
-	std::cout << pts[t->p[i]] << std::endl;
-	std::cout << pts[tt->p[j]] << std::endl;
+	std::cout << pts[t->p[(i+2)%3]] << std::endl;
+	std::cout << pts[t->p[(i+3)%3]] << std::endl;
+	std::cout << pts[t->p[(i+1)%3]] << std::endl;
 	std::cout << pts[pj] << std::endl;
 	if (turn(pts[pi], pts[t->p[i]], pts[pj]) <= MyNum(0)){
 		flip(tt, (j + 2) % 3);
@@ -371,9 +383,13 @@ void Instance::flip(Triangle* t, int i) {
 	Triangle *tj = t->t[(j + 1) % 3];
 	t->p[(i + 1) % 3] = pj;
 	t->t[i] = tj;
+	if (tj)
+		tj->t[tj->get_ind(pj)] = t;
 	t->t[(i + 1) % 3] = tt;
 	tt->p[(j + 1) % 3] = pi;
 	tt->t[j] = ti;
+	if (ti)
+		ti->t[ti->get_ind(pi)] = tt;
 	tt->t[(j + 1) % 3] = t;
 }
 
