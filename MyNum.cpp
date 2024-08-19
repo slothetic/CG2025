@@ -1,6 +1,8 @@
 #include "MyNum.h"
 #include <cassert>
 #include <cstdlib>
+#include <cmath>
+#define EPS 10e-6
 
 MyNum::MyNum(){
 	this->den = 0;
@@ -69,23 +71,39 @@ bool MyNum::operator!=(const MyNum& _n){
 }
 
 bool MyNum::operator<(const MyNum& _n){
-	MyNum tmp = *this - _n;
-	return tmp.den < 0;
+	double dtmp = to_Double(*this) - to_Double(_n);
+	if (fabs(dtmp) < EPS) {
+		MyNum tmp = *this - _n;
+		return tmp.den < 0;
+	}
+	return dtmp < 0;
 }
 
 bool MyNum::operator>(const MyNum& _n){
-	MyNum tmp = *this - _n;
-	return tmp.den > 0;
+	double dtmp = to_Double(*this) - to_Double(_n);
+	if (fabs(dtmp) < EPS) {
+		MyNum tmp = *this - _n;
+		return tmp.den > 0;
+	}
+	return dtmp > 0;
 }
 
 bool MyNum::operator<=(const MyNum& _n){
-	MyNum tmp = *this - _n;
-	return tmp.den <= 0;
+	double dtmp = to_Double(*this) - to_Double(_n);
+	if (fabs(dtmp) < EPS) {
+		MyNum tmp = *this - _n;
+		return tmp.den <= 0;
+	}
+	return dtmp <= 0;
 }
 
 bool MyNum::operator>=(const MyNum& _n){
-	MyNum tmp = *this - _n;
-	return tmp.den >= 0;
+	double dtmp = to_Double(*this) - to_Double(_n);
+	if (fabs(dtmp) < EPS) {
+		MyNum tmp = *this - _n;
+		return tmp.den >= 0;
+	}
+	return dtmp >= 0;
 }
 
 std::ostream& operator<<(std::ostream& out, const MyNum& _n){
@@ -95,6 +113,7 @@ std::ostream& operator<<(std::ostream& out, const MyNum& _n){
 		out << "\"" << _n.den << "/" << _n.num << "\"";
 	return out;
 }
+
 
 double MyNum::toDouble(){
 	double d = this->den;
@@ -106,15 +125,20 @@ void MyNum::abbr(){
 	long long int n1, n2, tmp;
 	n1 = llabs(this->den);
 	n2 = llabs(this->num);
-	while(n1 % n2 != 0){
-		n1 %= n2;
+	while(lldiv(n1, n2).rem != 0){
+		n1 = lldiv(n1, n2).rem;
 		tmp = n2;
 		n2 = n1;
 		n1 = tmp;
 	}
-	this->den /= n2;
-	this->num /= n2;
+	this->den = lldiv(this->den, n2).quot;
+	this->num = lldiv(this->num, n2).quot;
 	this->den = sgn ? llabs(this->den) : -llabs(this->den);
 	this->num = llabs(this->num);
 }
 
+
+double to_Double(MyNum n){
+	double d = n.den;
+	return d / n.num;
+}

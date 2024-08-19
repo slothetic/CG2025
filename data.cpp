@@ -23,13 +23,25 @@ bool Point::operator!=(const Point&_p) {
 MyNum angle(Point p1, Point p2, Point p3){
 	assert(p1 != p2);
 	assert(p2 != p3);
+	std::cout << p1 << std::endl;
+	std::cout << p2 << std::endl;
+	std::cout << p3 << std::endl;
 	MyNum p12x = p2.x-p1.x;
 	MyNum p12y = p2.y-p1.y;
 	MyNum p23x = p2.x-p3.x;
 	MyNum p23y = p2.y-p3.y;
+	std::cout << p12x << std::endl;
+	std::cout << p12y << std::endl;
+	std::cout << p23x << std::endl;
+	std::cout << p23y << std::endl;
 	MyNum ab = p12x * p23x + p12y * p23y;
 	MyNum a = p12x * p12x + p12y * p12y;
 	MyNum b = p23x * p23x + p23y * p23y;
+	std::cout << ab << std::endl;
+	std::cout << a << std::endl;
+	std::cout << b << std::endl;
+	std::cout << ab * ab << std::endl;
+	std::cout << a * b << std::endl;
 	return (ab.den >= 0) ? - ab * ab / a / b : ab * ab / a / b;
 }
 
@@ -134,15 +146,9 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 		triangles.insert(t);
 	}
 	else {
-		int cnt = 0;
 		while(turn(pts[polygon[polygon.size() - 1]], pts[polygon[0]], pts[polygon[1]]) < MyNum(0)){
 			polygon.push_back(polygon[0]);
 			polygon.pop_front();
-			cnt ++;
-			if (cnt == polygon.size()) {
-				for (int d : polygon) 
-					std::cout << d << ": (" << pts[d].x << ", " << pts[d].y << ")" << std::endl; 
-			}
 		}
 		Triangle *t = new Triangle(polygon[polygon.size() - 1], polygon[0], polygon[1]);
 		//cout<<pts[polygon[polygon.size() - 1]].x<<","<<pts[polygon[polygon.size() - 1]].y << " " << pts[polygon[0]].x<<","<<pts[polygon[0]].y<<" "<< pts[polygon[1]].x<<","<<pts[polygon[1]].y<<endl;
@@ -307,6 +313,7 @@ void Instance::resolve_cross(std::pair<int, int> con) {
 			else{
 				std::cout << turn(r1, r2, r4) << std::endl;
 				std::cout << turn(r1, r3, r4) << std::endl;
+				std::cout << std::endl;
 				resolve_cross(con, t);
 			}
 			return;
@@ -321,11 +328,19 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	Triangle *tt = t->t[(i + 1) % 3];
 	int j = (tt->get_ind(t->p[(i + 1) % 3]) + 1) % 3;
 	int r = tt->p[j];
+	std::cout << "resolving cross" << std::endl;
+	std::cout << pts[q1] << std::endl;
+	std::cout << pts[t->p[(i+1) % 3]] << std::endl;
+	std::cout << pts[t->p[(i+2) % 3]] << std::endl;
+	std::cout << pts[r] << std::endl;
+	std::cout << pts[q2] << std::endl;
 	if (turn(pts[q1], pts[t->p[(i + 1) % 3]], pts[r]) <= MyNum(0)) {
+		std::cout << "flip tt1" << std::endl;
 		flip(tt, j);
 		return resolve_cross(con, t);
 	}
 	if (turn(pts[q1], pts[t->p[(i + 2) % 3]], pts[r]) >= MyNum(0)) {
+		std::cout << "flip tt2" << std::endl;
 		//std::cout << pts[tt->p[j]] << std::endl;
 		//std::cout << pts[tt->p[(j + 1) % 3]] << std::endl;
 		//std::cout << pts[tt->p[(j + 2) % 3]] << std::endl;
@@ -349,10 +364,13 @@ void Instance::resolve_cross(std::pair<int, int> con, Triangle* t) {
 	else {
 		t->t[(i + 2) % 3] = tt;
 		tt->t[(j + 2) % 3] = t;
-		if (angle(pts[q2], pts[q1], pts[t->p[(i + 1) % 3]]) < angle(pts[r], pts[q1], pts[t->p[(i + 1) % 3]]))
+		std::cout << angle(pts[q2], pts[q1], pts[t->p[(i + 1) % 3]]) - angle(pts[r], pts[q1], pts[t->p[(i + 1) % 3]]) << std::endl;
+		if (angle(pts[q2], pts[q1], pts[t->p[(i + 1) % 3]]) < angle(pts[r], pts[q1], pts[t->p[(i + 1) % 3]])) {
 			resolve_cross(con, t);
-		else
+		}
+		else {
 			resolve_cross(con, tt);
+		}
 	}
 }
 
@@ -363,11 +381,18 @@ void Instance::flip(Triangle* t, int i) {
 	int j = tt->get_ind(t->p[(i + 1) % 3]);
 	int pi = t->p[(i + 2) % 3];
 	int pj = tt->p[(j + 2) % 3];
+	std::cout << "In flip:" << std::endl;
+	std::cout << pts[pi] << std::endl;
+	std::cout << pts[t->p[i]] << std::endl;
+	std::cout << pts[tt->p[j]] << std::endl;
+	std::cout << pts[pj] << std::endl;
 	if (turn(pts[pi], pts[t->p[i]], pts[pj]) <= MyNum(0)){
+		std::cout << "flip ttt1" << std::endl;
 		flip(tt, (j + 2) % 3);
 		return flip(t, i);
 	}
 	if (turn(pts[pi], pts[tt->p[j]], pts[pj]) >= MyNum(0)){
+		std::cout << "flip ttt2" << std::endl;
 		flip(tt, (j + 1) % 3);
 		return flip(t, i);
 	}
