@@ -121,7 +121,8 @@ void Instance::triangulate(){
 	for (std::pair<int, int> con : constraints){
 		i++;
 		resolve_cross(con);
-		//DrawResult(std::to_string(i));
+		if (i<10)
+			DrawResult(std::to_string(i));
 	}
 }
 
