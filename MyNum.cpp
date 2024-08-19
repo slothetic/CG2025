@@ -71,39 +71,39 @@ bool MyNum::operator!=(const MyNum& _n){
 }
 
 bool MyNum::operator<(const MyNum& _n){
-	double dtmp = to_Double(*this) - to_Double(_n);
-	if (fabs(dtmp) < EPS) {
+	//double dtmp = to_Double(*this) - to_Double(_n);
+	//if (fabs(dtmp) < EPS) {
 		MyNum tmp = *this - _n;
 		return tmp.den < 0;
-	}
-	return dtmp < 0;
+	//}
+	//return dtmp < 0;
 }
 
 bool MyNum::operator>(const MyNum& _n){
-	double dtmp = to_Double(*this) - to_Double(_n);
-	if (fabs(dtmp) < EPS) {
+	//double dtmp = to_Double(*this) - to_Double(_n);
+	//if (fabs(dtmp) < EPS) {
 		MyNum tmp = *this - _n;
 		return tmp.den > 0;
-	}
-	return dtmp > 0;
+	//}
+	//return dtmp > 0;
 }
 
 bool MyNum::operator<=(const MyNum& _n){
-	double dtmp = to_Double(*this) - to_Double(_n);
-	if (fabs(dtmp) < EPS) {
+	//double dtmp = to_Double(*this) - to_Double(_n);
+	//if (fabs(dtmp) < EPS) {
 		MyNum tmp = *this - _n;
 		return tmp.den <= 0;
-	}
-	return dtmp <= 0;
+	//}
+	//return dtmp <= 0;
 }
 
 bool MyNum::operator>=(const MyNum& _n){
-	double dtmp = to_Double(*this) - to_Double(_n);
-	if (fabs(dtmp) < EPS) {
+	//double dtmp = to_Double(*this) - to_Double(_n);
+	//if (fabs(dtmp) < EPS) {
 		MyNum tmp = *this - _n;
 		return tmp.den >= 0;
-	}
-	return dtmp >= 0;
+	//}
+	//return dtmp >= 0;
 }
 
 std::ostream& operator<<(std::ostream& out, const MyNum& _n){
