@@ -128,12 +128,12 @@ void Instance::triangulate(){
 			insert_point(i);
 			//std::cout << "inserted " << i << ": " << triangles.size() << std::endl;
 		}
-	int i=0;
-	DrawResult(std::to_string(i));
+	//int i=0;
+	//DrawResult(std::to_string(i));
 	for (std::pair<int, int> con : constraints){
-		i++;
+		//i++;
 		resolve_cross(con);
-		DrawResult(std::to_string(i));
+		//DrawResult(std::to_string(i));
 	}
 }
 
@@ -311,9 +311,9 @@ void Instance::resolve_cross(std::pair<int, int> con) {
 				tt->t[j] = nullptr;
 			}
 			else{
-				std::cout << turn(r1, r2, r4) << std::endl;
-				std::cout << turn(r1, r3, r4) << std::endl;
-				std::cout << "--------------------------------------------" << std::endl;
+				// std::cout << turn(r1, r2, r4) << std::endl;
+				// std::cout << turn(r1, r3, r4) << std::endl;
+				// std::cout << "--------------------------------------------" << std::endl;
 				resolve_cross(con, t);
 			}
 			return;
@@ -392,11 +392,11 @@ void Instance::flip(Triangle* t, int i) {
 	int j = tt->get_ind(t->p[(i + 1) % 3]);
 	int pi = t->p[(i + 2) % 3];
 	int pj = tt->p[(j + 2) % 3];
-	std::cout << "In flip:" << std::endl;
-	std::cout << pts[pi] << std::endl;
-	std::cout << pts[t->p[i]] << std::endl;
-	std::cout << pts[tt->p[j]] << std::endl;
-	std::cout << pts[pj] << std::endl;
+	// std::cout << "In flip:" << std::endl;
+	// std::cout << pts[pi] << std::endl;
+	// std::cout << pts[t->p[i]] << std::endl;
+	// std::cout << pts[tt->p[j]] << std::endl;
+	// std::cout << pts[pj] << std::endl;
 	if (turn(pts[pi], pts[t->p[i]], pts[pj]) > MyNum(0) && turn(pts[pi], pts[tt->p[j]], pts[pj]) < MyNum(0)) {
 		Triangle *ti = t->t[(i + 1) % 3];
 		Triangle *tj = tt->t[(j + 1) % 3];
@@ -410,16 +410,16 @@ void Instance::flip(Triangle* t, int i) {
 		if (ti)
 			ti->t[ti->get_ind(pi)] = tt;
 		tt->t[(j + 1) % 3] = t;
-		std::cout << "flip done" << std::endl;
+		// std::cout << "flip done" << std::endl;
 		return;
 	}
 	if (turn(pts[pi], pts[t->p[i]], pts[pj]) <= MyNum(0)){
-		std::cout << "right" << std::endl;
+		// std::cout << "right" << std::endl;
 		Triangle *ttt = tt->t[(j + 2) % 3];
 		int k = (ttt->get_ind(tt->p[j]) + 2) % 3;
 		int pk = ttt->p[k];
 		if (turn(pts[pi], pts[tt->p[j]], pts[pk]) >= MyNum(0)) {
-			std::cout << "right-left" << std::endl;
+			// std::cout << "right-left" << std::endl;
 			flip(ttt, (k + 2) % 3);
 		}
 		else
@@ -427,12 +427,12 @@ void Instance::flip(Triangle* t, int i) {
 		return flip(t, i);
 	}
 	else {
-		std::cout << "left" << std::endl;
+		// std::cout << "left" << std::endl;
 		Triangle *ttt = tt->t[(j + 1) % 3];
 		int k = (ttt->get_ind(tt->p[(j + 2) % 3]) + 2) % 3;
 		int pk = ttt->p[k];
 		if (turn(pts[pi], pts[t->p[i]], pts[pk]) <= MyNum(0)) {
-			std::cout << "left-right" << std::endl;
+			// std::cout << "left-right" << std::endl;
 			flip(ttt, k);
 		}
 		else
