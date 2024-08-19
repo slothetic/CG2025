@@ -64,6 +64,7 @@ class Instance{
 };
 
 MyNum turn(Point, Point, Point); // if CCw, >0 / if CW, <0 / if colinear, ==0
+std::pair<int, int> sorted_pair(int, int);
 
 // class Polygon{
 // 	public:

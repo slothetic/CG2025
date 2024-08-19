@@ -117,14 +117,12 @@ void Instance::triangulate(){
 			//std::cout << "inserted " << i << ": " << triangles.size() << std::endl;
 		}
 	int i=0;
-	//DrawResult(std::to_string(i));
+	DrawResult(std::to_string(i));
 	for (std::pair<int, int> con : constraints){
 		i++;
 		resolve_cross(con);
-		//if (i<10)
-		//	DrawResult(std::to_string(i));
+		DrawResult(std::to_string(i));
 	}
-	DrawResult("");
 }
 
 void Instance::triangulate_polygon(std::deque<int> polygon){
@@ -406,6 +404,10 @@ MyNum turn(Point p1, Point p2, Point p3){
 	return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
 
+std::pair<int, int> sorted_pair(int a, int b) {
+	return (a > b) ? std::make_pair(b, a) : std::make_pair(a, b); 
+}
+
 void Data::ReadData(){
 	cout << "--------------------ReadData--------------------" << endl;
 	Json::Value root;
@@ -461,16 +463,16 @@ void Data::WriteData(){
 	std::set<std::pair<int, int>> const_edges;
 	std::set<std::pair<int, int>> int_edges;
 	for (std::pair<int, int> e : inst->constraints){
-		const_edges.insert(e);
+		const_edges.insert(sorted_pair(e.first, e.second));
 	}
 	for (int i = 1 ; i < inst->boundary.size() ; i++)
-		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
-	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
+		const_edges.insert(sorted_pair(inst->boundary[i-1], inst->boundary[i]));
+	const_edges.insert(sorted_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
 	cout<<"Number of Triangles: "<< inst->triangles.size() <<endl;
 	for (Triangle* t : inst->triangles) {
-		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
-		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
-		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
+		std::pair<int, int> e1 = sorted_pair(t->p[0], t->p[1]);
+		std::pair<int, int> e2 = sorted_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = sorted_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
 		// if (const_edges.find(e1) == cend && const_edges.find(e2) == cend && int_edges.find(e1) == iend && int_edges.find(e2) == iend)
@@ -536,24 +538,24 @@ void Data::DrawResult(){
 	std::set<std::pair<int, int>> const_edges;
 	std::set<std::pair<int, int>> int_edges;
 	for (std::pair<int, int> e : inst->constraints){
-		const_edges.insert(e);
+		const_edges.insert(sorted_pair(e.first, e.second));
 		cv::line(img, cv::Point(minw+(int)inst->pts[e.first].x.toDouble()*rad,minh-(int)inst->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[e.second].x.toDouble()*rad,minh-(int)inst->pts[e.second].y.toDouble()*rad), cv::Scalar(0,0,255), 2);
 	}
 	cout<<inst->boundary.size()<<endl;
 	for (int i = 1 ; i < inst->boundary.size() ; i++){
-		const_edges.insert(std::make_pair(inst->boundary[i-1], inst->boundary[i]));
+		const_edges.insert(sorted_pair(inst->boundary[i-1], inst->boundary[i]));
 		cv::line(img, cv::Point(minw+(int)inst->pts[inst->boundary[i-1]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[i-1]].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[inst->boundary[i]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[i]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	}
-	const_edges.insert(std::make_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
+	const_edges.insert(sorted_pair(inst->boundary[0], inst->boundary[inst->boundary.size()-1]));
 	//cout<<"const edges"<<endl;
-	for (std::pair<int, int> e:const_edges)
+	//for (std::pair<int, int> e:const_edges)
 		//cout<<e.first<<" "<<e.second<<endl;
 	cv::line(img, cv::Point(minw+(int)inst->pts[inst->boundary[0]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)inst->pts[inst->boundary[inst->boundary.size()-1]].x.toDouble()*rad,minh-(int)inst->pts[inst->boundary[inst->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	//cout<<"new edges"<<endl;
 	for (Triangle* t : inst->triangles) {
-		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
-		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
-		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
+		std::pair<int, int> e1 = sorted_pair(t->p[0], t->p[1]);
+		std::pair<int, int> e2 = sorted_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = sorted_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
 		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend){
@@ -617,24 +619,24 @@ void Instance::DrawResult(string s){
 	std::set<std::pair<int, int>> const_edges;
 	std::set<std::pair<int, int>> int_edges;
 	for (std::pair<int, int> e : this->constraints){
-		const_edges.insert(e);
+		const_edges.insert(sorted_pair(e.first, e.second));
 		cv::line(img, cv::Point(minw+(int)this->pts[e.first].x.toDouble()*rad,minh-(int)this->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)this->pts[e.second].x.toDouble()*rad,minh-(int)this->pts[e.second].y.toDouble()*rad), cv::Scalar(0,0,255), 2);
 	}
 	cout<<this->boundary.size()<<endl;
 	for (int i = 1 ; i < this->boundary.size() ; i++){
-		const_edges.insert(std::make_pair(this->boundary[i-1], this->boundary[i]));
+		const_edges.insert(sorted_pair(this->boundary[i-1], this->boundary[i]));
 		cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[i-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[i-1]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[i]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[i]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	}
-	const_edges.insert(std::make_pair(this->boundary[0], this->boundary[this->boundary.size()-1]));
+	const_edges.insert(sorted_pair(this->boundary[0], this->boundary[this->boundary.size()-1]));
 	//cout<<"const edges"<<endl;
 	for (std::pair<int, int> e:const_edges)
 		//cout<<e.first<<" "<<e.second<<endl;
 	cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[0]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[this->boundary.size()-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[this->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	//cout<<"new edges"<<endl;
 	for (Triangle* t : this->triangles) {
-		std::pair<int, int> e1 = std::make_pair(t->p[0], t->p[1]);
-		std::pair<int, int> e2 = std::make_pair(t->p[1], t->p[2]);
-		std::pair<int, int> e3 = std::make_pair(t->p[0], t->p[2]);
+		std::pair<int, int> e1 = sorted_pair(t->p[0], t->p[1]);
+		std::pair<int, int> e2 = sorted_pair(t->p[1], t->p[2]);
+		std::pair<int, int> e3 = sorted_pair(t->p[0], t->p[2]);
 		auto cend = const_edges.end();
 		auto iend = int_edges.end();
 		if (const_edges.find(e1) == cend && int_edges.find(e1) == iend){
