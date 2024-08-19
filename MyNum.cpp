@@ -13,7 +13,7 @@ MyNum::MyNum(long long int i){
 }
 
 MyNum::MyNum(long long int _den, long long int _num){
-	assert(_num > 0);
+	assert(_num != 0);
 	this->den = _den;
 	this->num = _num;
 	this->abbr();

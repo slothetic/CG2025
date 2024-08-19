@@ -122,7 +122,7 @@ void Instance::triangulate(){
 		i++;
 		resolve_cross(con);
 		//if (i<10)
-			//DrawResult(std::to_string(i));
+		//	DrawResult(std::to_string(i));
 	}
 	DrawResult("");
 }
