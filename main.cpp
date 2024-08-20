@@ -12,5 +12,8 @@ int main(int argc, char** argv){
 	std::cout << dt.inst->triangles.size() << std::endl;
 	dt.WriteData();
 	dt.DrawResult();
+	dt.inst->minmax_triangulate();
+	dt.inst->DrawResult("minmax");
+	dt.WriteData();
 	return 0;
 }

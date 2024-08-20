@@ -55,11 +55,13 @@ class Instance{
 		void resolve_cross(std::pair<int, int>);
 		void resolve_cross(std::pair<int, int>, Triangle*);
 		void flip(Triangle*, int);
-		void ear_cut(Triangle*, int);
+		void minmax_triangulate();
+		bool ear_cut(Triangle*, int);
 		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
 		void make_non_obtuse();
 		void update_boundary();
 		void update_constraints();
+		void print_triangle(Triangle*);
 		void DrawResult(string);
 };
 
