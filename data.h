@@ -24,7 +24,7 @@ class Point{
 		friend std::ostream& operator<<(std::ostream&, const Point&);
 };
 
-MyNum angle(Point, Point, Point);
+long double angle(Point, Point, Point);
 MyNum sqdist(Point, Point);
 
 class Triangle{

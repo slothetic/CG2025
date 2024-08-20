@@ -20,29 +20,29 @@ bool Point::operator!=(const Point&_p) {
 }
 
 
-MyNum angle(Point p1, Point p2, Point p3){
+long double angle(Point p1, Point p2, Point p3){
 	assert(p1 != p2);
 	assert(p2 != p3);
-	// std::cout << p1 << std::endl;
-	// std::cout << p2 << std::endl;
-	// std::cout << p3 << std::endl;
 	MyNum p12x = p2.x-p1.x;
 	MyNum p12y = p2.y-p1.y;
 	MyNum p23x = p2.x-p3.x;
 	MyNum p23y = p2.y-p3.y;
-	// std::cout << p12x << std::endl;
-	// std::cout << p12y << std::endl;
-	// std::cout << p23x << std::endl;
-	// std::cout << p23y << std::endl;
 	MyNum ab = p12x * p23x + p12y * p23y;
 	MyNum a = p12x * p12x + p12y * p12y;
 	MyNum b = p23x * p23x + p23y * p23y;
-	// std::cout << ab << std::endl;
-	// std::cout << a << std::endl;
-	// std::cout << b << std::endl;
-	// std::cout << ab * ab << std::endl;
-	// std::cout << a * b << std::endl;
-	return (ab.den >= 0) ? - ab * ab / a / b : ab * ab / a / b;
+	if (turn(p1, p2, p3) == 0)
+		return (ab.den >= 0) ? -1. : 1.;
+	else if (ab == MyNum(0))
+		return 0.;
+	long double dab = std::llabs(ab.den);
+	dab /= ab.num;
+	long double ra = a.den;
+	ra /= a.num;
+	ra = std::sqrt(ra);
+	long double rb = b.den;
+	rb /= b.num;
+	rb = std::sqrt(rb);
+	return (ab.den >= 0) ? - dab / ra / rb : dab / ra / rb;
 }
 
 MyNum sqdist(Point p, Point q){
@@ -106,7 +106,8 @@ bool Instance::is_on(std::pair<int, int> e, Point p){
 			return (x1 < p.x) && (p.x < x2);
 		}
 	}
-	else return false;
+	else 
+		return false;
 }
 
 bool Instance::is_in(Triangle *t, Point p){
