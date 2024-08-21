@@ -738,6 +738,18 @@ MyNum turn(Point p1, Point p2, Point p3){
 	return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
 
+Point projection(Point p, Point q1, Point q2) {
+	if (q1.x == q2.x) return Point(q1.x, p.y);
+	if (q1.y == q2.y) return Point(p.x, q1.y);
+	MyNum s1 = (q2.y - q1.y) / (q2.x - q1.x);
+	MyNum b1 = q1.y - s1 * q1.x;
+	MyNum s2 = MyNum(-1) / s1;
+	MyNum b2 = p.y - s2 * p.x;
+	MyNum rx = (b2 - b1) / (s1 - s2);
+	MyNum ry = rx * s1 + b1;
+	return MyNum(rx, ry);
+}
+
 std::pair<int, int> sorted_pair(int a, int b) {
 	return (a > b) ? std::make_pair(b, a) : std::make_pair(a, b); 
 }

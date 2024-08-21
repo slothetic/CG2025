@@ -59,6 +59,7 @@ class Instance{
 		bool ear_cut(Triangle*, int);
 		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
 		void make_non_obtuse();
+
 		void update_boundary();
 		void update_constraints();
 		void print_triangle(Triangle*);
@@ -66,7 +67,9 @@ class Instance{
 };
 
 MyNum turn(Point, Point, Point); // if CCw, >0 / if CW, <0 / if colinear, ==0
+Point projection(Point, Point, Point);
 std::pair<int, int> sorted_pair(int, int);
+
 
 // class Polygon{
 // 	public:
