@@ -51,6 +51,9 @@ Triangle::Triangle(int a, int b, int c){
 	this->p[0] = a;
 	this->p[1] = b;
 	this->p[2] = c;
+	this->t[0] = nullptr;
+	this->t[1] = nullptr;
+	this->t[2] = nullptr;
 }
 
 Triangle::~Triangle(){
@@ -188,18 +191,8 @@ void Instance::triangulate_polygon(std::deque<int> polygon){
 			Triangle *t1 = find_triangle(polygon[c], t->p[1]);
 			triangulate_polygon(poly2);
 			Triangle *t2 = find_triangle(t->p[1], polygon[c]);
-			if (t1->p[0] == t->p[1])
-				t1->t[0] = t2;
-			else if (t1->p[1] == t->p[1])
-				t1->t[1] = t2;
-			else
-				t1->t[2] = t2;
-			if (t2->p[1] == t->p[1])
-				t2->t[0] = t1;
-			else if (t2->p[2] == t->p[1])
-				t2->t[1] = t1;
-			else
-				t2->t[2] = t1;
+			t1->t[t1->get_ind(polygon[c])] = t2;
+			t2->t[t2->get_ind(t->p[1])] = t1;
 		}
 	}
 }
@@ -439,6 +432,7 @@ void Instance::flip(Triangle* t, int i) {
 }
 
 void Instance::minmax_triangulate(){
+	int cnt = 0;
 	while (true) {
 		long double maxang = 0.;
 		Triangle *mt = nullptr;
@@ -465,9 +459,12 @@ void Instance::minmax_triangulate(){
 		}
 		std::cout << maxang << std::endl;
 		std::cout << i << std::endl;
-		if (mt) print_triangle(mt);
+		//if (mt) {std::cout<<"start ear-cutting"<<std::endl; print_triangle(mt);}
 		if (!mt || !ear_cut(mt, i)) 
 			break;
+		//for (Triangle *t : triangles) print_triangle(t);
+		DrawResult(to_string(cnt));
+		cnt++;
 	}
 }
 
@@ -540,15 +537,16 @@ bool Instance::ear_cut(Triangle *t, int i) {
 			abort();
 			return false;
 		}
-		print_triangle(tt);
+		//print_triangle(t);
+		//print_triangle(tt);
 		stop = false;
 		j = (tt->get_ind(r_chain.back()) + 1) % 3;
-		std::cout << j << std::endl;
+		//std::cout << j << std::endl;
 		s = pts[tt->p[j]];
-		std::cout << q << std::endl;
-		std::cout << l << std::endl;
-		std::cout << r << std::endl;
-		std::cout << s << std::endl;
+		//std::cout << q << std::endl;
+		//std::cout << l << std::endl;
+		//std::cout << r << std::endl;
+		//std::cout << s << std::endl;
 		removed.insert(tt);
 		Triangle *ttt = tt->t[j];
 		if (ttt)
@@ -618,8 +616,24 @@ bool Instance::ear_cut(Triangle *t, int i) {
 	if (t2->t[1])
 		l_neis[0].first->t[l_neis[0].second] = t2;
 	t2->t[2] = t1;
-	for (Triangle *dt : removed)
+	//std::cout << "new triangles" << std::endl;
+	//print_triangle(t1);
+	//print_triangle(t2);
+	// std::cout << "their neighbors" << std::endl;
+	// if (t1->t[0])
+	// 	print_triangle(t1->t[0]);
+	// if (t1->t[1])
+	// 	print_triangle(t1->t[1]);
+	// if (t2->t[0])
+	// 	print_triangle(t2->t[0]);
+	// if (t2->t[1])
+	// 	print_triangle(t2->t[1]);
+	// std::cout << "deleted triangles" << std::endl;
+	for (Triangle *dt : removed) {
+		//print_triangle(dt);
 		triangles.erase(dt);
+		delete dt;
+	}
 	triangles.insert(t1);
 	triangles.insert(t2);
 	for (Triangle *nt : inserted)
