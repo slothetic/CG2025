@@ -432,7 +432,7 @@ void Instance::flip(Triangle* t, int i) {
 }
 
 void Instance::minmax_triangulate(){
-	int cnt = 0;
+	//int cnt = 0;
 	while (true) {
 		long double maxang = 0.;
 		Triangle *mt = nullptr;
@@ -457,14 +457,14 @@ void Instance::minmax_triangulate(){
 				i = 2;
 			}			
 		}
-		std::cout << maxang << std::endl;
-		std::cout << i << std::endl;
-		//if (mt) {std::cout<<"start ear-cutting"<<std::endl; print_triangle(mt);}
+		//std::cout << maxang << std::endl;
+		//std::cout << i << std::endl;
+		//if (mt) {std::cout<<"start ear-cutting: "<<cnt<<std::endl; print_triangle(mt);}
 		if (!mt || !ear_cut(mt, i)) 
 			break;
 		//for (Triangle *t : triangles) print_triangle(t);
-		DrawResult(to_string(cnt));
-		cnt++;
+		//DrawResult(to_string(cnt));
+		//cnt++;
 	}
 }
 
@@ -498,34 +498,40 @@ bool Instance::ear_cut(Triangle *t, int i) {
 		if (turn(pts[r_chain[r_chain.size() - 2]], pts[r_chain[r_chain.size() - 1]], s) <= MyNum(0) || angle(pts[r_chain[r_chain.size() - 2]], pts[r_chain[r_chain.size() - 1]], s) >= ang)
 			stop = true;
 		else {
-			Triangle *nt = new Triangle(r_chain[r_chain.size() - 2], r_chain[r_chain.size() - 1], tt->p[j]);
+			//std::cout << "cutting right" << std::endl;
+			Triangle *nt = new Triangle(tt->p[j], r_chain[r_chain.size() - 2], r_chain[r_chain.size() - 1]);
 			inserted.insert(nt);
+			nt->t[2] = r_neis.back().first;
+			if (nt->t[2]) 
+				works.insert(std::make_tuple(nt->t[2], r_neis.back().second, nt));
+			r_neis.pop_back();
 			nt->t[1] = r_neis.back().first;
 			if (nt->t[1]) 
 				works.insert(std::make_tuple(nt->t[1], r_neis.back().second, nt));
 			r_neis.pop_back();
-			nt->t[0] = r_neis.back().first;
-			if (nt->t[0]) 
-				works.insert(std::make_tuple(nt->t[0], r_neis.back().second, nt));
-			r_neis.pop_back();
-			r_neis.push_back(std::make_pair(nt, 2));
+			r_neis.push_back(std::make_pair(nt, 0));
+			r_chain.pop_back();
+			//print_triangle(nt);
 		}
 	};
 	auto cutleft = [&] () {
 		if (turn(pts[l_chain[l_chain.size() - 2]], pts[l_chain[l_chain.size() - 1]], s) >= MyNum(0) || angle(pts[l_chain[l_chain.size() - 2]], pts[l_chain[l_chain.size() - 1]], s) >= ang)
 			stop = true;
 		else {
-			Triangle *nt = new Triangle(tt->p[j], l_chain[l_chain.size() - 1], l_chain[l_chain.size() - 2]);
+			//std::cout << "cutting left" << std::endl;
+			Triangle *nt = new Triangle(l_chain[l_chain.size() - 1], l_chain[l_chain.size() - 2], tt->p[j]);
 			inserted.insert(nt);
+			nt->t[2] = l_neis.back().first;
+			if (nt->t[2]) 
+				works.insert(std::make_tuple(nt->t[2], l_neis.back().second, nt));
+			l_neis.pop_back();
 			nt->t[0] = l_neis.back().first;
 			if (nt->t[0]) 
 				works.insert(std::make_tuple(nt->t[0], l_neis.back().second, nt));
 			l_neis.pop_back();
-			nt->t[1] = l_neis.back().first;
-			if (nt->t[1]) 
-				works.insert(std::make_tuple(nt->t[1], l_neis.back().second, nt));
-			l_neis.pop_back();
-			l_neis.push_back(std::make_pair(nt, 2));
+			l_neis.push_back(std::make_pair(nt, 1));
+			l_chain.pop_back();
+			//print_triangle(nt);
 		}
 	};
 	auto abort = [&] () {
@@ -543,10 +549,10 @@ bool Instance::ear_cut(Triangle *t, int i) {
 		j = (tt->get_ind(r_chain.back()) + 1) % 3;
 		//std::cout << j << std::endl;
 		s = pts[tt->p[j]];
-		//std::cout << q << std::endl;
-		//std::cout << l << std::endl;
-		//std::cout << r << std::endl;
-		//std::cout << s << std::endl;
+		// std::cout << q << std::endl;
+		// std::cout << l << std::endl;
+		// std::cout << r << std::endl;
+		// std::cout << s << std::endl;
 		removed.insert(tt);
 		Triangle *ttt = tt->t[j];
 		if (ttt)
@@ -573,26 +579,28 @@ bool Instance::ear_cut(Triangle *t, int i) {
 			r_neis.pop_back();
 		}
 		else {
-			while (!stop && r_chain.size() > 2)
+			while (!stop && r_chain.size() > 2){
 				cutright();
+			}
 			stop = false;
-			while (!stop && l_chain.size() > 2)
+			while (!stop && l_chain.size() > 2) {
 				cutleft();
+			}
 			bool rsgn = turn(pts[r_chain[r_chain.size() - 2]], pts[r_chain[r_chain.size() - 1]], s) <= MyNum(0) || angle(pts[r_chain[r_chain.size() - 2]], pts[r_chain[r_chain.size() - 1]], s) >= ang;
 			bool lsgn = turn(pts[l_chain[l_chain.size() - 2]], pts[l_chain[l_chain.size() - 1]], s) >= MyNum(0) || angle(pts[l_chain[l_chain.size() - 2]], pts[l_chain[l_chain.size() - 1]], s) >= ang;
 			if (!rsgn && !lsgn)
 				break;
 			else if (!rsgn) {
-				r = s;
+				l = s;
 				l_chain.push_back(tt->p[j]);
 				tt = r_neis.back().first;
 				r_neis.pop_back();
 			}
 			else if (!lsgn) {
-				l = s;
-				l_chain.push_back(tt->p[j]);
-				tt = r_neis.back().first;
-				r_neis.pop_back();
+				r = s;
+				r_chain.push_back(tt->p[j]);
+				tt = l_neis.back().first;
+				l_neis.pop_back();
 			}
 			else {
 				abort();
