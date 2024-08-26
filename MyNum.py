@@ -37,13 +37,15 @@ class MyNum:
         return hash((self.num, self.den))
 
     def __add__(self, n):
-        n = MyNum(n)
+        if type(n)!=MyNum:
+            n = MyNum(n)
         nnum = self.num*n.den+self.den*n.num
         nden = self.den*n.den
         return MyNum(nnum, nden)
 
     def __iadd__(self, n):
-        n = MyNum(n)
+        if type(n)!=MyNum:
+            n = MyNum(n)
         nnum = self.num*n.den+self.den*n.num
         nden = self.den*n.den
         self.num = nnum
@@ -52,13 +54,15 @@ class MyNum:
         return self
     
     def __sub__(self, n):
-        n = MyNum(n)
+        if type(n)!=MyNum:
+            n = MyNum(n)
         nnum = self.num*n.den-self.den*n.num
         nden = self.den*n.den
         return MyNum(nnum, nden)
 
     def __isub__(self, n):
-        n = MyNum(n)
+        if type(n)!=MyNum:
+            n = MyNum(n)
         nnum = self.num*n.den-self.den*n.num
         nden = self.den*n.den
         self.num = nnum
@@ -67,13 +71,15 @@ class MyNum:
         return self
     
     def __mul__(self, n):
-        n = MyNum(n)
+        if type(n)!=MyNum:
+            n = MyNum(n)
         nnum = self.num*n.num
         nden = self.den*n.den
         return MyNum(nnum, nden)
 
     def __imul__(self, n):
-        n = MyNum(n)
+        if type(n)!=MyNum:
+            n = MyNum(n)
         nnum = self.num*n.num
         nden = self.den*n.den
         self.num = nnum
@@ -82,17 +88,19 @@ class MyNum:
         return self
     
     def __truediv__(self, n):
-        if n==0:
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        if n==MyNum(0):
             raise Exception("MyNum cannot be divided by 0!")
-        n = MyNum(n)
         nnum = self.num*n.den
         nden = self.den*n.num
         return MyNum(nnum, nden)
 
     def __itruediv__(self, n):
-        if n==0:
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        if n==MyNum(0):
             raise Exception("MyNum cannot be divided by 0!")
-        n = MyNum(n)
         nnum = self.num*n.den
         nden = self.den*n.num
         self.num = nnum
@@ -104,42 +112,34 @@ class MyNum:
         return MyNum(-self.num, self.den)
 
     def __lt__(self, n):
-        n = MyNum(n)
-        if self.num*n.den<self.den*n.num:
-            return True
-        return False
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        return self.num*n.den<self.den*n.num
     
     def __le__(self, n):
-        n = MyNum(n)
-        if self.num*n.den<=self.den*n.num:
-            return True
-        return False
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        return self.num*n.den<=self.den*n.num
     
     def __gt__(self, n):
-        n = MyNum(n)
-        if self.num*n.den>self.den*n.num:
-            return True
-        return False
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        return self.num*n.den>self.den*n.num
     
     def __ge__(self, n):
-        n = MyNum(n)
-        if self.num*n.den>=self.den*n.num:
-            return True
-        return False
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        return self.num*n.den>=self.den*n.num
     
     def __eq__(self, n):
-        self.abbr()
-        n = MyNum(n)
-        if self.den == n.den and self.num == n.num:
-            return True
-        return False
-    
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        return self.den == n.den and self.num == n.num
+            
     def __ne__(self, n):
-        self.abbr()
-        n = MyNum(n)
-        if self.den == n.den and self.num == n.num:
-            return False
-        return True
+        if type(n)!=MyNum:
+            n = MyNum(n)
+        return self.den != n.den or self.num != n.num
     
     def __str__(self):
         if self.den ==1:

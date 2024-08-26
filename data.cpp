@@ -226,7 +226,6 @@ void Instance::insert_point(int p_ind) {
 		if (is_in(t, q)){ 
 			Triangle *t1, *t2;
 			Triangle *tt = nullptr;
-			bool on_edge = false;
 			int i, j;
 			if (is_on(std::make_pair(t->p[0], t->p[1]), q)) {
 				i = 0;
@@ -240,7 +239,7 @@ void Instance::insert_point(int p_ind) {
 				i = 2;
 				tt = t->t[2];
 			}
-			if (on_edge && tt) {
+			if (tt) {
 				if (t == tt->t[0])
 					j = 0;
 				else if (t == tt->t[1])
@@ -267,18 +266,6 @@ void Instance::insert_point(int p_ind) {
 				tt->p[(j + 1) % 3] = p_ind;
 				tt->t[j] = t1;
 				tt->t[(j + 1) % 3] = t2;
-			}
-			else if (on_edge){
-				t1 = new Triangle(p_ind, t->p[(i+1)%3], t->p[(i+1)%3]);
-				t1->t[0] = tt;
-				Triangle *ti = t->t[(i+1%3)];
-				t1->t[1] = ti;
-				if (ti)
-					ti->t[ti->get_ind(t1->p[2])] = t1;
-				t1->t[2] = t;
-				t->p[(i + 1) % 3] = p_ind;
-				t->t[i] = tt;
-				t->t[(i + 1) % 3] = t1;
 			}
 			else {
 				t1 = new Triangle(p_ind, t->p[1], t->p[2]);
