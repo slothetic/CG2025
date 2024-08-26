@@ -658,6 +658,7 @@ bool Instance::ear_cut(Triangle *t, int i) {
 	for (Triangle *dt : removed) {
 		//print_triangle(dt);
 		triangles.erase(dt);
+		inserted.erase(dt);
 		delete dt;
 	}
 	triangles.insert(t1);
