@@ -22,10 +22,10 @@ class MyNum{
 		bool operator<=(const MyNum&);
 		bool operator>=(const MyNum&);
 		friend std::ostream& operator<<(std::ostream&, const MyNum&);
-		double toDouble();
+		long double toDouble();
 		
 		void abbr();
 };
 
-double to_Double(MyNum);
+long double to_Double(MyNum);
 

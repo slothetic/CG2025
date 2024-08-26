@@ -115,8 +115,8 @@ std::ostream& operator<<(std::ostream& out, const MyNum& _n){
 }
 
 
-double MyNum::toDouble(){
-	double d = this->den;
+long double MyNum::toDouble(){
+	long double d = this->den;
 	return d / this->num;
 }
 
@@ -138,7 +138,7 @@ void MyNum::abbr(){
 }
 
 
-double to_Double(MyNum n){
-	double d = n.den;
+long double to_Double(MyNum n){
+	long double d = n.den;
 	return d / n.num;
 }
