@@ -7,17 +7,31 @@ class Point:
         self.y = y
 
     def __eq__(self, p):
-        if self.x==p.x and self.y==p.y:
-            return True
-        return False
-    
+        return self.x==p.x and self.y==p.y
+        
     def __str__(self):
         return "("+str(self.x)+", "+str(self.y)+")"
     
     def __ne__(self, p):
-        if self.x==p.x and self.y==p.y:
-            return False
-        return True
+        return self.x != p.x or self.y != p.y
+
+class Triangle:
+    def __init__(self, p, q, r):
+        self.pts = [p, q, r]
+        self.neis = [None, None, None]
+    
+    def get_ind(self, p):
+        for i in range(3):
+            if self.pts[i] == p:
+                return i
+        return -1
+    
+    def pt(self, i):
+        return self.pts[i % 3]
+    
+    def nei(self, i):
+        return self.neis[i % 3]
+
     
 class Data:
     def __init__(self, input):
