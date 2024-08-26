@@ -11,20 +11,31 @@ class Point:
         self.y = y
 
     def __eq__(self, p):
-        if self.x==p.x and self.y==p.y:
-            return True
-        return False
-    
+        return self.x==p.x and self.y==p.y
+        
     def __str__(self):
         return "("+str(self.x)+", "+str(self.y)+")"
     
     def __ne__(self, p):
-        if self.x==p.x and self.y==p.y:
-            return False
-        return True
+        return self.x != p.x or self.y != p.y
+
 class Triangle:
-    def __init__(self, p1, p2, p3):
-        self.p = [p1, p2, p3]
+    def __init__(self, p, q, r):
+        self.pts = [p, q, r]
+        self.neis = [None, None, None]
+    
+    def get_ind(self, p):
+        for i in range(3):
+            if self.pts[i] == p:
+                return i
+        return -1
+    
+    def pt(self, i):
+        return self.pts[i % 3]
+    
+    def nei(self, i):
+        return self.neis[i % 3]
+
     
 class Data:
     def __init__(self, input):
@@ -64,9 +75,9 @@ class Data:
         const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
         int_edges = []
         for t in self.triangles:
-            e1 = sorted([t.p[0],t.p[1]])
-            e2 = sorted([t.p[0],t.p[2]])
-            e3 = sorted([t.p[1],t.p[2]])
+            e1 = sorted([t.pts[0],t.pts[1]])
+            e2 = sorted([t.pts[0],t.pts[2]])
+            e3 = sorted([t.pts[1],t.pts[2]])
             if e1 not in const_edges and e1 not in int_edges:
                 int_edges.append(e1)
             if e2 not in const_edges and e2 not in int_edges:
@@ -75,9 +86,6 @@ class Data:
                 int_edges.append(e3)
 
         inst["edges"] = int_edges 
-        def jsonIndentLimit(jsonString, indent, limit):
-            regexPattern = re.compile(f'\n({indent}){{{limit}}}(({indent})+|(?=(}}|])))')
-            return regexPattern.sub('', jsonString)
         with open("solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
 
@@ -97,7 +105,7 @@ class Data:
         minh = height + int(miny*rad)-20
         img = np.zeros((height, width, 3),dtype="uint8")+255
         for t in self.triangles:
-            pts = np.array([[minw+int(rad*self.pts[t.p[0]].x), minh-int(rad*self.pts[t.p[0]].y)],[minw+int(rad*self.pts[t.p[1]].x), minh-int(rad*self.pts[t.p[1]].y)],[minw+int(rad*self.pts[t.p[2]].x), minh-int(rad*self.pts[t.p[2]].y)]], dtype=np.int32).reshape(1,-1,2)
+            pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
             # print(pts)
             cv2.fillPoly(img, pts, color = (random.randint(220,254),random.randint(220,254),random.randint(220,254)))
         const_edges = []
@@ -111,9 +119,9 @@ class Data:
         cv2.line(img, (minw+int(rad*self.pts[self.region_boundary[-1]].x),minh-int(rad*self.pts[self.region_boundary[-1]].y)), (minw+int(rad*self.pts[self.region_boundary[0]].x),minh-int(rad*self.pts[self.region_boundary[0]].y)), (0,0,0), 2)
         int_edges = []
         for t in self.triangles:
-            e1 = sorted([t.p[0],t.p[1]])
-            e2 = sorted([t.p[0],t.p[2]])
-            e3 = sorted([t.p[1],t.p[2]])
+            e1 = sorted([t.pts[0],t.pts[1]])
+            e2 = sorted([t.pts[0],t.pts[2]])
+            e3 = sorted([t.pts[1],t.pts[2]])
             if e1 not in const_edges and e1 not in int_edges:
                 int_edges.append(e1)
                 cv2.line(img, (minw+int(rad*self.pts[e1[0]].x),minh-int(rad*self.pts[e1[0]].y)), (minw+int(rad*self.pts[e1[1]].x),minh-int(rad*self.pts[e1[1]].y)), (0,0,0), 2)

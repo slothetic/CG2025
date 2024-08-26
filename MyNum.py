@@ -21,7 +21,7 @@ class MyNum:
     #         self = tuple.__new__(MyNum, (self.num, args))
     def __init__(self, num, den = 1):
         if den==0:
-            raise Exception("denerator cannot be 0!")
+            raise Exception("denominator cannot be 0!")
         if type(num)==int:
             self.num = num
             self.den = den
@@ -101,7 +101,7 @@ class MyNum:
         return self
 
     def __neg__(self):
-        self.num = -self.num
+        return MyNum(-self.num, self.den)
 
     def __lt__(self, n):
         n = MyNum(n)
@@ -130,14 +130,14 @@ class MyNum:
     def __eq__(self, n):
         self.abbr()
         n = MyNum(n)
-        if self.den==n.den and self.num == n.num:
+        if self.den == n.den and self.num == n.num:
             return True
         return False
     
     def __ne__(self, n):
         self.abbr()
         n = MyNum(n)
-        if self.den==n.den and self.num == n.num:
+        if self.den == n.den and self.num == n.num:
             return False
         return True
     
@@ -145,7 +145,7 @@ class MyNum:
         if self.den ==1:
             return str(self.num)
         else:
-            return str(self.num)+"/"+str(self.den)
+            return "\""+str(self.num)+"/"+str(self.den)+"\""
         
     def __float__(self):
         return self.num/self.den
@@ -155,7 +155,7 @@ class MyNum:
         
     
     def abbr(self):
-        if self.num==0:
+        if self.num == 0:
             self.den = 1
         else:
             gcd_val = math.gcd(abs(self.num), abs(self.den))
@@ -168,8 +168,7 @@ class MyNum:
     def toFloat(self):
         return self.num/self.den
 
-def to_Float(n:MyNum):
-    return n.num/n.den
+
 
 # a = MyNum(1,2)
 # b = a
