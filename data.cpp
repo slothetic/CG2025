@@ -32,7 +32,7 @@ long double angle(Point p1, Point p2, Point p3){
 	MyNum a = p12x * p12x + p12y * p12y;
 	MyNum b = p23x * p23x + p23y * p23y;
 	if (turn(p1, p2, p3) == 0)
-		return (ab.den >= 0) ? -1. : 1.;
+		return (ab >= MyNum(0)) ? -1. : 1.;
 	else if (ab == MyNum(0))
 		return 0.;
 	long double dab = ab.toDouble();

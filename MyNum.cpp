@@ -3,6 +3,78 @@
 #include <cstdlib>
 #include <cmath>
 #define EPS 10e-6
+#define LIM 1000000000
+
+
+
+BigNum::BigNum() {
+	sgn = true;
+	nums.push_back(0);
+}
+
+BigNum::BigNum(long long int _n) {
+	sgn = _n >= 0;
+	if (_n == 0) nums.push_back(0);
+	else {
+		_n = llabs(_n);
+		while (_n > 0) {
+			nums.push_back(n % LIM);
+			n /= LIM;
+		}
+	}
+}
+
+BigNum BigNum::operator-(){
+	BigNum _n = *this;
+	_n.sgn = !sgn;
+	return _n;
+}
+
+BigNum& BigNum::operator=(const BigNum& _n) {
+	sgn = _n.sgn;
+	nums = _n.nums;
+	return _n;
+}
+
+BigNum BigNum::operator+(const BigNum& _n) {
+	BigNum res;
+	if (sgn == _n.sgn) {
+		res.sgn = sgn;
+		int s = nums.size() < _n.nums.size() ? _n.nums.size() : nums.size();
+		res.nums = std::vector<unsigned long long int>(s, 0);
+		for(int i = 0; i < s; i++) {
+			if (i < nums.size()) res.nums[i] += nums[i];
+			if (i < _n.nums.size()) res.nums[i] += _n.nums[i];
+			if (res.nums[i] > LIM) {
+				res.nums[i] -= LIM;
+				if (i == s - 1) res.nums.push_back(1);
+				else res.nums[i + 1] += 1;
+			}
+		}
+	}
+	else {
+		if (abs(*this) == abs(_n)) {
+			res.nums.push_back(0);
+			res.sgn = true;
+		}
+		else {
+			res.sgn = abs(*this) > abs(_n) ? sgn : _n.sgn;
+			int s = nums.size() < _n.nums.size() ? _n.nums.size() : nums.size();
+		}
+	}
+	return res;
+}
+
+BigNum BigNum::operator-(const BigNum&);
+BigNum BigNum::operator*(const BigNum&);
+BigNum BigNum::operator==(const BigNum&);
+BigNum BigNum::operator!=(const BigNum&);
+BigNum BigNum::operator<(const BigNum&);
+BigNum BigNum::operator>(const BigNum&);
+BigNum BigNum::operator<=(const BigNum&);
+BigNum BigNum::operator>=(const BigNum&);
+std::ostream& operator<<(std::ostream&, const BigNum&);
+
 
 MyNum::MyNum(){
 	this->den = 0;
