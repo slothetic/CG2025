@@ -63,6 +63,8 @@ class Instance{
 		void step();
 
 		void print_triangle(Triangle*);
+		void add_steiner(Point);
+		void delete_steiner(Point);
 		void DrawResult(string);
 };
 

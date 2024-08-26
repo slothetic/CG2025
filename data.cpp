@@ -139,6 +139,24 @@ void Instance::triangulate(){
 	}
 }
 
+void Instance::add_steiner(Point p){
+	
+	pts.push_back(p);
+	insert_point(pts.size()-1);
+	for (std::pair<int, int> e : constraints){
+		if (is_on(e, p)){
+			int e1, e2 = e.first; e.second;
+			constraints.insert(std::make_pair(e1, pts.size()-1));
+			constraints.insert(std::make_pair(pts.size()-1, e2));
+			constraints.erase(e);
+		}
+	}
+}
+
+void Instance::delete_steiner(Point p){
+
+}
+
 void Instance::triangulate_polygon(std::deque<int> polygon){
 	if (polygon.size() == 3){
 		Triangle *t = new Triangle(polygon[0], polygon[1], polygon[2]);
