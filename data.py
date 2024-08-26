@@ -380,7 +380,7 @@ class Data:
                     mt = t
                     maxang = ang
                     i = 2
-            if mt or self.ear_cut(mt, i):
+            if (not mt) or (not self.ear_cut(mt, i)):
                 break
     
     def ear_cut(self, t:Triangle, i:int):
@@ -409,12 +409,12 @@ class Data:
         else:
             l_neis.append((None, 0))
         tt = t.nei(i + 1)
-        stop = False
+        stop = [False]
         s = q
         j = i
         def cutright():
             if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) >= ang:
-                stop = True
+                stop[0] = True
             else:
                 nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
                 inserted.add(nt)
@@ -430,7 +430,7 @@ class Data:
                 r_chain.pop()
         def cutleft():
             if turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= ang:
-                stop = True
+                stop[0] = True
             else:
                 nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
                 inserted.add(nt)
@@ -451,7 +451,7 @@ class Data:
             if not tt:
                 abort()
                 return False
-            stop = False
+            stop[0] = False
             j = (tt.get_ind(r_chain[-1]) + 1) % 3
             s = self.pts[tt.pts[j]]
             removed.add(tt)
@@ -466,22 +466,22 @@ class Data:
             else:
                 r_neis.append((None, 0))
             if turn(q, r, s) <= 0:
-                while not stop:
+                while not stop[0]:
                     cutright()
                 r_chain.append(tt.pts[j])
                 tt = l_neis[-1][0]
                 l_neis.pop()
             elif turn(q, l, s) >= 0:
-                while not stop:
+                while not stop[0]:
                     cutleft()
                 l_chain.append(tt.pts[j])
                 tt = r_neis[-1][0]
                 r_neis.pop()
             else:
-                while (not stop) and len(r_chain) > 2:
+                while (not stop[0]) and len(r_chain) > 2:
                     cutright()
-                stop = False
-                while (not stop) and len(l_chain) > 2:
+                stop[0] = False
+                while (not stop[0]) and len(l_chain) > 2:
                     cutleft()
                 rsgn = turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) >= ang
                 lsgn = turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= ang
@@ -517,7 +517,8 @@ class Data:
             l_neis[0][0].neis[l_neis[0][1]] = t2
         t2.neis[2] = t1
         for dt in removed:
-            self.triangles.remove(dt)
+            self.triangles.discard(dt)
+            inserted.discard(dt)
             del dt
         self.triangles.add(t1)
         self.triangles.add(t2)
