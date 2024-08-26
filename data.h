@@ -60,6 +60,8 @@ class Instance{
 		void make_non_obtuse();
 		void update_boundary();
 		void update_constraints();
+		void add_steiner(Point);
+		void delete_steiner(Point);
 		void DrawResult(string);
 };
 

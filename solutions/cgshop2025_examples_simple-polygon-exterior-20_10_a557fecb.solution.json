@@ -1,0 +1,16 @@
+{
+  "content_type": "CG_SHOP_2025_Solution",
+  "instance_uid": "cgshop2025_examples_simple-polygon-exterior-20_10_a557fecb",
+  "steiner_point_x": [],
+  "steiner_point_y": [],
+  "edges": [
+    [1, 9],
+    [2, 4],
+    [2, 5],
+    [2, 8],
+    [2, 9],
+    [5, 8],
+    [6, 8],
+    [7, 9]
+  ]
+}

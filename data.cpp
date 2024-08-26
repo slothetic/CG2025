@@ -138,6 +138,24 @@ void Instance::triangulate(){
 	}
 }
 
+void Instance::add_steiner(Point p){
+	
+	pts.push_back(p);
+	insert_point(pts.size()-1);
+	for (std::pair<int, int> e : constraints){
+		if (is_on(e, p)){
+			int e1, e2 = e.first; e.second;
+			constraints.insert(std::make_pair(e1, pts.size()-1));
+			constraints.insert(std::make_pair(pts.size()-1, e2));
+			constraints.erase(e);
+		}
+	}
+}
+
+void Instance::delete_steiner(Point p){
+
+}
+
 void Instance::triangulate_polygon(std::deque<int> polygon){
 	if (polygon.size() == 3){
 		Triangle *t = new Triangle(polygon[0], polygon[1], polygon[2]);
@@ -219,6 +237,7 @@ void Instance::insert_point(int p_ind) {
 		if (is_in(t, q)){ 
 			Triangle *t1, *t2;
 			Triangle *tt = nullptr;
+			bool on_edge = false;
 			int i, j;
 			if (is_on(std::make_pair(t->p[0], t->p[1]), q)) {
 				i = 0;
@@ -232,7 +251,7 @@ void Instance::insert_point(int p_ind) {
 				i = 2;
 				tt = t->t[2];
 			}
-			if (tt) {
+			if (on_edge && tt) {
 				if (t == tt->t[0])
 					j = 0;
 				else if (t == tt->t[1])
@@ -259,6 +278,18 @@ void Instance::insert_point(int p_ind) {
 				tt->p[(j + 1) % 3] = p_ind;
 				tt->t[j] = t1;
 				tt->t[(j + 1) % 3] = t2;
+			}
+			else if (on_edge){
+				t1 = new Triangle(p_ind, t->p[(i+1)%3], t->p[(i+1)%3]);
+				t1->t[0] = tt;
+				Triangle *ti = t->t[(i+1%3)];
+				t1->t[1] = ti;
+				if (ti)
+					ti->t[ti->get_ind(t1->p[2])] = t1;
+				t1->t[2] = t;
+				t->p[(i + 1) % 3] = p_ind;
+				t->t[i] = tt;
+				t->t[(i + 1) % 3] = t1;
 			}
 			else {
 				t1 = new Triangle(p_ind, t->p[1], t->p[2]);
@@ -682,13 +713,14 @@ void Instance::DrawResult(string s){
 	cout<<this->boundary.size()<<endl;
 	for (int i = 1 ; i < this->boundary.size() ; i++){
 		const_edges.insert(sorted_pair(this->boundary[i-1], this->boundary[i]));
-		cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[i-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[i-1]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[i]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[i]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
+		//cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[i-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[i-1]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[i]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[i]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	}
 	const_edges.insert(sorted_pair(this->boundary[0], this->boundary[this->boundary.size()-1]));
+	//cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[0]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[this->boundary.size()-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[this->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	//cout<<"const edges"<<endl;
-	for (std::pair<int, int> e:const_edges)
+	//for (std::pair<int, int> e:const_edges)
 		//cout<<e.first<<" "<<e.second<<endl;
-	cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[0]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[this->boundary.size()-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[this->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
+	//cv::line(img, cv::Point(minw+(int)this->pts[this->boundary[0]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[0]].y.toDouble()*rad), cv::Point(minw+(int)this->pts[this->boundary[this->boundary.size()-1]].x.toDouble()*rad,minh-(int)this->pts[this->boundary[this->boundary.size()-1]].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
 	//cout<<"new edges"<<endl;
 	for (Triangle* t : this->triangles) {
 		std::pair<int, int> e1 = sorted_pair(t->p[0], t->p[1]);
@@ -709,6 +741,11 @@ void Instance::DrawResult(string s){
 			cv::line(img, cv::Point(minw+(int)this->pts[e3.first].x.toDouble()*rad,minh-(int)this->pts[e3.first].y.toDouble()*rad), cv::Point(minw+(int)this->pts[e3.second].x.toDouble()*rad,minh-(int)this->pts[e3.second].y.toDouble()*rad), cv::Scalar(0,0,0), 2);
 		}
 	}
+	// for (std::pair<int, int> e:const_edges)
+	// 	cv::line(img, cv::Point(minw+(int)this->pts[e.first].x.toDouble()*rad,minh-(int)this->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)this->pts[e.second].x.toDouble()*rad,minh-(int)this->pts[e.second].y.toDouble()*rad), cv::Scalar(255,0,0), 2);
+	// for (std::pair<int, int> e : this->constraints){
+	// 	cv::line(img, cv::Point(minw+(int)this->pts[e.first].x.toDouble()*rad,minh-(int)this->pts[e.first].y.toDouble()*rad), cv::Point(minw+(int)this->pts[e.second].x.toDouble()*rad,minh-(int)this->pts[e.second].y.toDouble()*rad), cv::Scalar(0,0,255), 2);
+	// }
 	for (int i = 0; i < this->pts.size() ; i++){
 		if (i<this->fp_ind) cv::circle(img, cv::Point(minw+(int)this->pts[i].x.toDouble()*rad,minh-(int)this->pts[i].y.toDouble()*rad),5,cv::Scalar(0,0,0),cv::FILLED);
 		else cv::circle(img, cv::Point(minw+(int)this->pts[i].x.toDouble()*rad,minh-(int)this->pts[i].y.toDouble()*rad),5,cv::Scalar(255,0,0),cv::FILLED);
