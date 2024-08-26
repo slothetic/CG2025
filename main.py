@@ -15,5 +15,6 @@ if __name__=="__main__":
         input = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
     dt = Data(input)
     dt.triangulate()
+    dt.minmax_triangulate()
     dt.WriteData()
     dt.DrawResult()

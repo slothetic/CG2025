@@ -360,6 +360,170 @@ class Data:
                 self.flip(tt, (j + 1) % 3)
             return self.flip(t, i)
 
+    def minmax_triangulate(self):
+        while True:
+            maxang = MyNum(0)
+            mt = None
+            for t in self.triangles:
+                ang = angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]])
+                if ang > maxang:
+                    mt = t
+                    maxang = ang
+                    i = 0
+                ang = angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]])
+                if ang > maxang:
+                    mt = t
+                    maxang = ang
+                    i = 1
+                ang = angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]])
+                if ang > maxang:
+                    mt = t
+                    maxang = ang
+                    i = 2
+            if mt or self.ear_cut(mt, i):
+                break
+    
+    def ear_cut(self, t:Triangle, i:int):
+        q = self.pts[t.pts[i]]
+        r = self.pts[t.pt(i + 1)]
+        l = self.pts[t.pt(i + 2)]
+        ang = angle(l, q, r)
+        removed = set()
+        inserted = set()
+        l_neis = []
+        r_neis = []
+        l_chain = []
+        r_chain = []
+        works = set()
+        removed.add(t)
+        r_chain.append(t.pts[i])
+        r_chain.append(t.pt(i + 1))
+        l_chain.append(t.pts[i])
+        l_chain.append(t.pt(i + 2))
+        if t.neis[i]:
+            r_neis.append((t.neis[i], t.neis[i].get_ind(t.pt(i + 1))))
+        else:
+            r_neis.append((None, 0))
+        if t.nei(i + 2):
+            l_neis.append((t.nei(i + 2), t.nei(i + 2).get_ind(t.pts[i])))
+        else:
+            l_neis.append((None, 0))
+        tt = t.nei(i + 1)
+        stop = False
+        s = q
+        j = i
+        def cutright():
+            if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) >= ang:
+                stop = True
+            else:
+                nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
+                nt.neis[2] = r_neis[-1][0]
+                if nt.neis[2]:
+                    works.add((nt.neis[2], r_neis[-1][1], nt))
+                r_neis.pop()
+                nt.neis[1] = r_neis[-1][0]
+                if nt.neis[1]:
+                    works.add((nt.neis[1], r_neis[-1][1], nt))
+                r_neis.pop()
+                r_neis.append((nt, 0))
+                r_chain.pop()
+        def cutleft():
+            if turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= ang:
+                stop = True
+            else:
+                nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
+                nt.neis[2] = l_neis[-1][0]
+                if nt.neis[2]:
+                    works.add((nt.neis[2], l_neis[-1][1], nt))
+                l_neis.pop()
+                nt.neis[0] = l_neis[-1][0]
+                if nt.neis[0]:
+                    works.add((nt.neis[0], l_neis[-1][1], nt))
+                l_neis.pop()
+                l_neis.append((nt, 1))
+                l_chain.pop()
+        def abort():
+            for nt in inserted:
+                del nt
+        while True:
+            if not tt:
+                abort()
+                return False
+            stop = False
+            j = (tt.get_ind(r_chain[-1]) + 1) % 3
+            s = self.pts[tt.pts[j]]
+            removed.add(tt)
+            ttt = tt.neis[j]
+            if ttt:
+                l_neis.append((ttt, ttt.get_ind(tt.pt(j + 1))))
+            else:
+                l_neis.append((None, 0))
+            ttt = tt.nei(j + 2)
+            if ttt:
+                r_neis.append((ttt, ttt.get_ind(tt.pts[j])))
+            else:
+                r_neis.append((None, 0))
+            if turn(q, r, s) <= 0:
+                while not stop:
+                    cutright()
+                r_chain.append(tt.pts[j])
+                tt = l_neis[-1][0]
+                l_neis.pop()
+            elif turn(q, l, s) >= 0:
+                while not stop:
+                    cutleft()
+                l_chain.append(tt.pts[j])
+                tt = r_neis[-1][0]
+                r_neis.pop()
+            else:
+                while (not stop) and len(r_chain) > 2:
+                    cutright()
+                stop = False
+                while (not stop) and len(l_chain) > 2:
+                    cutleft()
+                rsgn = turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) >= ang
+                lsgn = turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= ang
+                if (not rsgn) and (not lsgn):
+                    break
+                elif not rsgn:
+                    l = s
+                    l_chain.append(tt.pts[j])
+                    tt = r_neis[-1][0]
+                    r_neis.pop()
+                elif not lsgn:
+                    r = s
+                    r_chain.append(tt.pts[j])
+                    tt = l_neis[-1][0]
+                    l_neis.pop()
+                else:
+                    abort()
+                    return False
+        t1 = Triangle(r_chain[0], r_chain[1], tt.pts[j])
+        t2 = Triangle(tt.pts[j], l_chain[1], l_chain[0])
+        t1.neis[0] = r_neis[0][0]
+        if t1.neis[0]:
+            r_neis[0][0].neis[r_neis[0][1]] = t1
+        t1.neis[1] = r_neis[1][0]
+        if t1.neis[1]:
+            r_neis[1][0].neis[r_neis[1][1]] = t1
+        t1.neis[2] = t2
+        t2.neis[0] = l_neis[1][0]
+        if t2.neis[0]:
+            l_neis[1][0].neis[l_neis[1][1]] = t2
+        t2.neis[1] = l_neis[0][0]
+        if t2.neis[1]:
+            l_neis[0][0].neis[l_neis[0][1]] = t2
+        t2.neis[2] = t1
+        for dt in removed:
+            self.triangles.remove(dt)
+            del dt
+        self.triangles.add(t1)
+        self.triangles.add(t2)
+        for nt in inserted:
+            self.triangles.add(nt)
+        for w1, w2, w3 in works:
+            w1.neis[w2] = w3
+        return True
 
     def find_triangle(self, q1:int, q2:int):
         for t in self.triangles:
