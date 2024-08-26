@@ -58,16 +58,20 @@ class Instance{
 		void minmax_triangulate();
 		bool ear_cut(Triangle*, int);
 		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
-		void make_non_obtuse();
+		void make_non_obtuse(Triangle*);
+		void insert_point_on(std::pair<int, int>, Point);
+		void step();
 
-		void update_boundary();
-		void update_constraints();
 		void print_triangle(Triangle*);
 		void DrawResult(string);
 };
 
 MyNum turn(Point, Point, Point); // if CCw, >0 / if CW, <0 / if colinear, ==0
 Point projection(Point, Point, Point);
+Point right_angle_point(Point, Point, Point, Point); //the point q on p3p4 that makes right angle p1p2q. If parallel, return Point(0, 0)
+Point midpoint(Point, Point);
+std::vector<Point> intersections_of_orthogonals(Point, Point, Point, Point); //the intersection points between the lines going through p1/p2 and orthogonal to p1p2, and the lines going through p3/p4 and orthogonal to p3p4
+std::vector<Point> intersections_of_disks(Point, MyNum, Point, MyNum);
 std::pair<int, int> sorted_pair(int, int);
 
 
