@@ -417,6 +417,7 @@ class Data:
                 stop = True
             else:
                 nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
+                inserted.add(nt)
                 nt.neis[2] = r_neis[-1][0]
                 if nt.neis[2]:
                     works.add((nt.neis[2], r_neis[-1][1], nt))
@@ -432,6 +433,7 @@ class Data:
                 stop = True
             else:
                 nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
+                inserted.add(nt)
                 nt.neis[2] = l_neis[-1][0]
                 if nt.neis[2]:
                     works.add((nt.neis[2], l_neis[-1][1], nt))
@@ -534,7 +536,71 @@ class Data:
             if t.pts[2] == q1 and t.pts[0] == q2:
                 return t
         return None
-
+    
+    def make_non_obtuse(self, t:Triangle):
+        if (angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0):
+            i = 0
+        if (angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]]) > 0):
+            i = 1
+        if (angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]]) > 0):
+            i = 2
+        q = self.pts[t.pts[i]]
+        r = self.pts[t.pt(i + 1)]
+        l = self.pts[t.pt(i + 2)]
+        l_neis = []
+        r_neis = []
+        l_chain = []
+        r_chain = []
+        self.triangles.remove(t)
+        r_chain.append(t.pts[i])
+        r_chain.append(t.pt(i + 1))
+        l_chain.append(t.pts[i])
+        l_chain.append(t.pt(i + 2))
+        if t.neis[i]:
+            r_neis.append((t.neis[i], t.neis[i].get_ind(t.pt(i + 1))))
+        else:
+            r_neis.append((None, 0))
+        if t.nei(i + 2):
+            l_neis.append((t.nei(i + 2), t.nei(i + 2).get_ind(t.pts[i])))
+        else:
+            l_neis.append((None, 0))
+        tt = t.nei(i + 1)
+        stop = False
+        s = q
+        j = i
+        def cutright():
+            if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0:
+                stop = True
+            else:
+                nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
+                nt.neis[2] = r_neis[-1][0]
+                if nt.neis[2]:
+                    nt.neis[2].neis[r_neis[-1][1]] = nt
+                r_neis.pop()
+                nt.neis[1] = r_neis[-1][0]
+                if nt.neis[1]:
+                    nt.neis[1].neis[r_neis[-1][1]] = nt
+                r_neis.pop()
+                r_neis.append((nt, 0))
+                r_chain.pop()
+        def cutleft():
+            if turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0:
+                stop = True
+            else:
+                nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
+                nt.neis[2] = l_neis[-1][0]
+                if nt.neis[2]:
+                    works.add((nt.neis[2], l_neis[-1][1], nt))
+                l_neis.pop()
+                nt.neis[0] = l_neis[-1][0]
+                if nt.neis[0]:
+                    works.add((nt.neis[0], l_neis[-1][1], nt))
+                l_neis.pop()
+                l_neis.append((nt, 1))
+                l_chain.pop()
+        def abort():
+            for nt in inserted:
+                del nt
 
 def angle(p1:Point, p2:Point, p3:Point):
     if p1==p2:
