@@ -152,6 +152,9 @@ class MyNum:
     
     def __abs__(self):
         return MyNum(abs(self.num), abs(self.den))
+    
+    def __int__(self):
+        return int(self.num/self.den)
         
     
     def abbr(self):
@@ -167,6 +170,12 @@ class MyNum:
 
     def toFloat(self):
         return self.num/self.den
+    
+    def toString(self):
+        if self.den ==1:
+            return self.num
+        else:
+            return str(self.num)+"/"+str(self.den)
 
 
 
