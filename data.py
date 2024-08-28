@@ -5,6 +5,8 @@ import numpy as np
 import random
 import re
 from collections import deque
+import pdb
+import copy
 import math
 
 IMP = 100
@@ -71,8 +73,8 @@ class Data:
         inst = dict()
         inst["content_type"]="CG_SHOP_2025_Solution"
         inst["instance_uid"]=self.instance_name
-        inst["steiner_points_x"] =  list(p.x for p in self.pts[self.fp_ind:])
-        inst["steiner_points_y"] =  list(p.y for p in self.pts[self.fp_ind:])
+        inst["steiner_points_x"] =  list(p.x.toString() for p in self.pts[self.fp_ind:])
+        inst["steiner_points_y"] =  list(p.y.toString() for p in self.pts[self.fp_ind:])
         const_edges = []
         for e in self.constraints:
             const_edges.append(sorted(list(e)))
@@ -92,6 +94,7 @@ class Data:
                 int_edges.append(e3)
 
         inst["edges"] = int_edges 
+        print(inst)
         with open("solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
 
@@ -112,6 +115,7 @@ class Data:
         minw = 20-int(minx*rad)
         minh = height + int(miny*rad)-20
         img = np.zeros((height, width, 3),dtype="uint8")+255
+        rad = MyNum(rad)
         for t in self.triangles:
             pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
             # print(pts)
@@ -542,7 +546,107 @@ class Data:
             if t.pts[2] == q1 and t.pts[0] == q2:
                 return t
         return None
-    
+    def add_steiner(self, p:Point):
+        self.pts.append(p)
+        for i in range(len(self.region_boundary)-1):
+            if self.is_on(self.region_boundary[i], self.region_boundary[i+1], p):
+                self.region_boundary.insert(i+1, len(self.pts)-1)
+                break
+        for e in self.constraints:
+            if self.is_on(e[0], e[1], p):
+                self.constraints.add([e[0],len(self.pts)-1])
+                self.constraints.add([e[1],len(self.pts)-1])
+                self.constraints.remove(e)
+        self.triangles = set()
+        self.triangulate()
+        self.minmax_triangulate()
+
+    def add_steiners(self, l:list[Point]):
+        for p in l:
+            self.pts.append(p)
+            for i in range(len(self.region_boundary)-1):
+                if self.is_on(self.region_boundary[i], self.region_boundary[i+1], p):
+                    self.region_boundary.insert(i+1, len(self.pts)-1)
+                    break
+            for e in self.constraints:
+                if self.is_on(e[0], e[1], p):
+                    self.constraints.add([e[0],len(self.pts)-1])
+                    self.constraints.add([e[1],len(self.pts)-1])
+                    self.constraints.remove(e)
+        self.triangles = set()
+        self.triangulate()
+        self.minmax_triangulate()
+        
+    def delete_steiner(self, i:int):
+        if i>len(self.pts):
+            raise Exception("There is no such point to delete")
+        if i<self.fp_ind:
+            pass
+            # raise Exception("Cannot delete given point")
+        # if i in self.region_boundary:
+        #     pass
+        for t in self.triangles:
+            if i in t.pts:
+                break
+        t_list = [t]
+        small_boundary = [t.pt(t.get_ind(i)+2)]
+        outer_t_list = [t.nei(t.get_ind(i)+1)]
+        while True:  
+            t_ind = t_list[-1].get_ind(i)+2
+            new_t = t_list[-1].nei(t_ind)
+            if new_t!=t_list[0] and new_t!=None:
+                t_list.append(new_t)
+                outer_t_list.append(t_list[-1].nei(t_list[-1].get_ind(i)+1))  
+                small_boundary.append(t_list[-1].pt(t_list[-1].get_ind(i)+2))
+            else:
+                if new_t==None:
+                    outer_t_list.append(None)
+                    small_boundary.append(t.pt(t.get_ind(i)+1))
+                break
+        for t in t_list:
+            self.triangles.remove(t)
+                
+        self.triangulate_polygon(deque(small_boundary))
+        small_boundary.append(small_boundary[0])
+        for t in self.triangles:
+            for j in range(len(small_boundary)-1):
+                if t.get_ind(small_boundary[j])!=-1 and t.get_ind(small_boundary[j+1])==(t.get_ind(small_boundary[j])+1)%3:
+                    t.neis[t.get_ind(small_boundary[j])] = outer_t_list[j]
+                    if outer_t_list[j]!=None:
+                        outer_t_list[j].neis[outer_t_list[j].get_ind(small_boundary[j])] = t
+        if i in self.region_boundary:
+            self.region_boundary.remove(i)
+        i_connect = []
+        for e in self.constraints:
+            if e[0]==i:
+                i_connect.append(e[1])
+            if e[1]==i:
+                i_connect.append(e[0])
+        con = []
+        if len(i_connect)>=2:
+            for j in range(len(i_connect)-1):
+                for k in range(j+1, len(i_connect)):
+                    if self.is_on(j,k,self.pts[i]):
+                        self.constraints.append([j,k])
+                        con = [j,k]
+        e_list = []
+        for e in self.constraints:
+            if i in e:
+                e_list.append(e)
+        for e in e_list:
+            self.constraints.remove(e)
+        if i!=len(self.pts)-1:
+            self.pts[i] = self.pts[-1]
+            for t in self.triangles:
+                if t.get_ind(len(self.pts)-1)!=-1:
+                    t.pts[t.get_ind(len(self.pts)-1)] = i
+        self.pts.pop()
+        if con:
+            self.resolve_cross(con)
+        
+
+
+            
     def make_non_obtuse(self, t:Triangle):
         if (angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0):
             i = 0
