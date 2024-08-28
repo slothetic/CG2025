@@ -48,6 +48,7 @@ class Data:
         self.input = input
         self.triangles = set()
         self.ReadData()
+        np.random.seed(0)
 
     def ReadData(self):
         print("--------------------ReadData--------------------")
@@ -117,9 +118,14 @@ class Data:
         img = np.zeros((height, width, 3),dtype="uint8")+255
         rad = MyNum(rad)
         for t in self.triangles:
-            pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
-            # print(pts)
-            cv2.fillPoly(img, pts, color = (random.randint(220,254),random.randint(220,254),random.randint(220,254)))
+            if self.is_obtuse(t):
+                pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
+                # print(pts)
+                cv2.fillPoly(img, pts, color = (random.randint(100,150),random.randint(100,150),random.randint(100,150)))
+            else:
+                pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
+                # print(pts)
+                cv2.fillPoly(img, pts, color = (random.randint(220,254),random.randint(220,254),random.randint(220,254)))
         const_edges = []
         for e in self.constraints:
             const_edges.append(sorted(e))
@@ -169,12 +175,12 @@ class Data:
         q2 = self.pts[e2]
         if (turn(q1, q2, p) == MyNum(0)):
             if (q1.x == q2.x):
-                y1 = max(q1.y, q2.y)
-                y2 = min(q1.y, q2.y)
+                y1 = min(q1.y, q2.y)
+                y2 = max(q1.y, q2.y)
                 return (y1 < p.y) and (p.y < y2)
             else:
-                x1 = max(q1.x, q2.x)
-                x2 = min(q1.x, q2.x)
+                x1 = min(q1.x, q2.x)
+                x2 = max(q1.x, q2.x)
                 return (x1 < p.x) and (p.x < x2)
         else:
             return False
@@ -561,7 +567,7 @@ class Data:
         self.triangulate()
         self.minmax_triangulate()
 
-    def add_steiners(self, l:list[Point]):
+    def add_steiners(self, l:list):
         for p in l:
             self.pts.append(p)
             for i in range(len(self.region_boundary)-1):
@@ -648,12 +654,15 @@ class Data:
 
             
     def make_non_obtuse(self, t:Triangle):
+        print("resolve obtuse")
+        self.print_triangle(t)
         if (angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0):
             i = 0
         if (angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]]) > 0):
             i = 1
         if (angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]]) > 0):
             i = 2
+        print("obtuse at", i)
         q = self.pts[t.pts[i]]
         r = self.pts[t.pt(i + 1)]
         l = self.pts[t.pt(i + 2)]
@@ -713,6 +722,7 @@ class Data:
         while True:
             if not tt:
                 break
+            self.print_triangle(tt)
             stop[0] = False
             j = (tt.get_ind(r_chain[-1]) + 1) % 3
             s = self.pts[tt.pts[j]]
@@ -766,6 +776,7 @@ class Data:
                     t2.neis[2] = t1
                     self.triangles.add(t1)
                     self.triangles.add(t2)
+                    return
                 elif not rsgn:
                     l = s
                     l_chain.append(tt.pts[j])
@@ -874,14 +885,15 @@ class Data:
                     r_chain.append(len(self.pts) - 1)
                     remaining = deque(r_chain + l_chain[-1:0:-1])
                     self.triangulate_polygon(remaining)
-                    for i in range(len(r_chain) - 1):
+                    for i in range(len(r_chain) - 2):
                         tttt = self.find_triangle(r_chain[i], r_chain[i + 1])
+                        self.print_triangle(tttt)
                         l = tttt.get_ind(r_chain[i])
                         tttt.neis[l] = r_neis[i][0]
                         if r_neis[i][0]:
                             r_neis[i][0].neis[r_neis[i][1]] = tttt
                     for i in range(len(l_chain) - 1):
-                        tttt = self.find_triangle(l_chain[i + 1], r_chain[i])
+                        tttt = self.find_triangle(l_chain[i + 1], l_chain[i])
                         l = tttt.get_ind(l_chain[i + 1])
                         tttt.neis[l] = l_neis[i][0]
                         if l_neis[i][0]:
@@ -942,6 +954,7 @@ class Data:
         for pp in cands:
             score = 0
             for i in range(len(chain)):
+                print(self.pts[i], self.pts[i - 1], pp)
                 if angle(self.pts[i], self.pts[i - 1], pp) <= 0 and angle(self.pts[i - 1], self.pts[i], pp) <= 0 and angle(self.pts[i], pp, self.pts[i - 1]) <= 0:
                     score += 1
             if score < bscore:
@@ -1143,7 +1156,7 @@ def intersections_of_disks(p1:Point, r1:MyNum, p2:Point, r2:MyNum):
     s = (p2.x - p1.x) / (p1.y - p2.y)
     bb = (p1.x * p1.x + p1.y * p1.y - p2.x * p2.x - p2.y * p2.y - r1 + r2) / (p1.y - p2.y) / 2
     a = s * s + 1
-    b = 2 * (-p1.x + s * (bb - p1.y))
+    b = (-p1.x + s * (bb - p1.y)) * 2
     c = p1.x * p1.x + (bb - p1.y) * (bb - p1.y) - r1
     inroot = b * b - a * c * 4
     if inroot < 0:

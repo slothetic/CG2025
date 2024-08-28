@@ -14,17 +14,12 @@ if __name__=="__main__":
         inp = args.data
     else:
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
-    random.seed(0)
     dt = Data(inp)
     dt.triangulate()
     dt.minmax_triangulate()
-    dt.add_steiner(Point(4000,4000))
-    dt.add_steiner(Point(8032,MyNum(8855,2)))
-    dt.DrawResult("addSt")
-    dt.delete_steiner(len(dt.pts)-1)
-    dt.DrawResult("deleteSt")
     dt.WriteData()
     dt.DrawResult()
+    random.seed(0)
     cnt = 0
     while True:
         c = input("Take a step?(y/n): ")
