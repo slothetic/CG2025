@@ -477,7 +477,7 @@ void Instance::minmax_triangulate(){
 				i = 2;
 			}			
 		}
-		//std::cout << maxang << std::endl;
+		std::cout << maxang << std::endl;
 		//std::cout << i << std::endl;
 		//if (mt) {std::cout<<"start ear-cutting: "<<cnt<<std::endl; print_triangle(mt);}
 		if (!mt || !ear_cut(mt, i)) 
@@ -901,7 +901,7 @@ void Instance::make_non_obtuse(Triangle *t) {
 		std::cout << "cutting done" << std::endl;
 		while (r_chain.size() - 1 > ri) {
 			Triangle *ttt = find_triangle(r_chain[r_chain.size() - 2], r_chain.back());
-			ttt->t[ttt->get_ind(r_chain[r_chain.size() - 1])] = r_neis.back().first;
+			ttt->t[ttt->get_ind(r_chain[r_chain.size() - 2])] = r_neis.back().first;
 			if (r_neis.back().first)
 				r_neis.back().first->t[r_neis.back().second] = ttt;
 			r_chain.pop_back();
@@ -1094,7 +1094,7 @@ void Instance::make_non_obtuse(Triangle *t) {
 	for (Point pp : cands) {
 		int score = 0;
 		for (int ind = 0; ind < r_chain.size() - 1; ind++) {
-			if (angle(pts[r_chain[i]], pts[r_chain[i + 1]], pp) <= 0. && angle(pts[r_chain[i]], pp, pts[r_chain[i + 1]]) <= 0. && angle(pts[r_chain[i + 1]], pts[r_chain[i]], pp) <= 0.) score++;
+			if (angle(pts[r_chain[ind]], pts[r_chain[ind + 1]], pp) <= 0. && angle(pts[r_chain[ind]], pp, pts[r_chain[ind + 1]]) <= 0. && angle(pts[r_chain[ind + 1]], pts[r_chain[ind]], pp) <= 0.) score++;
 		}
 		if (score < bscore) continue;
 		if (score > bscore) {
@@ -1313,7 +1313,7 @@ Point right_angle_point(Point p1, Point p2, Point p3, Point p4) {
 		return Point(p3.x, qy);
 	}
 	else if (p1.y == p2.y) {
-		MyNum s = (p3.y - p4.y) / (p3.x - p4.y);
+		MyNum s = (p3.y - p4.y) / (p3.x - p4.x);
 		MyNum b = p3.y - s * p3.x;
 		MyNum qy = s * p2.x + b;
 		return Point(p2.x, qy);
@@ -1326,7 +1326,7 @@ Point right_angle_point(Point p1, Point p2, Point p3, Point p4) {
 		if (s1 == s2) return Point(0, 0);
 		MyNum b1 = p3.y - s1 * p3.x;
 		std::cout << b1 << std::endl;
-		MyNum b2 = p2.y - s2 * p1.x;
+		MyNum b2 = p2.y - s2 * p2.x;
 		std::cout << b2 << std::endl;
 		MyNum qx = (b2 - b1) / (s1 - s2);
 		std::cout << qx << std::endl;
