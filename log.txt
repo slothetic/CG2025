@@ -1,286 +1,996 @@
 --------------------ReadData--------------------
 --------------------WriteData--------------------
-{'content_type': 'CG_SHOP_2025_Solution', 'instance_uid': 'cgshop2025_examples_ortho_10_ff68423e', 'steiner_points_x': [], 'steiner_points_y': [], 'edges': [[1, 3], [1, 4], [4, 9], [6, 9], [4, 6], [7, 9], [1, 9]]}
+{'content_type': 'CG_SHOP_2025_Solution', 'instance_uid': 'cgshop2025_examples_simple-polygon-exterior_10_34daa0f6', 'steiner_points_x': [], 'steiner_points_y': [], 'edges': [[1, 3], [0, 3], [3, 9], [4, 9], [4, 8], [4, 7], [4, 6], [0, 8], [0, 7]]}
 --------------------DrawResult--------------------
-Triangle :<data.Triangle object at 0x7f1491eb5c10>
-(383537, 0)
-(383537, -232707)
-(667036, -232707)
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc36850>
+4 : (4077, 8616)
+9 : (5267, 5779)
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc36890>
 None
-None
-<data.Triangle object at 0x7f1491eb5650>
-Triangle :<data.Triangle object at 0x7f1491eb5650>
-(383537, 0)
-(667036, -232707)
-(667036, 0)
-<data.Triangle object at 0x7f1491eb5c10>
-None
-<data.Triangle object at 0x7f1491e77f90>
-Triangle :<data.Triangle object at 0x7f1491e88450>
-(0, 1000000)
-(667036, 0)
-(1000000, 422972)
-<data.Triangle object at 0x7f1491e77f90>
-<data.Triangle object at 0x7f1491e77710>
-<data.Triangle object at 0x7f1491e884d0>
-Triangle :<data.Triangle object at 0x7f1491e884d0>
-(1000000, 422972)
-(1000000, 834548)
-(0, 1000000)
-None
-<data.Triangle object at 0x7f1491e88350>
-<data.Triangle object at 0x7f1491e88450>
-Triangle :<data.Triangle object at 0x7f1491e77710>
-(667036, 0)
-(1000000, 0)
-(1000000, 422972)
-None
-None
-<data.Triangle object at 0x7f1491e88450>
-Triangle :<data.Triangle object at 0x7f1491f7bd50>
-(0, 1000000)
-(0, 0)
-(383537, 0)
-None
-None
-<data.Triangle object at 0x7f1491e77f90>
-Triangle :<data.Triangle object at 0x7f1491e88350>
-(1000000, 834548)
-(1000000, 1000000)
-(0, 1000000)
-None
-None
-<data.Triangle object at 0x7f1491e884d0>
-Triangle :<data.Triangle object at 0x7f1491e77f90>
-(0, 1000000)
-(383537, 0)
-(667036, 0)
-<data.Triangle object at 0x7f1491f7bd50>
-<data.Triangle object at 0x7f1491eb5650>
-<data.Triangle object at 0x7f1491e88450>
-Take a step?(y/n): Triangle :<data.Triangle object at 0x7f1491e77f90>
-(0, 1000000)
-(383537, 0)
-(667036, 0)
-<data.Triangle object at 0x7f1491f7bd50>
-<data.Triangle object at 0x7f1491eb5650>
-<data.Triangle object at 0x7f1491e88450>
+<data.Triangle object at 0x7f363dc73190>
 resolve obtuse
-Triangle :<data.Triangle object at 0x7f1491e77f90>
-(0, 1000000)
-(383537, 0)
-(667036, 0)
-<data.Triangle object at 0x7f1491f7bd50>
-<data.Triangle object at 0x7f1491eb5650>
-<data.Triangle object at 0x7f1491e88450>
-Triangle :<data.Triangle object at 0x7f1491e88450>
-(0, 1000000)
-(667036, 0)
-(1000000, 422972)
-<data.Triangle object at 0x7f1491e77f90>
-<data.Triangle object at 0x7f1491e77710>
-<data.Triangle object at 0x7f1491e884d0>
-Triangle :<data.Triangle object at 0x7f1491e884d0>
-(1000000, 422972)
-(1000000, 834548)
-(0, 1000000)
+Triangle :<data.Triangle object at 0x7f363dc36850>
+4 : (4077, 8616)
+9 : (5267, 5779)
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc36890>
 None
-<data.Triangle object at 0x7f1491e88350>
-<data.Triangle object at 0x7f1491e88450>
-Triangle :<data.Triangle object at 0x7f1491e88350>
-(1000000, 834548)
-(1000000, 1000000)
-(0, 1000000)
+<data.Triangle object at 0x7f363dc73190>
+obtuse at 2
+Triangle :<data.Triangle object at 0x7f363dc36890>
+9 : (5267, 5779)
+4 : (4077, 8616)
+3 : (734, 9043)
+<data.Triangle object at 0x7f363dc36850>
+None
+<data.Triangle object at 0x7f363dc36610>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc36610>
+3 : (734, 9043)
+0 : (7817, 13)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc36810>
+None
+<data.Triangle object at 0x7f363dc36890>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc36810>
+3 : (734, 9043)
+1 : (2871, 1116)
+0 : (7817, 13)
+<data.Triangle object at 0x7f366264f590>
+None
+<data.Triangle object at 0x7f363dc36610>
+--------------------DrawResult--------------------
+view next step:line 715
+Triangle :<data.Triangle object at 0x7f363dc46a90>
+0 : (7817, 13)
+9 : (5267, 5779)
+1 : (2871, 1116)
 None
 None
-<data.Triangle object at 0x7f1491e884d0>
-5 2
+None
+Triangle :<data.Triangle object at 0x7f366264f590>
+3 : (734, 9043)
+2 : (523, 8263)
+1 : (2871, 1116)
+None
+None
+<data.Triangle object at 0x7f363dc36810>
+--------------------DrawResult--------------------
+view next step:line 715
+Triangle :<data.Triangle object at 0x7f363dc46450>
+1 : (2871, 1116)
+9 : (5267, 5779)
+2 : (523, 8263)
+<data.Triangle object at 0x7f363dc46a90>
+None
+None
+Triangle :<data.Triangle object at 0x7f363dc46450>
+1 : (2871, 1116)
+9 : (5267, 5779)
+2 : (523, 8263)
+<data.Triangle object at 0x7f363dc46a90>
+None
+None
+--------------------DrawResult--------------------
+view next step:4 3
 3 1
 3 1
 3
-cutting done
+--------------------DrawResult--------------------
+view next step:cutting done
 rchain done
 lchain done
 --------------------DrawResult--------------------
-Triangle :<data.Triangle object at 0x7f1491eb5c10>
-(383537, 0)
-(383537, -232707)
-(667036, -232707)
-None
-None
-<data.Triangle object at 0x7f1491eb5650>
-Triangle :<data.Triangle object at 0x7f1491e88c10>
-(383537, 834548)
-(1000000, 834548)
-(1000000, 1000000)
-<data.Triangle object at 0x7f1491e90c50>
-None
-<data.Triangle object at 0x7f1491e88e50>
-Triangle :<data.Triangle object at 0x7f1491eb5650>
-(383537, 0)
-(667036, -232707)
-(667036, 0)
-<data.Triangle object at 0x7f1491eb5c10>
-None
-<data.Triangle object at 0x7f1491e88a50>
-Triangle :<data.Triangle object at 0x7f1491e88a50>
-(383537, 834548)
-(383537, 0)
-(667036, 0)
-<data.Triangle object at 0x7f1491e88d10>
-<data.Triangle object at 0x7f1491eb5650>
-<data.Triangle object at 0x7f1491e88f50>
-Triangle :<data.Triangle object at 0x7f1491e90c50>
-(383537, 834548)
-(1000000, 422972)
-(1000000, 834548)
-<data.Triangle object at 0x7f1491e88f50>
-None
-<data.Triangle object at 0x7f1491e88c10>
-Triangle :<data.Triangle object at 0x7f1491e88e50>
-(1000000, 1000000)
-(0, 1000000)
-(383537, 834548)
-None
-<data.Triangle object at 0x7f1491e88d10>
-<data.Triangle object at 0x7f1491e88c10>
-Triangle :<data.Triangle object at 0x7f1491e77710>
-(667036, 0)
-(1000000, 0)
-(1000000, 422972)
-None
-None
-<data.Triangle object at 0x7f1491e88f50>
-Triangle :<data.Triangle object at 0x7f1491e88d10>
-(383537, 834548)
-(0, 1000000)
-(383537, 0)
-<data.Triangle object at 0x7f1491e88e50>
-<data.Triangle object at 0x7f1491f7bd50>
-<data.Triangle object at 0x7f1491e88a50>
-Triangle :<data.Triangle object at 0x7f1491f7bd50>
-(0, 1000000)
-(0, 0)
-(383537, 0)
-None
-None
-<data.Triangle object at 0x7f1491e88d10>
-Triangle :<data.Triangle object at 0x7f1491e88f50>
-(383537, 834548)
-(667036, 0)
-(1000000, 422972)
-<data.Triangle object at 0x7f1491e88a50>
-<data.Triangle object at 0x7f1491e77710>
-<data.Triangle object at 0x7f1491e90c50>
-Take a step?(y/n): Triangle :<data.Triangle object at 0x7f1491e88d10>
-(383537, 834548)
-(0, 1000000)
-(383537, 0)
-<data.Triangle object at 0x7f1491e88e50>
-<data.Triangle object at 0x7f1491f7bd50>
-<data.Triangle object at 0x7f1491e88a50>
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc51cd0>
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc46910>
+<data.Triangle object at 0x7f363dc46890>
+<data.Triangle object at 0x7f363dc46e10>
 resolve obtuse
-Triangle :<data.Triangle object at 0x7f1491e88d10>
-(383537, 834548)
-(0, 1000000)
-(383537, 0)
-<data.Triangle object at 0x7f1491e88e50>
-<data.Triangle object at 0x7f1491f7bd50>
-<data.Triangle object at 0x7f1491e88a50>
-Triangle :<data.Triangle object at 0x7f1491f7bd50>
-(0, 1000000)
-(0, 0)
-(383537, 0)
+Triangle :<data.Triangle object at 0x7f363dc51cd0>
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc46910>
+<data.Triangle object at 0x7f363dc46890>
+<data.Triangle object at 0x7f363dc46e10>
+obtuse at 0
+Triangle :<data.Triangle object at 0x7f363dc46890>
+2 : (523, 8263)
+1 : (2871, 1116)
+9 : (5267, 5779)
 None
-None
-<data.Triangle object at 0x7f1491e88d10>
+<data.Triangle object at 0x7f363dc46a90>
+<data.Triangle object at 0x7f363dc51cd0>
 --------------------DrawResult--------------------
-Triangle :<data.Triangle object at 0x7f1491eb5c10>
-(383537, 0)
-(383537, -232707)
-(667036, -232707)
+view next step:2 3
+1 2
+1 2
+2 1 11
+deque([2, 11, 1, 0, 6, 5, 3])
+Triangle :<data.Triangle object at 0x7f363dc46ed0>
+9 : (5267, 5779)
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
 None
 None
-<data.Triangle object at 0x7f1491eb5650>
-Triangle :<data.Triangle object at 0x7f1491e88c10>
-(383537, 834548)
-(1000000, 834548)
-(1000000, 1000000)
-<data.Triangle object at 0x7f1491e90c50>
-None
-<data.Triangle object at 0x7f1491e88e50>
-Triangle :<data.Triangle object at 0x7f1491eb5650>
-(383537, 0)
-(667036, -232707)
-(667036, 0)
-<data.Triangle object at 0x7f1491eb5c10>
-None
-<data.Triangle object at 0x7f1491e88a50>
-Triangle :<data.Triangle object at 0x7f1491e88a50>
-(383537, 834548)
-(383537, 0)
-(667036, 0)
-<data.Triangle object at 0x7f1491e88750>
-<data.Triangle object at 0x7f1491eb5650>
-<data.Triangle object at 0x7f1491e88f50>
-Triangle :<data.Triangle object at 0x7f1491e90c50>
-(383537, 834548)
-(1000000, 422972)
-(1000000, 834548)
-<data.Triangle object at 0x7f1491e88f50>
-None
-<data.Triangle object at 0x7f1491e88c10>
-Triangle :<data.Triangle object at 0x7f1491e88e50>
-(1000000, 1000000)
-(0, 1000000)
-(383537, 834548)
-None
-<data.Triangle object at 0x7f1491e88790>
-<data.Triangle object at 0x7f1491e88c10>
-Triangle :<data.Triangle object at 0x7f1491e77710>
-(667036, 0)
-(1000000, 0)
-(1000000, 422972)
-None
-None
-<data.Triangle object at 0x7f1491e88f50>
-Triangle :<data.Triangle object at 0x7f1491e88f50>
-(383537, 834548)
-(667036, 0)
-(1000000, 422972)
-<data.Triangle object at 0x7f1491e88a50>
-<data.Triangle object at 0x7f1491e77710>
-<data.Triangle object at 0x7f1491e90c50>
-Triangle :<data.Triangle object at 0x7f1491e88750>
-(0, 0)
-(383537, 0)
-(383537, 834548)
-None
-<data.Triangle object at 0x7f1491e88a50>
-<data.Triangle object at 0x7f1491e88790>
-Triangle :<data.Triangle object at 0x7f1491e88790>
-(383537, 834548)
-(0, 1000000)
-(0, 0)
-<data.Triangle object at 0x7f1491e88e50>
-None
-<data.Triangle object at 0x7f1491e88750>
-Take a step?(y/n): Triangle :<data.Triangle object at 0x7f1491e88e50>
-(1000000, 1000000)
-(0, 1000000)
-(383537, 834548)
-None
-<data.Triangle object at 0x7f1491e88790>
-<data.Triangle object at 0x7f1491e88c10>
+<data.Triangle object at 0x7f363dc464d0>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc46ed0>
+9 : (5267, 5779)
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+<data.Triangle object at 0x7f363dc46e10>
+<data.Triangle object at 0x7f363dc46910>
+<data.Triangle object at 0x7f363dc464d0>
 resolve obtuse
-Triangle :<data.Triangle object at 0x7f1491e88e50>
-(1000000, 1000000)
-(0, 1000000)
-(383537, 834548)
+Triangle :<data.Triangle object at 0x7f363dc46ed0>
+9 : (5267, 5779)
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+<data.Triangle object at 0x7f363dc46e10>
+<data.Triangle object at 0x7f363dc46910>
+<data.Triangle object at 0x7f363dc464d0>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc464d0>
+9 : (5267, 5779)
+2 : (523, 8263)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc46ed0>
 None
-<data.Triangle object at 0x7f1491e88790>
-<data.Triangle object at 0x7f1491e88c10>
+<data.Triangle object at 0x7f363dc46d90>
+--------------------DrawResult--------------------
+view next step:line 785
+Triangle :<data.Triangle object at 0x7f363dc46b50>
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc46910>
+None
+<data.Triangle object at 0x7f363dc46e90>
+Triangle :<data.Triangle object at 0x7f363dc46e90>
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+9 : (5267, 5779)
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc46d90>
+<data.Triangle object at 0x7f363dc46e10>
+<data.Triangle object at 0x7f363dc46b50>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc46e90>
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+9 : (5267, 5779)
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc46d90>
+<data.Triangle object at 0x7f363dc46e10>
+<data.Triangle object at 0x7f363dc46b50>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc46e90>
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+9 : (5267, 5779)
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc46d90>
+<data.Triangle object at 0x7f363dc46e10>
+<data.Triangle object at 0x7f363dc46b50>
+obtuse at 2
+Triangle :<data.Triangle object at 0x7f363dc46d90>
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+1 : (2871, 1116)
+9 : (5267, 5779)
+None
+<data.Triangle object at 0x7f363dc46a90>
+<data.Triangle object at 0x7f363dc46e90>
+--------------------DrawResult--------------------
+view next step:2 3
+1 2
+1 2
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc36790>
+4 : (4077, 8616)
+5 : (7583, 9635)
+3 : (734, 9043)
+None
+None
+None
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc36790>
+4 : (4077, 8616)
+5 : (7583, 9635)
+3 : (734, 9043)
+None
+None
+None
+obtuse at 0
 2 2
 1 1
 1 1
-[<data.Point object at 0x7f1491e888d0>, <data.Point object at 0x7f1491e88710>, <data.Point object at 0x7f1491e88fd0>]
+5 3 13
+deque([2, 11, 1, 0, 6, 5, 13, 3])
+Triangle :<data.Triangle object at 0x7f363dc46850>
+4 : (4077, 8616)
+5 : (7583, 9635)
+13 : ("189773104637/47259265", "440770439811/47259265")
+None
+None
+<data.Triangle object at 0x7f363dc46490>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc737d0>
+8 : (5927, 6541)
+0 : (7817, 13)
+7 : (6153, 6995)
+<data.Triangle object at 0x7f363dc36910>
+<data.Triangle object at 0x7f363dc36950>
+None
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc737d0>
+8 : (5927, 6541)
+0 : (7817, 13)
+7 : (6153, 6995)
+<data.Triangle object at 0x7f363dc36910>
+<data.Triangle object at 0x7f363dc36950>
+None
+obtuse at 0
+Triangle :<data.Triangle object at 0x7f363dc36950>
+7 : (6153, 6995)
+0 : (7817, 13)
+6 : (7855, 8978)
+<data.Triangle object at 0x7f363dc737d0>
+None
+None
+--------------------DrawResult--------------------
+view next step:2 3
+1 2
+1 2
+0 6 14
+deque([2, 11, 1, 0, 14, 6, 5, 13, 3])
+Triangle :<data.Triangle object at 0x7f363dc36790>
+7 : (6153, 6995)
+8 : (5927, 6541)
+0 : (7817, 13)
+None
+None
+<data.Triangle object at 0x7f363dc46c90>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc51e50>
+8 : (5927, 6541)
+10 : ("1482571351/410213", "3140318633/410213")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc46ad0>
+<data.Triangle object at 0x7f363dc46cd0>
+<data.Triangle object at 0x7f363dc51110>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc51e50>
+8 : (5927, 6541)
+10 : ("1482571351/410213", "3140318633/410213")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc46ad0>
+<data.Triangle object at 0x7f363dc46cd0>
+<data.Triangle object at 0x7f363dc51110>
+obtuse at 2
+Triangle :<data.Triangle object at 0x7f363dc46ad0>
+10 : ("1482571351/410213", "3140318633/410213")
+8 : (5927, 6541)
+4 : (4077, 8616)
+<data.Triangle object at 0x7f363dc51e50>
+<data.Triangle object at 0x7f363dc73190>
+<data.Triangle object at 0x7f363dc46b90>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc73190>
+8 : (5927, 6541)
+7 : (6153, 6995)
+4 : (4077, 8616)
+None
+<data.Triangle object at 0x7f363dc368d0>
+<data.Triangle object at 0x7f363dc46ad0>
+--------------------DrawResult--------------------
+view next step:line 715
+Triangle :<data.Triangle object at 0x7f363dc46990>
+4 : (4077, 8616)
+10 : ("1482571351/410213", "3140318633/410213")
+7 : (6153, 6995)
+<data.Triangle object at 0x7f363dc46b90>
+None
+<data.Triangle object at 0x7f363dc368d0>
+Triangle :<data.Triangle object at 0x7f363dc46990>
+4 : (4077, 8616)
+10 : ("1482571351/410213", "3140318633/410213")
+7 : (6153, 6995)
+<data.Triangle object at 0x7f363dc46b90>
+None
+<data.Triangle object at 0x7f363dc368d0>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc368d0>
+7 : (6153, 6995)
+6 : (7855, 8978)
+4 : (4077, 8616)
+None
+<data.Triangle object at 0x7f363dc367d0>
+<data.Triangle object at 0x7f363dc46990>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc367d0>
+4 : (4077, 8616)
+6 : (7855, 8978)
+5 : (7583, 9635)
+<data.Triangle object at 0x7f363dc368d0>
+None
+None
+--------------------DrawResult--------------------
+view next step:5 3
+2 2
+2 2
+4
+--------------------DrawResult--------------------
+view next step:cutting done
+rchain done
+lchain done
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc51ed0>
+14 : ("5329928667/679783", "3798898509/679783")
+8 : (5927, 6541)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc517d0>
+None
+<data.Triangle object at 0x7f363dc51250>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc51ed0>
+14 : ("5329928667/679783", "3798898509/679783")
+8 : (5927, 6541)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc517d0>
+None
+<data.Triangle object at 0x7f363dc51250>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc51250>
+9 : (5267, 5779)
+0 : (7817, 13)
+14 : ("5329928667/679783", "3798898509/679783")
+None
+None
+<data.Triangle object at 0x7f363dc51ed0>
+--------------------DrawResult--------------------
+view next step:3 2
+2 1
+2 1
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc36950>
+16 : ("5520186637679459/872140515727", "4492294404003651/872140515727")
+9 : (5267, 5779)
+0 : (7817, 13)
+<data.Triangle object at 0x7f363dc36890>
+None
+<data.Triangle object at 0x7f363dc36850>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc36950>
+16 : ("5520186637679459/872140515727", "4492294404003651/872140515727")
+9 : (5267, 5779)
+0 : (7817, 13)
+<data.Triangle object at 0x7f363dc36890>
+None
+<data.Triangle object at 0x7f363dc36850>
+obtuse at 0
+2 2
+1 1
+1 1
+9 0 17
+deque([2, 11, 1, 0, 14, 6, 5, 13, 3])
+9 0
+Triangle :<data.Triangle object at 0x7f363dc51310>
+16 : ("5520186637679459/872140515727", "4492294404003651/872140515727")
+9 : (5267, 5779)
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+None
+None
+<data.Triangle object at 0x7f363dc51890>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc51f10>
+7 : (6153, 6995)
+6 : (7855, 8978)
+5 : (7583, 9635)
+None
+None
+<data.Triangle object at 0x7f363dc51950>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc51f10>
+7 : (6153, 6995)
+6 : (7855, 8978)
+5 : (7583, 9635)
+None
+None
+<data.Triangle object at 0x7f363dc51950>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc51950>
+5 : (7583, 9635)
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+7 : (6153, 6995)
+<data.Triangle object at 0x7f363dc51510>
+<data.Triangle object at 0x7f363dc51590>
+<data.Triangle object at 0x7f363dc51f10>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51510>
+4 : (4077, 8616)
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+5 : (7583, 9635)
+<data.Triangle object at 0x7f363dc46690>
+<data.Triangle object at 0x7f363dc51950>
+None
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc46690>
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+4 : (4077, 8616)
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc51510>
+<data.Triangle object at 0x7f363dc46b90>
+<data.Triangle object at 0x7f363dc36790>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc36790>
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+10 : ("1482571351/410213", "3140318633/410213")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc46690>
+<data.Triangle object at 0x7f363dc46cd0>
+<data.Triangle object at 0x7f363dc36610>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc36610>
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc36790>
+<data.Triangle object at 0x7f363dc51110>
+<data.Triangle object at 0x7f363dc51590>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51110>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+9 : (5267, 5779)
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc515d0>
+None
+<data.Triangle object at 0x7f363dc36610>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc515d0>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+1 : (2871, 1116)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc51050>
+<data.Triangle object at 0x7f363dc51850>
+<data.Triangle object at 0x7f363dc51110>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51050>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+1 : (2871, 1116)
+<data.Triangle object at 0x7f363dc46cd0>
+None
+<data.Triangle object at 0x7f363dc515d0>
+--------------------DrawResult--------------------
+view next step:line 715
+Triangle :<data.Triangle object at 0x7f363dc513d0>
+1 : (2871, 1116)
+9 : (5267, 5779)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc51850>
+None
+None
+Triangle :<data.Triangle object at 0x7f363dc513d0>
+1 : (2871, 1116)
+9 : (5267, 5779)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc51850>
+None
+None
+--------------------DrawResult--------------------
+view next step:6 6
+4 2
+3 2
+7
+--------------------DrawResult--------------------
+view next step:cutting done
+rchain done
+lchain done
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc4cc10>
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+6 : (7855, 8978)
+5 : (7583, 9635)
+<data.Triangle object at 0x7f363dc4cd50>
+None
+<data.Triangle object at 0x7f363dc4c850>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc4cc10>
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+6 : (7855, 8978)
+5 : (7583, 9635)
+<data.Triangle object at 0x7f363dc4cd50>
+None
+<data.Triangle object at 0x7f363dc4c850>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc4c850>
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+5 : (7583, 9635)
+4 : (4077, 8616)
+<data.Triangle object at 0x7f363dc4cc10>
+None
+<data.Triangle object at 0x7f363dc4ce90>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc4ce90>
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+4 : (4077, 8616)
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc4c850>
+<data.Triangle object at 0x7f363dc46b90>
+<data.Triangle object at 0x7f363dc4cc50>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc4cc50>
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+10 : ("1482571351/410213", "3140318633/410213")
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+<data.Triangle object at 0x7f363dc4ce90>
+<data.Triangle object at 0x7f363dc514d0>
+<data.Triangle object at 0x7f363dc4c0d0>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc514d0>
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+10 : ("1482571351/410213", "3140318633/410213")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc4cc50>
+<data.Triangle object at 0x7f363dc46cd0>
+<data.Triangle object at 0x7f363dc51350>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51350>
+8 : (5927, 6541)
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc51590>
+<data.Triangle object at 0x7f363dc514d0>
+<data.Triangle object at 0x7f363dc51e90>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51e90>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+9 : (5267, 5779)
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc51090>
+None
+<data.Triangle object at 0x7f363dc51350>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51090>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+1 : (2871, 1116)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc51710>
+<data.Triangle object at 0x7f363dc51850>
+<data.Triangle object at 0x7f363dc51e90>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51710>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+1 : (2871, 1116)
+<data.Triangle object at 0x7f363dc46cd0>
+None
+<data.Triangle object at 0x7f363dc51090>
+--------------------DrawResult--------------------
+view next step:line 715
+Triangle :<data.Triangle object at 0x7f363dc51e10>
+1 : (2871, 1116)
+9 : (5267, 5779)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc51850>
+None
+None
+Triangle :<data.Triangle object at 0x7f363dc51e10>
+1 : (2871, 1116)
+9 : (5267, 5779)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc51850>
+None
+None
+--------------------DrawResult--------------------
+view next step:6 6
+4 1
+4 1
+7
+--------------------DrawResult--------------------
+view next step:cutting done
+rchain done
+lchain done
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc519d0>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+9 : (5267, 5779)
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc51d50>
+None
+<data.Triangle object at 0x7f363dc51d10>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc519d0>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+9 : (5267, 5779)
+8 : (5927, 6541)
+<data.Triangle object at 0x7f363dc51d50>
+None
+<data.Triangle object at 0x7f363dc51d10>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc51d10>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+8 : (5927, 6541)
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+<data.Triangle object at 0x7f363dc519d0>
+<data.Triangle object at 0x7f363dc51590>
+<data.Triangle object at 0x7f363dc4c890>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc4c890>
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+<data.Triangle object at 0x7f363dc4c210>
+<data.Triangle object at 0x7f363dc51d10>
+<data.Triangle object at 0x7f363dc4c050>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc4c210>
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+10 : ("1482571351/410213", "3140318633/410213")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc4c190>
+<data.Triangle object at 0x7f363dc46cd0>
+<data.Triangle object at 0x7f363dc4c890>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc46cd0>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+10 : ("1482571351/410213", "3140318633/410213")
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc4c210>
+<data.Triangle object at 0x7f363dc46b50>
+<data.Triangle object at 0x7f363dc51f90>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc46b50>
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc46910>
+None
+<data.Triangle object at 0x7f363dc46cd0>
+--------------------DrawResult--------------------
+view next step:6 3
+4 1
+4 1
+4
+--------------------DrawResult--------------------
+view next step:cutting done
+rchain done
+lchain done
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc4c310>
+2 : (523, 8263)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+None
+<data.Triangle object at 0x7f363dc51f90>
+<data.Triangle object at 0x7f363dc4c590>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc4c310>
+2 : (523, 8263)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+None
+<data.Triangle object at 0x7f363dc51f90>
+<data.Triangle object at 0x7f363dc4c590>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc4c590>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+<data.Triangle object at 0x7f363dc46a50>
+<data.Triangle object at 0x7f363dc46910>
+<data.Triangle object at 0x7f363dc4c310>
+--------------------DrawResult--------------------
+view next step:line 785
+Triangle :<data.Triangle object at 0x7f363dc36910>
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc51f90>
+<data.Triangle object at 0x7f363dc46a50>
+<data.Triangle object at 0x7f363dc51610>
+Triangle :<data.Triangle object at 0x7f363dc51610>
+10 : ("1482571351/410213", "3140318633/410213")
+2 : (523, 8263)
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+<data.Triangle object at 0x7f363dc46910>
+None
+<data.Triangle object at 0x7f363dc36910>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc4c350>
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+5 : (7583, 9635)
+4 : (4077, 8616)
+<data.Triangle object at 0x7f363dc4c8d0>
+None
+<data.Triangle object at 0x7f363dc4c190>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc4c350>
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+5 : (7583, 9635)
+4 : (4077, 8616)
+<data.Triangle object at 0x7f363dc4c8d0>
+None
+<data.Triangle object at 0x7f363dc4c190>
+obtuse at 0
+2 2
+1 1
+1 1
+5 4 21
+deque([2, 11, 1, 0, 14, 6, 5, 13, 3])
+5 4
+Triangle :<data.Triangle object at 0x7f363dc51990>
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+5 : (7583, 9635)
+21 : ("11388163374423734564349992666153215372924213267210948099068423008442958592342772645407868992404686733062645468121312938988009329901863581714319348449/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375", "20780377385274222126821442897197460445719213958344337488617977841218716855970081581451376237213610548415382928229142929057812331769582938600884545901/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375")
+None
+None
+<data.Triangle object at 0x7f363dc51a50>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc51fd0>
+21 : ("11388163374423734564349992666153215372924213267210948099068423008442958592342772645407868992404686733062645468121312938988009329901863581714319348449/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375", "20780377385274222126821442897197460445719213958344337488617977841218716855970081581451376237213610548415382928229142929057812331769582938600884545901/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375")
+5 : (7583, 9635)
+13 : ("189773104637/47259265", "440770439811/47259265")
+None
+None
+<data.Triangle object at 0x7f363dc46850>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc51fd0>
+21 : ("11388163374423734564349992666153215372924213267210948099068423008442958592342772645407868992404686733062645468121312938988009329901863581714319348449/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375", "20780377385274222126821442897197460445719213958344337488617977841218716855970081581451376237213610548415382928229142929057812331769582938600884545901/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375")
+5 : (7583, 9635)
+13 : ("189773104637/47259265", "440770439811/47259265")
+None
+None
+<data.Triangle object at 0x7f363dc46850>
+obtuse at 0
+2 2
+1 1
+1 1
+5 13 22
+deque([2, 11, 1, 0, 14, 6, 5, 22, 13, 3])
+Triangle :<data.Triangle object at 0x7f363dc51390>
+21 : ("11388163374423734564349992666153215372924213267210948099068423008442958592342772645407868992404686733062645468121312938988009329901863581714319348449/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375", "20780377385274222126821442897197460445719213958344337488617977841218716855970081581451376237213610548415382928229142929057812331769582938600884545901/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375")
+5 : (7583, 9635)
+22 : ("59207151634890760402387135019417283505370255759886703519005450316927231135202529674290267831100667374444287842115382050838809466151953528702639707500901273/12345233480609043521583249841260501168721218838427906680199925375887933177864426705684990654914978246704485434905502621181828364944535137598836197734375", "28209488894729162303838856382803936773881391058934261826053434418853990324156808937051235196900732287591021640816190995626137609049975073737262425973725113/3002894630418415991736466177603905689688945122860842165454035902243010772994049739220673402546886600549739700382419556503687980662184222659176372421875")
+None
+None
+<data.Triangle object at 0x7f363dc51dd0>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc51850>
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+9 : (5267, 5779)
+1 : (2871, 1116)
+None
+<data.Triangle object at 0x7f363dc51d50>
+<data.Triangle object at 0x7f363dc46a90>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc51850>
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+9 : (5267, 5779)
+1 : (2871, 1116)
+None
+<data.Triangle object at 0x7f363dc51d50>
+<data.Triangle object at 0x7f363dc46a90>
+obtuse at 0
+Triangle :<data.Triangle object at 0x7f363dc51d50>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+1 : (2871, 1116)
+9 : (5267, 5779)
+<data.Triangle object at 0x7f363dc51f90>
+<data.Triangle object at 0x7f363dc51850>
+<data.Triangle object at 0x7f363dc4cfd0>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51f90>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+1 : (2871, 1116)
+<data.Triangle object at 0x7f363dc36910>
+None
+<data.Triangle object at 0x7f363dc51d50>
+--------------------DrawResult--------------------
+view next step:4 2
+3 1
+3 1
+11 1 23
+deque([2, 11, 23, 1, 0, 14, 6, 5, 22, 13, 3])
+Triangle :<data.Triangle object at 0x7f363dc51150>
+1 : (2871, 1116)
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+9 : (5267, 5779)
+None
+None
+<data.Triangle object at 0x7f363dc4cd10>
+Triangle :<data.Triangle object at 0x7f363dc4cd10>
+1 : (2871, 1116)
+9 : (5267, 5779)
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc51150>
+None
+<data.Triangle object at 0x7f363dc4cd90>
+Triangle :<data.Triangle object at 0x7f363dc4cad0>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+None
+None
+<data.Triangle object at 0x7f363dc4cd90>
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc4c910>
+20 : ("487571832498326606509598335317041/110701074919544219201205678763", "748143828655091521648486324664881/110701074919544219201205678763")
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+<data.Triangle object at 0x7f363dc4c390>
+<data.Triangle object at 0x7f363dc4c0d0>
+<data.Triangle object at 0x7f363dc4cf10>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc4c910>
+20 : ("487571832498326606509598335317041/110701074919544219201205678763", "748143828655091521648486324664881/110701074919544219201205678763")
+15 : ("1449300084601818159731064044850538/245830604545723007757316674375", "12107365752025379105042073941556719/1720814231820061054301216720625")
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+<data.Triangle object at 0x7f363dc4c390>
+<data.Triangle object at 0x7f363dc4c0d0>
+<data.Triangle object at 0x7f363dc4cf10>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc4cf10>
+18 : ("1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375", "4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125")
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+20 : ("487571832498326606509598335317041/110701074919544219201205678763", "748143828655091521648486324664881/110701074919544219201205678763")
+<data.Triangle object at 0x7f363dc513d0>
+<data.Triangle object at 0x7f363dc51a90>
+<data.Triangle object at 0x7f363dc4c910>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc51a90>
+20 : ("487571832498326606509598335317041/110701074919544219201205678763", "748143828655091521648486324664881/110701074919544219201205678763")
+19 : ("4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125", "47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875")
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc4cf10>
+<data.Triangle object at 0x7f363dc4c190>
+<data.Triangle object at 0x7f363dc46a50>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc46a50>
+20 : ("487571832498326606509598335317041/110701074919544219201205678763", "748143828655091521648486324664881/110701074919544219201205678763")
+10 : ("1482571351/410213", "3140318633/410213")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+<data.Triangle object at 0x7f363dc51a90>
+<data.Triangle object at 0x7f363dc36910>
+<data.Triangle object at 0x7f363dc4cfd0>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc36910>
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+10 : ("1482571351/410213", "3140318633/410213")
+<data.Triangle object at 0x7f363dc4cad0>
+<data.Triangle object at 0x7f363dc46a50>
+<data.Triangle object at 0x7f363dc51610>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc4cad0>
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+11 : ("23315322835518711/23215066577869", "157814401763978961/23215066577869")
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+<data.Triangle object at 0x7f363dc36910>
+None
+<data.Triangle object at 0x7f363dc4ce10>
+--------------------DrawResult--------------------
+view next step:5 4
+3 1
+3 1
+5
+--------------------DrawResult--------------------
+view next step:cutting done
+rchain done
+lchain done
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc4ce10>
+9 : (5267, 5779)
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+<data.Triangle object at 0x7f363dc4cfd0>
+<data.Triangle object at 0x7f363dc4c6d0>
+<data.Triangle object at 0x7f363dc4c550>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc4ce10>
+9 : (5267, 5779)
+12 : ("15226996340879729/3787722656363", "24316047768733041/3787722656363")
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+<data.Triangle object at 0x7f363dc4cfd0>
+<data.Triangle object at 0x7f363dc4c6d0>
+<data.Triangle object at 0x7f363dc4c550>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc4c550>
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+9 : (5267, 5779)
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+None
+<data.Triangle object at 0x7f363dc4ce10>
+<data.Triangle object at 0x7f363dc4c1d0>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc4c1d0>
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+1 : (2871, 1116)
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+None
+<data.Triangle object at 0x7f363dc46a90>
+<data.Triangle object at 0x7f363dc4c550>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc46a90>
+0 : (7817, 13)
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+1 : (2871, 1116)
+None
+<data.Triangle object at 0x7f363dc4c1d0>
+None
+--------------------DrawResult--------------------
+view next step:4 3
+3 2
+2 2
+3
+--------------------DrawResult--------------------
+view next step:cutting done
+rchain done
+lchain done
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Triangle :<data.Triangle object at 0x7f363dc5fb50>
+25 : ("25033249818207694800545440493972505350490667971173784192900952111909/5341044795103359477168706936457583954376152286157320690827555175", "28840331805765180417914445597952535638654569516075277456061898706213/5341044795103359477168706936457583954376152286157320690827555175")
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+1 : (2871, 1116)
+<data.Triangle object at 0x7f363dc5fed0>
+None
+<data.Triangle object at 0x7f363dc5ff90>
+resolve obtuse
+Triangle :<data.Triangle object at 0x7f363dc5fb50>
+25 : ("25033249818207694800545440493972505350490667971173784192900952111909/5341044795103359477168706936457583954376152286157320690827555175", "28840331805765180417914445597952535638654569516075277456061898706213/5341044795103359477168706936457583954376152286157320690827555175")
+23 : ("1910783091410481405176583625/939605361664373623270987", "3443586988676620416263947945/939605361664373623270987")
+1 : (2871, 1116)
+<data.Triangle object at 0x7f363dc5fed0>
+None
+<data.Triangle object at 0x7f363dc5ff90>
+obtuse at 1
+Triangle :<data.Triangle object at 0x7f363dc5ff90>
+25 : ("25033249818207694800545440493972505350490667971173784192900952111909/5341044795103359477168706936457583954376152286157320690827555175", "28840331805765180417914445597952535638654569516075277456061898706213/5341044795103359477168706936457583954376152286157320690827555175")
+1 : (2871, 1116)
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+<data.Triangle object at 0x7f363dc5fb50>
+<data.Triangle object at 0x7f363dc36950>
+<data.Triangle object at 0x7f363dc5ff10>
+--------------------DrawResult--------------------
+view next step:Triangle :<data.Triangle object at 0x7f363dc36950>
+1 : (2871, 1116)
+0 : (7817, 13)
+17 : ("94190933384155549233/16602938997894899", "80700697907339010337/16602938997894899")
+None
+None
+<data.Triangle object at 0x7f363dc5ff90>
+--------------------DrawResult--------------------
+view next step:3 3
+2 2
+2 2
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+Done!
+--------------------DrawResult--------------------
+Take a step?(y/n): --------------------DrawResult--------------------
+--------------------WriteData--------------------
+{'content_type': 'CG_SHOP_2025_Solution', 'instance_uid': 'cgshop2025_examples_simple-polygon-exterior_10_34daa0f6', 'steiner_points_x': ['1482571351/410213', '23315322835518711/23215066577869', '15226996340879729/3787722656363', '189773104637/47259265', '5329928667/679783', '1449300084601818159731064044850538/245830604545723007757316674375', '5520186637679459/872140515727', '94190933384155549233/16602938997894899', '1126911999611758479156450562717137406166715712544477611884033663974278/189869335890061765012483418546826767667195666317907900587558709375', '4199375667432775787238836567720678801214285025930147122896243079630801201342624539741005312939517679355567550182327847165226494040793310378138/831433790389190838329366725487952061515027285652181723019028921140664584159847892136192160852269356493585760604734257705773519500372828125', '487571832498326606509598335317041/110701074919544219201205678763', '11388163374423734564349992666153215372924213267210948099068423008442958592342772645407868992404686733062645468121312938988009329901863581714319348449/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375', '59207151634890760402387135019417283505370255759886703519005450316927231135202529674290267831100667374444287842115382050838809466151953528702639707500901273/12345233480609043521583249841260501168721218838427906680199925375887933177864426705684990654914978246704485434905502621181828364944535137598836197734375', '1910783091410481405176583625/939605361664373623270987', '9970029533149240114758573784984414225249404518914429004657734118929641475768748945558927602760689/2178285913771898800918958116270535405851950119224177473938436371663521839655209538931091973031', '25033249818207694800545440493972505350490667971173784192900952111909/5341044795103359477168706936457583954376152286157320690827555175', '1739824700542608219060214606277393308869397234885114939794797788668481663703602063678788916506598711035676434296095671961782408002716591722777724960479476673687169966983124097663563107385813/413822214414775575826640350976126107121162888767981099242420240277104605891483484974302059902713119863454789918102479458874014640492422756894787950944501812824130985506643420128335150000'], 'steiner_points_y': ['3140318633/410213', '157814401763978961/23215066577869', '24316047768733041/3787722656363', '440770439811/47259265', '3798898509/679783', '12107365752025379105042073941556719/1720814231820061054301216720625', '4492294404003651/872140515727', '80700697907339010337/16602938997894899', '4090889933549898085478405641905208217805928223144165236543880268619829/569608007670185295037450255640480303001586998953723701762676128125', '47301221354885957612519123892451378775617959633612942022120776293207216123423816011639411782207474646569052679254128939531407342085828927873019/5820036532724335868305567078415664430605190999565272061133202447984652089118935244953345125965885495455100324233139803940414636502609796875', '748143828655091521648486324664881/110701074919544219201205678763', '20780377385274222126821442897197460445719213958344337488617977841218716855970081581451376237213610548415382928229142929057812331769582938600884545901/2351012046536936020783422014103361753901398372273694060239813894333553401661660213106676879004250366998732818086559822515996710581529700861609375', '28209488894729162303838856382803936773881391058934261826053434418853990324156808937051235196900732287591021640816190995626137609049975073737262425973725113/3002894630418415991736466177603905689688945122860842165454035902243010772994049739220673402546886600549739700382419556503687980662184222659176372421875', '3443586988676620416263947945/939605361664373623270987', '16105974496016428188739003044686294135258483701549353153511261196258065267457788114068538618331339/2178285913771898800918958116270535405851950119224177473938436371663521839655209538931091973031', '28840331805765180417914445597952535638654569516075277456061898706213/5341044795103359477168706936457583954376152286157320690827555175', '1320361085664133954839442102810829935676730153668322437904156598254868540168945497932372166389607637796577811841896640694977774944951070627659680202731162553631339427631083068040399928588341/413822214414775575826640350976126107121162888767981099242420240277104605891483484974302059902713119863454789918102479458874014640492422756894787950944501812824130985506643420128335150000'], 'edges': [[14, 16], [8, 16], [8, 14], [10, 11], [10, 12], [11, 12], [0, 16], [4, 13], [13, 21], [9, 16], [16, 17], [7, 14], [15, 18], [7, 18], [7, 15], [6, 19], [5, 19], [3, 10], [2, 10], [15, 24], [18, 24], [19, 21], [4, 19], [19, 24], [4, 24], [4, 10], [8, 20], [15, 20], [8, 15], [21, 22], [18, 19], [6, 18], [25, 26], [23, 26], [23, 25], [10, 24], [20, 24], [10, 20], [1, 26], [9, 20], [12, 20], [9, 12], [9, 25], [12, 25], [17, 26], [17, 25], [12, 23], [0, 26]]}
+--------------------DrawResult--------------------

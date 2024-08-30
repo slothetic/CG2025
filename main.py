@@ -16,18 +16,27 @@ if __name__=="__main__":
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
     dt = Data(inp)
     dt.triangulate()
-    dt.minmax_triangulate()
+    dt.delaunay_triangulate()
     dt.WriteData()
     dt.DrawResult()
-    random.seed(0)
     cnt = 0
+    c = ""
     while True:
-        c = input("Take a step?(y/n): ")
+        print("score:", len(dt.pts) - dt.fp_ind)
+        if dt.done or len(dt.pts) - dt.fp_ind >= 200:
+            break
+        #c = input("Take a step?(y/n/r): ")
+        #dt.DrawResult("prev")
         if c == "n":
             break
-        if c == "y":
-            dt.step()
-        dt.DrawResult(str(cnt))
+        #if c == "y":
+        dt.step()
+        #if c == "r":
+            #dt.resolve_dense_pts()
+        #print("step", cnt)
+        #dt.DrawResult("next")
+        #dt.DrawResult(str(cnt))
         cnt += 1
-    dt.WriteData()
+    if dt.done:
+        dt.WriteData()
     dt.DrawResult("nonobs")
