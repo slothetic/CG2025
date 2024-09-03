@@ -136,9 +136,3 @@ void MyNum::abbr(){
 	this->den = sgn ? llabs(this->den) : -llabs(this->den);
 	this->num = llabs(this->num);
 }
-
-
-long double to_Double(MyNum n){
-	long double d = n.den;
-	return d / n.num;
-}

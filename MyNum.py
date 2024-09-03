@@ -1,5 +1,6 @@
 import math
 
+
 class MyNum:
     # def __new__(cls, num, den=1):
     #     # print(cls)
