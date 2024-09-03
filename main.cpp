@@ -15,5 +15,21 @@ int main(int argc, char** argv){
 	dt.inst->minmax_triangulate();
 	dt.inst->DrawResult("minmax");
 	dt.WriteData();
+	int cnt = 0;
+	while(true) {
+		cnt++;
+		char ans;
+		std::cout << "Try a step?(y/n):";
+		std::cin >> ans;
+		if (ans == 'n') break;
+		else if (ans == 'y') {
+			dt.inst->step();
+			dt.inst->DrawResult(std::to_string(cnt));
+		}
+	}
+	for (int asdf : dt.inst->boundary) std::cout << asdf << ' ';
+	std::cout << std::endl;
+	dt.WriteData();
+	dt.inst->DrawResult("nonobt");
 	return 0;
 }

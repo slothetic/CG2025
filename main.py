@@ -3,6 +3,7 @@ from data import *
 import os
 import argparse
 import sys
+import random
 
 parser = argparse.ArgumentParser()
 
@@ -10,22 +11,32 @@ parser.add_argument("--data", "-d", required=False, default="")
 args = parser.parse_args()
 if __name__=="__main__":
     if args.data:
-        input = args.data
+        inp = args.data
     else:
-        # input = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
-        input = "example_instances/cgshop2025_examples_simple-polygon-exterior-20_250_329290ff.instance.json"
-    print(input)
-    dt = Data(input)
+        inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
+    dt = Data(inp)
     dt.triangulate()
-    print("triangulate done")
-    # dt.minmax_triangulate()
-    # dt.DrawResult("MinMax")
-    dt.additional_triangulate()
-    dt.DrawPoint()
-    # dt.partial_minmax_triangulate()
-    # dt.add_steiner(Point(4000,4000))
-    # dt.add_steiner(Point(8032,MyNum(8855,2)))
-    # dt.delete_steiner(len(dt.pts)-1)
-    
+    dt.delaunay_triangulate()
     dt.WriteData()
-    dt.DrawResult("add_st")
+    dt.DrawResult()
+    cnt = 0
+    c = ""
+    while True:
+        print("score:", len(dt.pts) - dt.fp_ind)
+        if dt.done or len(dt.pts) - dt.fp_ind >= 200:
+            break
+        #c = input("Take a step?(y/n/r): ")
+        #dt.DrawResult("prev")
+        if c == "n":
+            break
+        #if c == "y":
+        dt.step()
+        #if c == "r":
+            #dt.resolve_dense_pts()
+        #print("step", cnt)
+        #dt.DrawResult("next")
+        #dt.DrawResult(str(cnt))
+        cnt += 1
+    if dt.done:
+        dt.WriteData()
+    dt.DrawResult("nonobs")
