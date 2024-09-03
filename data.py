@@ -61,6 +61,7 @@ class Data:
             self.input = input
             self.triangles = set()
             self.ReadData()
+            self.done = False
         else:
             self.input = ""
             self.instance_name = ""
@@ -68,6 +69,7 @@ class Data:
             self.pts = pts
             self.region_boundary = bds
             self.num_constraints = constraints
+            self.done = False
         
         self.done = False
 
