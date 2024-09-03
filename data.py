@@ -7,6 +7,8 @@ from collections import deque
 import pdb
 import copy
 from typing import List
+import sys
+sys.setrecursionlimit(1000000)
 
 class Point:
     def __init__(self, x, y):
@@ -21,6 +23,14 @@ class Point:
     
     def __ne__(self, p):
         return self.x != p.x or self.y != p.y
+    def __lt__(self, p):
+        return (self.x,self.y)<(p.x,p.y)
+    def __le__(self, p):
+        return (self.x,self.y)<=(p.x,p.y)
+    def __gt__(self, p):
+        return (self.x,self.y)>(p.x,p.y)
+    def __ge__(self, p):
+        return (self.x,self.y)>=(p.x,p.y)
 
 class Triangle:
     def __init__(self, p:int, q:int, r:int):
@@ -626,6 +636,59 @@ class Data:
         #     if (not mt) or (not self.ear_cut(mt, i)):
         #         break
     
+    def is_in_circumcircle(self, t:Triangle, q:Point):
+        p1, p2, p3 = [self.pts[t.pts[i]] for i in range(3)]
+        if p1.y == p2.y:
+            p1, p2, p3 = p2, p3, p1
+        if p2.y == p3.y:
+            p1, p2, p3 = p3, p1, p2
+        m12 = midpoint(p1, p2)
+        m23 = midpoint(p2, p3)
+        s12 = (p1.x - p2.x) / (p2.y - p1.y)
+        b12 = m12.y - m12.x * s12
+        s23 = (p2.x - p3.x) / (p3.y - p2.y)
+        b23 = m23.y - m23.x * s23
+        #print(p1, p2, p3)
+        ox = (b23 - b12) / (s12 - s23)
+        oy = s23 * ox + b23
+        o = Point(ox, oy)
+        return sqdist(o, q) < sqdist(o, p1)
+    def delaunay_triangulate(self):
+        while True:
+            check = False
+            for t in self.triangles:
+                for i in range(3):
+                    if t.neis[i]:
+                        q = self.pts[t.neis[i].pt(t.neis[i].get_ind(t.pts[i]) + 1)]
+                        if self.is_in_circumcircle(t, q):
+                            self.flip(t, i)
+                            check = True
+                            break
+            if not check:
+                break
+        
+    def total_min_max_triangulate(self):
+        while True:
+            maxang = MyNum(0)
+            mt = None
+            for t in self.triangles:
+                ang = angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]])
+                if ang > maxang:
+                    mt = t
+                    maxang = ang
+                    i = 0
+                ang = angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]])
+                if ang > maxang:
+                    mt = t
+                    maxang = ang
+                    i = 1
+                ang = angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]])
+                if ang > maxang:
+                    mt = t
+                    maxang = ang
+                    i = 2
+            if (not mt) or (not self.ear_cut(mt, i)):
+                break
     def partial_ear_cut(self, t:Triangle, i:int):
         q = self.pts[t.pts[i]]
         r = self.pts[t.pt(i + 1)]
@@ -697,6 +760,8 @@ class Data:
             for nt in inserted:
                 del nt
         tt_check = True
+        if tt==None:
+            tt_check = False
         while True:
             if not tt_check:
                 abort()
@@ -1067,9 +1132,44 @@ class Data:
         # pdb.set_trace()
         return Point(x,y)
         
+    def grid_triangulate(self):
+        xs = sorted([p.x for p in self.pts])
+        ys = sorted([p.y for p in self.pts])
+        # mindist = xs[1]-xs[0]
+        # for i in range(len(xs)-1):
+        #     if mindist>xs[i+1]-xs[i]:
+        #         mindist = xs[i+1]-xs[i]
+        # for i in range(len(ys)-1):
+        #     if mindist>ys[i+1]-ys[i]:
+        #         mindist = ys[i+1]-ys[i]
+        # addx = []
+        # for i in range(len(xs)-1):
+        #     if mindist<xs[i+1]-xs[i]:
+        #         ds = int((xs[i+1]-xs[i]+mindist-1)/mindist)
+        #         for d in range(ds):
+        #             addx.append(xs[i]+int(MyNum(d+1)*(xs[i+1]-xs[i])/ds))
+        # addy = []
+        # for i in range(len(ys)-1):
+        #     if mindist<ys[i+1]-ys[i]:
+        #         ds = int((ys[i+1]-ys[i]+mindist-1)/mindist)
+        #         for d in range(ds):
+        #             addy.append(ys[i]+int(MyNum(d+1)*(ys[i+1]-ys[i])/ds))
+        # pdb.set_trace()
+        # xs+=addx
+        # ys+=addy
     def additional_triangulate(self):
         xs = sorted([p.x for p in self.pts])
         ys = sorted([p.y for p in self.pts])
+        new_xs = [xs[0]]
+        for x in xs[1:]:
+            if x!=new_xs[-1]:
+                new_xs.append(x)
+        new_ys = [ys[0]]
+        for y in ys[1:]:
+            if y!=new_ys[-1]:
+                new_ys.append(y)
+        xs = new_xs
+        ys = new_ys
         # mindist = xs[1]-xs[0]
         # for i in range(len(xs)-1):
         #     if mindist>xs[i+1]-xs[i]:
@@ -1134,9 +1234,18 @@ class Data:
             for y in ys:
                 if min(p1.y,p2.y)<y and y<max(p1.y,p2.y):
                     steiners.append(Point(p1.x+(p2.x-p1.x)*(y-p1.y)/(p2.y-p1.y),y))
+        # pdb.set_trace()
+        steiners.sort()
+        new_st = [steiners[0]]
+        for s in steiners[1:]:
+            if s!=new_st[-1]:
+                new_st.append(s)
+        steiners = new_st
         self.add_steiners(steiners)
         self.DrawPoint()
-        self.minmax_triangulate()
+        self.delaunay_triangulate()
+        self.partition_boundary_obtuse()
+
     def partition_boundary_obtuse(self):
         steiners = []
         for t in self.triangles:
@@ -1145,7 +1254,7 @@ class Data:
                 if not t.nei(obtuse_ind+1):
                     steiners.append(self.find_perp(t))
         self.add_steiners(steiners)
-        self.minmax_triangulate()
+        # self.minmax_triangulate()
 
 
         
@@ -1175,3 +1284,5 @@ def sqdist(p:Point, q:Point):
     yd = p.y - q.y
     return xd * xd + yd * yd
 
+def midpoint(p:Point, q:Point):
+        return Point((p.x + q.x) / 2, (p.y + q.y) / 2)
