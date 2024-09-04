@@ -5,6 +5,8 @@ import argparse
 import sys
 import random
 
+sys.setrecursionlimit(100000)
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--data", "-d", required=False, default="")
@@ -21,22 +23,69 @@ if __name__=="__main__":
     dt.DrawResult()
     cnt = 0
     c = ""
+    lim = 20
+    dt.make_non_obtuse_boundary()
+    n_obs = 0
+    n_pts = len(dt.pts) - dt.fp_ind
+    for t in dt.triangles:
+        if dt.is_obtuse(t):
+            n_obs += 1
+    score = (n_obs, n_pts)
+    dt.DrawResult("best")
+    dt.WriteData("best")
     while True:
         print("score:", len(dt.pts) - dt.fp_ind)
-        if dt.done or len(dt.pts) - dt.fp_ind >= 200:
-            break
+        print("Iteration:", cnt)
+        if len(dt.pts) - dt.fp_ind >= lim:
+            for _ in range(5):
+                p = random.randint(dt.fp_ind, len(dt.pts) - 1)
+                dt.delete_steiner(p)
+            for _ in range(10):
+                mini = dt.fp_ind
+                mind = sqdist(dt.pts[dt.fp_ind], dt.pts[0])
+                for i in range(dt.fp_ind, len(dt.pts)):
+                    for j in range(len(dt.pts)):
+                        if i == j:
+                            continue
+                        if sqdist(dt.pts[i], dt.pts[j]) < mind:
+                            mini = i
+                            mind = sqdist(dt.pts[i], dt.pts[j])
+                dt.delete_steiner(mini)
+            if cnt % 5 == 0:
+                lim += 10
+            cnt += 1
+            for t in dt.triangles:
+                del t
+            dt.triangles = set()
+            dt.triangulate()
+            dt.delaunay_triangulate()
+            dt.DrawResult("step")
+            dt.make_non_obtuse_boundary()
+            dt.DrawResult("step")
+        n_obs = 0
+        n_pts = len(dt.pts) - dt.fp_ind
+        for t in dt.triangles:
+            if dt.is_obtuse(t):
+                n_obs += 1
+        if (n_obs, n_pts) < score:
+            score = (n_obs, n_pts)
+            dt.DrawResult("best")
+            dt.WriteData("best")
+            
         #c = input("Take a step?(y/n/r): ")
         #dt.DrawResult("prev")
-        if c == "n":
-            break
+        # if c == "n":
+        #     break
         #if c == "y":
         dt.step()
         #if c == "r":
             #dt.resolve_dense_pts()
         #print("step", cnt)
-        #dt.DrawResult("next")
+        dt.DrawResult("step")
+        #input()
         #dt.DrawResult(str(cnt))
-        cnt += 1
+        if dt.done:
+            break
     if dt.done:
-        dt.WriteData()
-    dt.DrawResult("nonobs")
+        dt.WriteData("nonobs")
+        dt.DrawResult("nonobs")
