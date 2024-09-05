@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ls example_instances/*.json | while read line
+ls example_instances/cgshop2025_examples_simple-polygon-exterior*.json | while read line
 do
-    ./ALG $line
+    /bin/python3 main.py $line
 done

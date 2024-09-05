@@ -1,9 +1,9 @@
 from MyNum import MyNum
+import os
 import json
 import cv2
 import numpy as np
 import random
-import re
 from collections import deque
 import pdb
 import copy
@@ -12,11 +12,22 @@ import math
 IMP = 1
 GRID = 3
 MINDIST = MyNum((GRID - (GRID // 2) + 1) * (GRID - (GRID // 2) + 1), IMP * IMP)
+from typing import List
+import sys
+sys.setrecursionlimit(1000000)
 
 class Point:
     def __init__(self, x, y):
-        self.x = MyNum(x)
-        self.y = MyNum(y)
+        if isinstance(x, str):
+            a,b = map(int, x.split("/"))
+            self.x = MyNum(a,b)
+        else:
+            self.x = MyNum(x)
+        if isinstance(y, str):
+            a,b = map(int, y.split("/"))
+            self.y = MyNum(a,b)
+        else:
+            self.y = MyNum(y)
 
     def __eq__(self, p):
         return self.x==p.x and self.y==p.y
@@ -26,6 +37,14 @@ class Point:
     
     def __ne__(self, p):
         return self.x != p.x or self.y != p.y
+    def __lt__(self, p):
+        return (self.x,self.y)<(p.x,p.y)
+    def __le__(self, p):
+        return (self.x,self.y)<=(p.x,p.y)
+    def __gt__(self, p):
+        return (self.x,self.y)>(p.x,p.y)
+    def __ge__(self, p):
+        return (self.x,self.y)>=(p.x,p.y)
 
 class Triangle:
     def __init__(self, p:int, q:int, r:int):
@@ -46,37 +65,99 @@ class Triangle:
 
     
 class Data:
-    def __init__(self, input):
-        self.input = input
-        self.triangles = set()
-        self.ReadData()
+    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None):
+        if input:
+            self.input = input
+            self.triangles = set()
+            self.ReadData()
+            self.done = False
+        else:
+            self.input = ""
+            self.instance_name = ""
+            self.fp_ind = fp_ind
+            self.pts = pts
+            self.region_boundary = bds
+            self.num_constraints = constraints
+            self.done = False
+        
         self.done = False
 
-    def ReadData(self):
-        print("--------------------ReadData--------------------")
-        with open(self.input, "r", encoding="utf-8") as f:
-            root = json.load(f)
-            # print(root)
-            self.instance_name = root["instance_uid"]
-            self.fp_ind = int(root["num_points"])
-            pts_x = root["points_x"]
-            pts_y = root["points_y"]
-            self.pts = []
-            for i in range(len(pts_y)):
-                self.pts.append(Point(pts_x[i], pts_y[i]))
-            self.region_boundary = deque(root["region_boundary"])
-            self.num_constraints =  root["num_constraints"]
-            self.constraints = set()
-            self.const_dict = dict()
-            for con in root["additional_constraints"]:
-                self.constraints.add((con[0], con[1]))
-                self.const_dict[(con[0], con[1])] = (con[0], con[1])
+    def score(self):
+        obt = 0
+        for t in self.triangles:
+            if self.is_obtuse(t):
+                obt+=1
+
+        if obt:
+            score = 0.5*(0.9)**(obt-1)
+            return score
         
+        else:
+            spt = len(self.pts)- self.fp_ind+1
+            score = 0.5+0.5/spt
+            return score
+        
+
+    def ReadData(self):
+        # print("--------------------ReadData--------------------")
+        if "example_instances" in self.input:
+            with open(self.input, "r", encoding="utf-8") as f:
+                root = json.load(f)
+                # print(root)
+                self.instance_name = root["instance_uid"]
+                self.fp_ind = int(root["num_points"])
+                pts_x = root["points_x"]
+                pts_y = root["points_y"]
+                self.pts = []
+                for i in range(len(pts_y)):
+                    self.pts.append(Point(pts_x[i], pts_y[i]))
+                self.region_boundary = deque(root["region_boundary"])
+                self.num_constraints =  root["num_constraints"]
+                self.constraints = set()
+                self.const_dict = dict()
+                for con in root["additional_constraints"]:
+                    self.constraints.add((con[0], con[1]))
+                    self.const_dict[(con[0], con[1])] = (con[0], con[1])
+        else:
+            with open(self.input, "r", encoding="utf-8") as f:
+                root = json.load(f)
+                self.instance_name = root["instance_uid"]
+                inp = "./example_instances/"+self.instance_name+".instance.json"
+                st_x = root["steiner_points_x"]
+                st_y = root["steiner_points_y"]
+                st_pt = []
+                for i in range(len(st_x)):
+                    st_pt.append(Point(st_x[i], st_y[i]))
+                edges = root["edges"]
+            with open(inp, "r", encoding="utf-8") as f:
+                root = json.load(f)
+                self.fp_ind = int(root["num_points"])
+                pts_x = root["points_x"]
+                pts_y = root["points_y"]
+                self.pts = []
+                for i in range(len(pts_y)):
+                    self.pts.append(Point(pts_x[i], pts_y[i]))
+                self.region_boundary = deque(root["region_boundary"])
+                self.num_constraints =  root["num_constraints"]
+                self.constraints = set()
+                self.const_dict = dict()
+                for con in root["additional_constraints"]:
+                    self.constraints.add((con[0], con[1]))
+                    self.const_dict[(con[0], con[1])] = (con[0], con[1])
+            # pdb.set_trace()
+            self.triangulate()
+            self.delaunay_triangulate()
+            self.add_steiners(st_pt)
+            # pdb.set_trace()
+            for e in edges:
+                self.resolve_cross(e)
+            self.DrawResult("old_data")    
+            # pdb.set_trace()
 
     def WriteData(self, name = ""):
         if name:
             name = "_" + name
-        print("--------------------WriteData--------------------")
+        # print("--------------------WriteData--------------------")
         inst = dict()
         inst["content_type"]="CG_SHOP_2025_Solution"
         inst["instance_uid"]=self.instance_name
@@ -99,15 +180,49 @@ class Data:
                 int_edges.append(e2)
             if e3 not in const_edges and e3 not in int_edges:
                 int_edges.append(e3)
+        obt = 0
+        for t in self.triangles:
+            if self.is_obtuse(t):
+                obt+=1
+        inst["edges"] = int_edges
+        # print("indstance id: ", self.instance_name)
+        # print("Steiner point: ", len(self.pts)-self.fp_ind)
+        # print("Total Triangle: ", len(self.triangles))
+        # print("Obtuse Triangle: ", obt)
+        score = self.score()
+        # print("Score: ", score)
 
-        inst["edges"] = int_edges 
-        print(inst)
+        # print(inst)
         with open("solutions/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
+        path = "./opt_solutions"
+        opt_list = os.listdir(path)
+        already_exist = False
+        for sol in opt_list:
+            if self.instance_name in sol and "json" in sol:
+                already_exist = True
+                dt = Data(path+"/"+sol)
+                # pdb.set_trace()
+                # print(dt.score)
+                if dt.score()<score:
+                    # pdb.set_trace()
+                    print(f"New High Score!!! {dt.score()}->{score}")
+                    os.remove(path+"/"+sol)
+                    with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+                        json.dump(inst, f, indent='\t')
+                    self.DrawResult(folder="opt_solutions")
+                break
+        if not already_exist:
+            with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+                json.dump(inst, f, indent='\t')
+            self.DrawResult(folder="opt_solutions")
+        # pdb.set_trace()
+
+                    
 
 
-    def DrawResult(self, name=""):
-        print("--------------------DrawResult--------------------")
+    def DrawResult(self, name="", folder = ""):
+        # print("--------------------DrawResult--------------------")
         if name:
             name = "_" + name
         minx = min(list(p.x for p in self.pts))
@@ -127,11 +242,11 @@ class Data:
             if self.is_obtuse(t):
                 pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
                 # print(pts)
-                cv2.fillPoly(img, pts, color = (random.randint(100,150),random.randint(100,150),random.randint(100,150)))
+                cv2.fillPoly(img, pts, color = (random.randint(50,100),random.randint(50,100),random.randint(50,100)))
             else:
                 pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
                 # print(pts)
-                cv2.fillPoly(img, pts, color = (random.randint(220,254),random.randint(220,254),random.randint(220,254)))
+                cv2.fillPoly(img, pts, color = (random.randint(240,254),random.randint(240,254),random.randint(240,254)))
         const_edges = []
         for e in self.constraints:
             const_edges.append(sorted(e))
@@ -165,7 +280,69 @@ class Data:
                 # print((minw+int(rad*p.x),minh-int(rad*p.y)))
             else:
                 cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(255,0,0),-1)
-        cv2.imwrite("solutions/"+self.instance_name + ".solution" + name + ".png", img)
+        if folder:
+            cv2.imwrite(folder+"/"+self.instance_name + ".solution" + name + ".png", img)
+        else:
+            cv2.imwrite("solutions/"+self.instance_name + ".solution" + name + ".png", img)
+
+    def DrawPoint(self, add = ""):
+        fontFace = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 1
+        color = (255, 0, 0)
+        thickness = 2
+        lineType = cv2.LINE_AA
+        minx = min(list(p.x for p in self.pts))
+        miny = min(list(p.y for p in self.pts))
+        maxx = max(list(p.x for p in self.pts))
+        maxy = max(list(p.y for p in self.pts))
+        width = int(maxx-minx)
+        height = int(maxy-miny)
+        rad = 1000/width
+        width = int(width*rad)+40
+        height = int(height*rad)+40
+        minw = 20-int(minx*rad)
+        minh = height + int(miny*rad)-20
+        img = np.zeros((height, width, 3),dtype="uint8")+255
+        rad = MyNum(rad)
+        const_edges = []
+        for e in self.constraints:
+            const_edges.append(sorted(e))
+            cv2.line(img, (minw+int(rad*self.pts[e[0]].x),minh-int(rad*self.pts[e[0]].y)), (minw+int(rad*self.pts[e[1]].x),minh-int(rad*self.pts[e[1]].y)), (0,0,255), 2)
+        for i in range(1,len(self.region_boundary)):
+            const_edges.append(sorted([self.region_boundary[i-1],self.region_boundary[i]]))
+            cv2.line(img, (minw+int(rad*self.pts[self.region_boundary[i-1]].x),minh-int(rad*self.pts[self.region_boundary[i-1]].y)), (minw+int(rad*self.pts[self.region_boundary[i]].x),minh-int(rad*self.pts[self.region_boundary[i]].y)), (0,0,0), 2)
+        const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
+        cv2.line(img, (minw+int(rad*self.pts[self.region_boundary[-1]].x),minh-int(rad*self.pts[self.region_boundary[-1]].y)), (minw+int(rad*self.pts[self.region_boundary[0]].x),minh-int(rad*self.pts[self.region_boundary[0]].y)), (0,0,0), 2)
+        int_edges = []
+        for t in self.triangles:
+            e1 = sorted([t.pts[0],t.pts[1]])
+            e2 = sorted([t.pts[0],t.pts[2]])
+            e3 = sorted([t.pts[1],t.pts[2]])
+            if e1 not in const_edges and e1 not in int_edges:
+                int_edges.append(e1)
+                cv2.line(img, (minw+int(rad*self.pts[e1[0]].x),minh-int(rad*self.pts[e1[0]].y)), (minw+int(rad*self.pts[e1[1]].x),minh-int(rad*self.pts[e1[1]].y)), (0,0,0), 2)
+            if e2 not in const_edges and e2 not in int_edges:
+                int_edges.append(e2)
+                cv2.line(img, (minw+int(rad*self.pts[e2[0]].x),minh-int(rad*self.pts[e2[0]].y)), (minw+int(rad*self.pts[e2[1]].x),minh-int(rad*self.pts[e2[1]].y)), (0,0,0), 2)
+            if e3 not in const_edges and e3 not in int_edges:
+                int_edges.append(e3)
+                cv2.line(img, (minw+int(rad*self.pts[e3[0]].x),minh-int(rad*self.pts[e3[0]].y)), (minw+int(rad*self.pts[e3[1]].x),minh-int(rad*self.pts[e3[1]].y)), (0,0,0), 2)
+
+        for i,p in enumerate(self.pts):
+            if i<self.fp_ind:
+                # print(p)
+                # print(rad*p.x)
+                cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(0,0,0),-1)
+                cv2.putText(img, str(i), (minw+int(rad*p.x)+10,minh-int(rad*p.y)+10), fontFace, fontScale, (0,0,0), thickness, lineType)
+                # print((minw+int(rad*p.x),minh-int(rad*p.y)))
+            else:
+                cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(255,0,0),-1)
+                cv2.putText(img, str(i), (minw+int(rad*p.x)+10,minh-int(rad*p.y)+10), fontFace, fontScale, (255,0,0), thickness, lineType)
+            
+        if add=="":
+            cv2.imwrite("solutions/"+self.instance_name+".point.png", img)
+        else:
+            cv2.imwrite("solutions/"+self.instance_name+".point_"+add+".png", img)
 
     def is_obtuse(self, t:Triangle):
         q1 = self.pts[t.pts[0]]
@@ -803,7 +980,7 @@ class Data:
             j = (tt.get_ind(r_chain[-1]) + 1) % 3
             s = self.pts[tt.pts[j]]
             self.triangles.discard(tt)
-            self.DrawResult("step")
+            # self.DrawResult("step")
             #input("view next step:")
             ttt = tt.neis[j]
             if ttt:
@@ -890,7 +1067,7 @@ class Data:
             farp = deque(r_chain[ri:] + l_chain[-1:li-1:-1])
             #print(len(farp))
             self.triangulate_polygon(farp)
-            self.DrawResult("step")
+            # self.DrawResult("step")
             #input("view next step:")
             if tt:
                 ttt = self.find_triangle(r_chain[-1], l_chain[-1])
@@ -1154,7 +1331,7 @@ class Data:
             j = (tt.get_ind(r_chain[-1]) + 1) % 3
             s = self.pts[tt.pts[j]]
             self.triangles.discard(tt)
-            self.DrawResult("step")
+            # self.DrawResult("step")
             l_neis.append(tt.neis[j])
             r_neis.append(tt.nei(j + 2))
             if turn(q, r, s) <= 0:
@@ -1538,7 +1715,7 @@ class Data:
             self.done = True
         else:
             target = random.choice(obtt)
-            self.print_triangle(target)
+            # self.print_triangle(target)
             self.make_non_obtuse2(target)
             self.delaunay_triangulate()
 

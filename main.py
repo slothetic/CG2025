@@ -7,35 +7,38 @@ import random
 
 sys.setrecursionlimit(100000)
 
-parser = argparse.ArgumentParser()
+sys.setrecursionlimit(100000)
 
-parser.add_argument("--data", "-d", required=False, default="")
-args = parser.parse_args()
+# parser = argparse.ArgumentParser()
+
+# parser.add_argument("--data", "-d", required=False, default="")
+# args = parser.parse_args()
 if __name__=="__main__":
-    if args.data:
-        inp = args.data
+    argument = sys.argv
+    if len(argument)>=2:
+        inp = argument[1]
     else:
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
     dt = Data(inp)
-    dt.triangulate()
-    dt.delaunay_triangulate()
-    dt.WriteData()
+    print(f"{dt.instance_name} Start!!!!")
+    if "example_instances" in inp:
+        dt.triangulate()
+        dt.DrawPoint()
+        dt.delaunay_triangulate()
+        dt.WriteData()
     dt.DrawResult()
     cnt = 0
     c = ""
-    lim = 20
+    lim = len(dt.pts) - dt.fp_ind + 10
     dt.make_non_obtuse_boundary()
-    n_obs = 0
-    n_pts = len(dt.pts) - dt.fp_ind
-    for t in dt.triangles:
-        if dt.is_obtuse(t):
-            n_obs += 1
-    score = (n_obs, n_pts)
-    dt.DrawResult("best")
-    dt.WriteData("best")
+    # score = (n_obs, n_pts)
+    score = dt.score()
+    maxcnt = 100
     while True:
-        print("score:", len(dt.pts) - dt.fp_ind)
-        print("Iteration:", cnt)
+        # print("score:", score)
+        
+        if cnt>maxcnt:
+            break
         if len(dt.pts) - dt.fp_ind >= lim:
             for _ in range(5):
                 p = random.randint(dt.fp_ind, len(dt.pts) - 1)
@@ -54,6 +57,7 @@ if __name__=="__main__":
             if cnt % 5 == 0:
                 lim += 10
             cnt += 1
+            print(f"{dt.instance_name} Iteration: [{cnt}/{maxcnt}] score: {score}")
             for t in dt.triangles:
                 del t
             dt.triangles = set()
@@ -62,13 +66,8 @@ if __name__=="__main__":
             dt.DrawResult("step")
             dt.make_non_obtuse_boundary()
             dt.DrawResult("step")
-        n_obs = 0
-        n_pts = len(dt.pts) - dt.fp_ind
-        for t in dt.triangles:
-            if dt.is_obtuse(t):
-                n_obs += 1
-        if (n_obs, n_pts) < score:
-            score = (n_obs, n_pts)
+        if dt.score() > score:
+            score = dt.score()
             dt.DrawResult("best")
             dt.WriteData("best")
             
