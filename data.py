@@ -1700,6 +1700,83 @@ class Data:
         self.add_steiners(list(inserting))
         print("inserting done!")
 
+    def make_non_obtuse_ortho(self):
+        while True:
+            done = True
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    p0 = self.pts[t.pts[0]]
+                    p1 = self.pts[t.pts[1]]
+                    p2 = self.pts[t.pts[2]]
+                    if angle(p2, p0, p1) > 0:
+                        q, r = p0, p1
+                        i = 0
+                    elif angle(p0, p1, p2) > 0:
+                        q, r = p1, p2
+                        i = 1
+                    else:
+                        q, r = p2, p0
+                        i = 2
+                    if q.x <= r.x and q.y > r.y:
+                        self.insert_grid_point(q, t, 0)
+                    elif q.x < r.x and q.y <= r.y:
+                        self.insert_grid_point(q, t, 1)
+                    elif q.x >= r.x and q.y < r.y:
+                        self.insert_grid_point(q, t, 2)
+                    else:
+                        self.insert_grid_point(q, t, 3)
+                    done = False
+                    break
+            if done:
+                break
+    
+    def insert_grid_point(self, p:Point, t:Triangle, d:int):
+        p0, p1, p2 = [self.pts[t.pts[i]] for i in range(3)]
+        # print(p, p0, p1, p2, d)
+        # input()
+        midx = p0.x + p1.x + p2.x - min(p0.x, p1.x, p2.x) - max(p0.x, p1.x, p2.x)
+        midy = p0.y + p1.y + p2.y - min(p0.y, p1.y, p2.y) - max(p0.y, p1.y, p2.y)
+        if d == 0:
+            q = Point(midx, p.y)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.y < p.y and p1.y > p.y:
+                self.insert_grid_point(p, t.neis[0], 0)
+            elif p1.y < p.y and p2.y > p.y:
+                self.insert_grid_point(p, t.neis[1], 0)
+            else:
+                self.insert_grid_point(p, t.neis[2], 0)
+        elif d == 1:
+            q = Point(p.x, midy)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.x > p.x and p1.x < p.x:
+                self.insert_grid_point(p, t.neis[0], 1)
+            elif p1.x > p.x and p2.x < p.x:
+                self.insert_grid_point(p, t.neis[1], 1)
+            else:
+                self.insert_grid_point(p, t.neis[2], 1)
+        elif d == 2:
+            q = Point(midx, p.y)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.y > p.y and p1.y < p.y:
+                self.insert_grid_point(p, t.neis[0], 2)
+            elif p1.y > p.y and p2.y < p.y:
+                self.insert_grid_point(p, t.neis[1], 2)
+            else:
+                self.insert_grid_point(p, t.neis[2], 2)
+        else:
+            q = Point(p.x, midy)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.x < p.x and p1.x > p.x:
+                self.insert_grid_point(p, t.neis[0], 3)
+            elif p1.x < p.x and p2.x > p.x:
+                self.insert_grid_point(p, t.neis[1], 3)
+            else:
+                self.insert_grid_point(p, t.neis[2], 3)
+
     def insert_point_on(self, e1:int, e2:int, p:Point):
         if not self.is_on(e1, e2, p):
             raise Exception("point is not on the edge")

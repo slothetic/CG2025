@@ -27,6 +27,7 @@ if __name__=="__main__":
     cnt = 1
     c = ""
     score = dt.score()
+    dt.WriteData()
     dt.make_non_obtuse_boundary()
     # score = (n_obs, n_pts)
     score = dt.score()
@@ -34,7 +35,7 @@ if __name__=="__main__":
         lim = len(dt.pts) - dt.fp_ind - 1
     else:
         lim = len(dt.pts) - dt.fp_ind + 10
-    maxcnt = 10
+    maxcnt = 1
     progress = False
     while True:
         # print("score:", score)
