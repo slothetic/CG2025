@@ -8,13 +8,15 @@ from collections import deque
 import pdb
 import copy
 import math
+import shutil
+# import feather
 
 IMP = 1
 GRID = 3
 MINDIST = MyNum((GRID - (GRID // 2) + 1) * (GRID - (GRID // 2) + 1), IMP * IMP)
 from typing import List
 import sys
-sys.setrecursionlimit(1000000)
+sys.setrecursionlimit(10000000)
 
 class Point:
     def __init__(self, x, y):
@@ -65,7 +67,7 @@ class Triangle:
 
     
 class Data:
-    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None):
+    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None):
         if input:
             self.input = input
             self.triangles = set()
@@ -75,13 +77,21 @@ class Data:
             self.input = ""
             self.instance_name = ""
             self.fp_ind = fp_ind
-            self.pts = pts
-            self.region_boundary = bds
-            self.num_constraints = constraints
+            self.pts = pts[:]
+            self.region_boundary = bds.copy()
+            self.num_constraints = len(constraints)
+            self.constraints = constraints.copy()
+            self.triangles = triangles.copy()
             self.done = False
         
         self.done = False
-
+    def copy(self):
+        new_d = Data(input = "", pts = self.pts, constraints = self.constraints, bds = self.region_boundary, fp_ind = self.fp_ind, triangles=self.triangles)
+        new_d.input = self.input
+        new_d.instance_name = self.instance_name
+        new_d.const_dict = self.const_dict.copy()
+        new_d.done = self.done
+        return new_d
     def score(self):
         obt = 0
         for t in self.triangles:
@@ -145,6 +155,7 @@ class Data:
                     self.constraints.add((con[0], con[1]))
                     self.const_dict[(con[0], con[1])] = (con[0], con[1])
             # pdb.set_trace()
+
             self.triangulate()
             self.delaunay_triangulate()
             self.add_steiners(st_pt)
@@ -190,6 +201,7 @@ class Data:
         # print("Total Triangle: ", len(self.triangles))
         # print("Obtuse Triangle: ", obt)
         score = self.score()
+        inst["score"] = score
         # print("Score: ", score)
 
         # print(inst)
@@ -201,20 +213,29 @@ class Data:
         for sol in opt_list:
             if self.instance_name in sol and "json" in sol:
                 already_exist = True
-                dt = Data(path+"/"+sol)
+                with open(self.input, "r", encoding="utf-8") as ff:
+                    root = json.load(ff)
+                    try:
+                        old_score = root["score"]
+                    except:
+                        dt = Data(path+"/"+sol)
+                        old_score = dt.score()
                 # pdb.set_trace()
                 # print(dt.score)
-                if dt.score()<score:
+                if old_score<score:
                     # pdb.set_trace()
-                    print(f"New High Score!!! {dt.score()}->{score}")
+                    print(f"New High Score!!! {old_score}->{score}")
+                    # pdb.set_trace()
                     os.remove(path+"/"+sol)
-                    with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
-                        json.dump(inst, f, indent='\t')
+                    shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+                    # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+                    #     json.dump(inst, f, indent='\t')
                     self.DrawResult(folder="opt_solutions")
                 break
         if not already_exist:
-            with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
-                json.dump(inst, f, indent='\t')
+            shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+            # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+            #     json.dump(inst, f, indent='\t')
             self.DrawResult(folder="opt_solutions")
         # pdb.set_trace()
 
@@ -869,9 +890,9 @@ class Data:
             del self.const_dict[e]
         if i!=len(self.pts) - 1:
             self.pts[i] = self.pts[-1]
-            for t in self.triangles:
-                if t.get_ind(len(self.pts) - 1) != -1:
-                    t.pts[t.get_ind(len(self.pts)-1)] = i
+            # for t in self.triangles:
+            #     if t.get_ind(len(self.pts) - 1) != -1:
+            #         t.pts[t.get_ind(len(self.pts)-1)] = i
             for j in range(len(self.region_boundary)):
                 if self.region_boundary[j] == len(self.pts) - 1:
                     self.region_boundary[j] = i
@@ -893,11 +914,11 @@ class Data:
             for con in newcon:
                 self.constraints.add(con)
         self.pts.pop()
-        #for t in self.triangles:
-        #    del t
-        #self.triangles = set()
-        #self.triangulate()
-        #self.delaunay_triangulate()
+        for t in self.triangles:
+           del t
+        self.triangles = set()
+        self.triangulate()
+        self.delaunay_triangulate()
         
 
 
