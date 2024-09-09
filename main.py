@@ -73,15 +73,15 @@ if __name__=="__main__":
             dt.triangles = set()
             dt.triangulate()
             dt.delaunay_triangulate()
-            dt.DrawResult("step")
+            # dt.DrawResult("step")
             dt.make_non_obtuse_boundary()
             print("nonobtbound done!")
-            dt.DrawResult("step")
+            # dt.DrawResult("step")
         curscore = dt.score()
         if curscore > score:
             score = curscore
-            dt.DrawResult("best")
-            dt.WriteData("best")
+            # dt.DrawResult("best")
+            dt.WriteData()
             progress = True
             
         #c = input("Take a step?(y/n/r): ")
@@ -99,5 +99,5 @@ if __name__=="__main__":
         if dt.done:
             lim = len(dt.pts) - dt.fp_ind - 1 
     if dt.done:
-        dt.WriteData("nonobs")
-        dt.DrawResult("nonobs")
+        dt.WriteData()
+        dt.DrawResult()
