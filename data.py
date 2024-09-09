@@ -393,6 +393,24 @@ class Data:
         o = Point(ox, oy)
         return sqdist(o, q) < sqdist(o, p1)
 
+    def is_on_circumcircle(self, t:Triangle, q:Point):
+        p1, p2, p3 = [self.pts[t.pts[i]] for i in range(3)]
+        if p1.y == p2.y:
+            p1, p2, p3 = p2, p3, p1
+        if p2.y == p3.y:
+            p1, p2, p3 = p3, p1, p2
+        m12 = midpoint(p1, p2)
+        m23 = midpoint(p2, p3)
+        s12 = (p1.x - p2.x) / (p2.y - p1.y)
+        b12 = m12.y - m12.x * s12
+        s23 = (p2.x - p3.x) / (p3.y - p2.y)
+        b23 = m23.y - m23.x * s23
+        #print(p1, p2, p3)
+        ox = (b23 - b12) / (s12 - s23)
+        oy = s23 * ox + b23
+        o = Point(ox, oy)
+        return sqdist(o, q) == sqdist(o, p1)
+
     def triangulate(self):
         check = [False] * len(self.pts)
         self.triangulate_polygon(deque(self.region_boundary))
@@ -588,6 +606,9 @@ class Data:
                         if self.is_in_circumcircle(t, q):
                             self.flip(t, i)
                             check = True
+                            break
+                        elif self.is_on_circumcircle(t, q) and self.is_obtuse(t):
+                            self.flip(t, i)
                             break
             if not check:
                 break
@@ -1558,6 +1579,7 @@ class Data:
                     rind %= len(self.region_boundary)
                     rq = self.pts[self.region_boundary[rind]]
                 inserting.append(random.choice(gen_cands(t, j)))
+        print("boundary done!")
         for con in self.constraints:
             e1, e2 = con
             t1 = self.find_triangle(e1, e2)
@@ -1652,9 +1674,9 @@ class Data:
                         bscore = (ascore, score)
                     bcands.append(cand)
                 inserting.append(random.choice(bcands))
+        print("constraints done!")
         self.add_steiners(list(inserting))
-                
-
+        print("inserting done!")
 
     def insert_point_on(self, e1:int, e2:int, p:Point):
         if not self.is_on(e1, e2, p):
@@ -1711,7 +1733,7 @@ class Data:
             if self.is_obtuse(t):
                 obtt.append(t)
         if not obtt:
-            print("Done!")
+            # print("Done!")
             self.done = True
         else:
             target = random.choice(obtt)

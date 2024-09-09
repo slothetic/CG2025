@@ -6,9 +6,6 @@ import sys
 import random
 
 sys.setrecursionlimit(100000)
-
-sys.setrecursionlimit(100000)
-
 # parser = argparse.ArgumentParser()
 
 # parser.add_argument("--data", "-d", required=False, default="")
@@ -27,49 +24,65 @@ if __name__=="__main__":
         dt.delaunay_triangulate()
         dt.WriteData()
     dt.DrawResult()
-    cnt = 0
+    cnt = 1
     c = ""
-    lim = len(dt.pts) - dt.fp_ind + 10
+    score = dt.score()
     dt.make_non_obtuse_boundary()
     # score = (n_obs, n_pts)
     score = dt.score()
-    maxcnt = 100
+    if score > 0.5:
+        lim = len(dt.pts) - dt.fp_ind - 1
+    else:
+        lim = len(dt.pts) - dt.fp_ind + 10
+    maxcnt = 10
+    progress = False
     while True:
         # print("score:", score)
         
-        if cnt>maxcnt:
-            break
-        if len(dt.pts) - dt.fp_ind >= lim:
+        
+        if len(dt.pts) - dt.fp_ind > lim:
+            if cnt>maxcnt:
+                break
             for _ in range(5):
-                p = random.randint(dt.fp_ind, len(dt.pts) - 1)
-                dt.delete_steiner(p)
+                if len(dt.pts) > dt.fp_ind:
+                    p = random.randint(dt.fp_ind, len(dt.pts) - 1)
+                    dt.delete_steiner(p)
             for _ in range(10):
-                mini = dt.fp_ind
-                mind = sqdist(dt.pts[dt.fp_ind], dt.pts[0])
-                for i in range(dt.fp_ind, len(dt.pts)):
-                    for j in range(len(dt.pts)):
-                        if i == j:
-                            continue
-                        if sqdist(dt.pts[i], dt.pts[j]) < mind:
-                            mini = i
-                            mind = sqdist(dt.pts[i], dt.pts[j])
-                dt.delete_steiner(mini)
-            if cnt % 5 == 0:
+                if len(dt.pts) > dt.fp_ind:
+                    mini = dt.fp_ind
+                    mind = sqdist(dt.pts[dt.fp_ind], dt.pts[0])
+                    for i in range(dt.fp_ind, len(dt.pts)):
+                        for j in range(len(dt.pts)):
+                            if i == j:
+                                continue
+                            if sqdist(dt.pts[i], dt.pts[j]) < mind:
+                                mini = i
+                                mind = sqdist(dt.pts[i], dt.pts[j])
+                    dt.delete_steiner(mini)
+            if score <= 0.5 and cnt % 5 == 0:
                 lim += 10
-            cnt += 1
             print(f"{dt.instance_name} Iteration: [{cnt}/{maxcnt}] score: {score}")
+            if progress:
+                cnt = 1
+            else:
+                cnt += 1
+            progress = False
             for t in dt.triangles:
                 del t
+            print("deletion done!")
             dt.triangles = set()
             dt.triangulate()
             dt.delaunay_triangulate()
             dt.DrawResult("step")
             dt.make_non_obtuse_boundary()
+            print("nonobtbound done!")
             dt.DrawResult("step")
-        if dt.score() > score:
-            score = dt.score()
+        curscore = dt.score()
+        if curscore > score:
+            score = curscore
             dt.DrawResult("best")
             dt.WriteData("best")
+            progress = True
             
         #c = input("Take a step?(y/n/r): ")
         #dt.DrawResult("prev")
@@ -84,7 +97,7 @@ if __name__=="__main__":
         #input()
         #dt.DrawResult(str(cnt))
         if dt.done:
-            break
+            lim = len(dt.pts) - dt.fp_ind - 1 
     if dt.done:
         dt.WriteData("nonobs")
         dt.DrawResult("nonobs")
