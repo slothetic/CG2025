@@ -1,9 +1,9 @@
 import MyNum
 from data import *
 import os
-import argparse
 import sys
-import random
+import pdb 
+import faulthandler; faulthandler.enable()
 
 sys.setrecursionlimit(100000)
 # parser = argparse.ArgumentParser()
