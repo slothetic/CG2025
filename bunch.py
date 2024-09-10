@@ -44,10 +44,14 @@ if __name__=="__main__":
         if len(dt.pts) - dt.fp_ind > lim:
             if cnt>maxcnt:
                 break
-            for _ in range(3):
-                if len(dt.pts) > dt.fp_ind:
-                    p = random.randint(dt.fp_ind, len(dt.pts) - 1)
-                    dt.delete_steiner(p)
+            n_del = (len(dt.pts) - dt.fp_ind) // 10
+            p = random.randint(dt.fp_ind, len(dt.pts) - 1)
+            dlist = [(sqdist(dt.pts[p], dt.pts[i]), i) for i in range(dt.fp_ind, len(dt.pts))]
+            dlist.sort()
+            dinds = [dlist[i][1] for i in range(n_del)]
+            dinds.sort(reverse = True)
+            for q in dinds:
+                dt.delete_steiner(q)
             for _ in range(5):
                 if len(dt.pts) > dt.fp_ind:
                     mini = dt.fp_ind

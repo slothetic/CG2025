@@ -1835,6 +1835,7 @@ class Data:
             # print("Done!")
             self.done = True
         else:
+            self.done - False
             target = random.choice(obtt)
             # self.print_triangle(target)
             self.make_non_obtuse2(target)
