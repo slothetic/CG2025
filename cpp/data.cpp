@@ -1,5 +1,14 @@
 #include "data.h"
+//#include <jsoncpp/json/json.h>
+#include "include/json/json.h"
+#include <opencv2/opencv.hpp>
+#include <cassert>
 #include <tuple>
+#include <vector>
+
+#pragma comment(lib, "jsoncpp.lib")
+
+using namespace std;
 
 Point::Point(){}
 
@@ -805,15 +814,15 @@ void Data::ReadData(){
 
 	instance_name =  root["instance_uid"].asString();
 	num_points = root["num_points"].asInt();
-	Json::Value _points_x = root["points_x"];
-	Json::Value _points_y = root["points_y"];
+	const Json::Value _points_x = root["points_x"];
+	const Json::Value _points_y = root["points_y"];
 	vector<Point> pts;
-	for (int i=0;i<_points_x.size();i++){
-		pts.push_back(Point(_points_x[i].asInt(), _points_y[i].asInt()));
+	for (int i = 0; i < _points_x.size(); i++){
+		pts.emplace_back(_points_x[i].asInt(), _points_y[i].asInt());
 	}
 	Json::Value _region_boundary = root["region_boundary"];
 	std::deque<int> region_boundary;
-	for (int i=0;i<_region_boundary.size();i++){
+	for (int i = 0; i < _region_boundary.size(); i++) {
 		region_boundary.push_back(_region_boundary[i].asInt());
 	}
 	Json::Value _num_constraints = root["num_constraints"];

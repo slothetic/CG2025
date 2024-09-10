@@ -1,17 +1,15 @@
 #pragma once
 #include <iostream>
-//#include <jsoncpp/json/json.h>
 #include <fstream>
 #include <iomanip>
-#include <opencv2/opencv.hpp>
+
 #include "MyNum.h"
 #include <string>
 #include <cmath>
 #include <deque>
 #include <set>
 #include <random>
-using namespace std;
-
+#include <vector>
 
 class Point{
 	public:
@@ -38,7 +36,7 @@ class Triangle{
 
 class Instance{
 	public:
-		string instance_name;
+		std::string instance_name;
 		int fp_ind; //fixed points
 		std::vector<Point> pts;
 		std::deque<int> boundary; //CCW
@@ -64,10 +62,10 @@ class Instance{
 		void print_triangle(Triangle*);
 		void add_steiner(Point);
 		void delete_steiner(Point);
-		void DrawResult(string);
+		void DrawResult(std::string);
 };
 
-MyNum turn(Point, Point, Point); // if CCw, >0 / if CW, <0 / if colinear, ==0
+MyNum turn(Point p1, Point p2, Point p3); // if CCw, >0 / if CW, <0 / if colinear, ==0
 std::pair<int, int> sorted_pair(int, int);
 
 // class Polygon{
@@ -95,10 +93,10 @@ class Data{
 		Data(){};
 		~Data(){};
 
-		string instance_name;
-		string input;
-		string type;
-		string output;
+		std::string instance_name;
+		std::string input;
+		std::string type;
+		std::string output;
 		int num_points;
 		int num_constraints;
 		Instance *inst;

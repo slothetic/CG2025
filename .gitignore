@@ -2,3 +2,5 @@
 *.swp
 ALG
 /.vs
+/cpp/.vs/CG2025CPP
+/cpp/x64/Debug

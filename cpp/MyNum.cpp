@@ -470,6 +470,11 @@ long double MyNum::toDouble(){
 
 // 수정 필요
 void MyNum::abbr() {
+
+	if (this->den.isOne() || this->num.isOne() || this->num.isZero()) {
+		return;
+	}
+
 	bool newSgn = (this->num.sgn == this->den.sgn);
 
 	this->num.sgn = true;
