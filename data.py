@@ -579,7 +579,7 @@ class Data:
             else:
                 return self.resolve_cross(con, t.nei(i + 2))
 
-    def flip(self, t:Triangle, i:int):
+    def flip_old(self, t:Triangle, i:int):
         tt = t.neis[i]
         j = tt.get_ind(t.pt(i + 1))
         pi = t.pt(i + 2)
@@ -604,19 +604,69 @@ class Data:
             k = (ttt.get_ind(tt.pts[j]) + 2) % 3
             pk = ttt.pts[k]
             if turn(self.pts[pi], self.pts[tt.pts[j]], self.pts[pk]) >= 0:
-                self.flip(ttt, (k + 2) % 3)
+                self.flip_old(ttt, (k + 2) % 3)
             else:
-                self.flip(tt, (j + 2) % 3)
-            return self.flip(t, i)
+                self.flip_old(tt, (j + 2) % 3)
+            return self.flip_old(t, i)
         else:
             ttt = tt.nei(j + 1)
             k = (ttt.get_ind(tt.pt(j + 2)) + 2) % 3
             pk = ttt.pts[k]
             if turn(self.pts[pi], self.pts[t.pts[i]], self.pts[pk]) <= 0:
-                self.flip(ttt, k)
+                self.flip_old(ttt, k)
             else:
-                self.flip(tt, (j + 1) % 3)
-            return self.flip(t, i)
+                self.flip_old(tt, (j + 1) % 3)
+            return self.flip_old(t, i)
+
+    def flip(self, t:Triangle, i:int):
+        tt = t.neis[i]
+        j = tt.get_ind(t.pt(i + 1))
+        p = self.pts[t.pt(i + 2)]
+        pr = self.pts[t.pts[i]]
+        pl = self.pts[t.pt(i + 1)]
+        q = self.pts[tt.pt(j + 2)]
+        # self.print_triangle(t)
+        # print("flipping in", i)
+        # self.print_triangle(tt)
+        while True:
+            if turn(p, pr, q) <= 0:
+                t = tt
+                i = (j + 2) % 3
+                pr = q
+            elif turn(self.pts[t.pt(i + 2)], self.pts[t.pts[i]], q) <= 0:
+                t = tt
+                i = (j + 2) % 3
+            elif turn(p, pl, q) >= 0:
+                pl = q
+                t = tt
+                i = (j + 1) % 3
+            elif turn(self.pts[t.pt(i + 2)], self.pts[tt.pts[j]], q) >= 0:
+                t = tt
+                i = (j + 1) % 3
+            else:
+                break
+            tt = t.neis[i]
+            j = tt.get_ind(t.pt(i + 1))
+            q = self.pts[tt.pt(j + 2)]
+            # self.print_triangle(t)
+            # print("flipping in", i)
+            # self.print_triangle(tt)
+        ti = t.nei(i + 1)
+        tj = tt.nei(j + 1)
+        pi = t.pt(i + 2)
+        pj = tt.pt(j + 2)
+        t.pts[(i + 1) % 3] = pj
+        t.neis[i] = tj
+        if tj:
+            tj.neis[tj.get_ind(pj)] = t
+        t.neis[(i + 1) % 3] = tt
+        tt.pts[(j + 1) % 3] = pi
+        tt.neis[j] = ti
+        if ti:
+            ti.neis[ti.get_ind(pi)] = tt
+        tt.neis[(j + 1) % 3] = t
+        # print('Flip done!')
+        
 
     def delaunay_triangulate(self):
         while True:
