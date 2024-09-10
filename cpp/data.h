@@ -1,91 +1,8 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <iomanip>
 
-#include "MyNum.h"
+#include "MyInstance.h"
 #include <string>
-#include <cmath>
-#include <deque>
-#include <set>
-#include <random>
-#include <vector>
 
-class Point{
-	public:
-		MyNum x, y;
-		Point();
-		Point(int, int);
-		Point(MyNum, MyNum);
-		bool operator==(const Point&);
-		bool operator!=(const Point&);
-		friend std::ostream& operator<<(std::ostream&, const Point&);
-};
-
-long double angle(Point, Point, Point);
-MyNum sqdist(Point, Point);
-
-class Triangle{
-	public:
-		int p[3]; //CCW
-		Triangle *t[3]; //neighbors, CCW, from p1p2. nullptr if the edge is boundary or constraint
-		Triangle(int, int, int);
-		~Triangle();
-		int get_ind(int); //find index of vertex. return -1 if not exists
-};
-
-class Instance{
-	public:
-		std::string instance_name;
-		int fp_ind; //fixed points
-		std::vector<Point> pts;
-		std::deque<int> boundary; //CCW
-		std::set<std::pair<int,int>> constraints;
-		std::set<Triangle*> triangles;
-		Instance();
-		Instance(int, std::vector<Point>, std::deque<int>, std::set<std::pair<int,int>>);
-		bool is_obtuse(Triangle*);
-		bool is_on(std::pair<int, int>, Point);
-		bool is_in(Triangle*, Point);
-		void triangulate();
-		void triangulate_polygon(std::deque<int>);
-		void insert_point(int);
-		void resolve_cross(std::pair<int, int>);
-		void resolve_cross(std::pair<int, int>, Triangle*);
-		void flip(Triangle*, int);
-		void minmax_triangulate();
-		bool ear_cut(Triangle*, int);
-		Triangle* find_triangle(int, int); // find a triangle with edge. return nullptr if not exists
-		void make_non_obtuse();
-		void update_boundary();
-		void update_constraints();
-		void print_triangle(Triangle*);
-		void add_steiner(Point);
-		void delete_steiner(Point);
-		void DrawResult(std::string);
-};
-
-MyNum turn(Point p1, Point p2, Point p3); // if CCw, >0 / if CW, <0 / if colinear, ==0
-std::pair<int, int> sorted_pair(int, int);
-
-// class Polygon{
-// 	public:
-// 		vector<cv::Point> vers;
-// 		vector<int> x_vers;
-// 		vector<int> y_vers;
-// 		Polygon();
-// 		Polygon(vector<cv::Point>);
-// 		Polygon(vector<int>, vector<int>);
-// 		bool intersect(Polygon);
-// 		bool isin(Polygon);
-// 		Polygon make_convex();
-// 		int index;
-// 		int value;
-// 		int x_loc;
-// 		int y_loc;
-// 		bool use;
-// 		bool cont;
-// };
 
 class Data{
 	private:
@@ -106,3 +23,21 @@ class Data{
 		void DrawResult();
 };
 
+// class Polygon{
+// 	public:
+// 		vector<cv::Point> vers;
+// 		vector<int> x_vers;
+// 		vector<int> y_vers;
+// 		Polygon();
+// 		Polygon(vector<cv::Point>);
+// 		Polygon(vector<int>, vector<int>);
+// 		bool intersect(Polygon);
+// 		bool isin(Polygon);
+// 		Polygon make_convex();
+// 		int index;
+// 		int value;
+// 		int x_loc;
+// 		int y_loc;
+// 		bool use;
+// 		bool cont;
+// };
