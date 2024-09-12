@@ -16,7 +16,7 @@ GRID = 3
 MINDIST = MyNum((GRID - (GRID // 2) + 1) * (GRID - (GRID // 2) + 1), IMP * IMP)
 from typing import List
 import sys
-sys.setrecursionlimit(10000000)
+sys.setrecursionlimit(1000000)
 
 class Point:
     def __init__(self, x, y):
@@ -84,7 +84,7 @@ class Data:
             self.triangles = triangles.copy()
             self.done = False
         
-        self.done = False
+        
     def copy(self):
         new_d = Data(input = "", pts = self.pts, constraints = self.constraints, bds = self.region_boundary, fp_ind = self.fp_ind, triangles=self.triangles)
         new_d.input = self.input
@@ -92,6 +92,7 @@ class Data:
         new_d.const_dict = self.const_dict.copy()
         new_d.done = self.done
         return new_d
+
     def score(self):
         obt = 0
         for t in self.triangles:
@@ -161,7 +162,9 @@ class Data:
             self.add_steiners(st_pt)
             # pdb.set_trace()
             for e in edges:
-                self.resolve_cross(e)
+                if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
+                    self.resolve_cross(e)
+
             self.DrawResult("old_data")    
             # pdb.set_trace()
 
@@ -414,6 +417,24 @@ class Data:
         o = Point(ox, oy)
         return sqdist(o, q) < sqdist(o, p1)
 
+    def is_on_circumcircle(self, t:Triangle, q:Point):
+        p1, p2, p3 = [self.pts[t.pts[i]] for i in range(3)]
+        if p1.y == p2.y:
+            p1, p2, p3 = p2, p3, p1
+        if p2.y == p3.y:
+            p1, p2, p3 = p3, p1, p2
+        m12 = midpoint(p1, p2)
+        m23 = midpoint(p2, p3)
+        s12 = (p1.x - p2.x) / (p2.y - p1.y)
+        b12 = m12.y - m12.x * s12
+        s23 = (p2.x - p3.x) / (p3.y - p2.y)
+        b23 = m23.y - m23.x * s23
+        #print(p1, p2, p3)
+        ox = (b23 - b12) / (s12 - s23)
+        oy = s23 * ox + b23
+        o = Point(ox, oy)
+        return sqdist(o, q) == sqdist(o, p1)
+
     def triangulate(self):
         check = [False] * len(self.pts)
         self.triangulate_polygon(deque(self.region_boundary))
@@ -560,7 +581,7 @@ class Data:
             else:
                 return self.resolve_cross(con, t.nei(i + 2))
 
-    def flip(self, t:Triangle, i:int):
+    def flip_old(self, t:Triangle, i:int):
         tt = t.neis[i]
         j = tt.get_ind(t.pt(i + 1))
         pi = t.pt(i + 2)
@@ -585,19 +606,69 @@ class Data:
             k = (ttt.get_ind(tt.pts[j]) + 2) % 3
             pk = ttt.pts[k]
             if turn(self.pts[pi], self.pts[tt.pts[j]], self.pts[pk]) >= 0:
-                self.flip(ttt, (k + 2) % 3)
+                self.flip_old(ttt, (k + 2) % 3)
             else:
-                self.flip(tt, (j + 2) % 3)
-            return self.flip(t, i)
+                self.flip_old(tt, (j + 2) % 3)
+            return self.flip_old(t, i)
         else:
             ttt = tt.nei(j + 1)
             k = (ttt.get_ind(tt.pt(j + 2)) + 2) % 3
             pk = ttt.pts[k]
             if turn(self.pts[pi], self.pts[t.pts[i]], self.pts[pk]) <= 0:
-                self.flip(ttt, k)
+                self.flip_old(ttt, k)
             else:
-                self.flip(tt, (j + 1) % 3)
-            return self.flip(t, i)
+                self.flip_old(tt, (j + 1) % 3)
+            return self.flip_old(t, i)
+
+    def flip(self, t:Triangle, i:int):
+        tt = t.neis[i]
+        j = tt.get_ind(t.pt(i + 1))
+        p = self.pts[t.pt(i + 2)]
+        pr = self.pts[t.pts[i]]
+        pl = self.pts[t.pt(i + 1)]
+        q = self.pts[tt.pt(j + 2)]
+        # self.print_triangle(t)
+        # print("flipping in", i)
+        # self.print_triangle(tt)
+        while True:
+            if turn(p, pr, q) <= 0:
+                t = tt
+                i = (j + 2) % 3
+                pr = q
+            elif turn(self.pts[t.pt(i + 2)], self.pts[t.pts[i]], q) <= 0:
+                t = tt
+                i = (j + 2) % 3
+            elif turn(p, pl, q) >= 0:
+                pl = q
+                t = tt
+                i = (j + 1) % 3
+            elif turn(self.pts[t.pt(i + 2)], self.pts[tt.pts[j]], q) >= 0:
+                t = tt
+                i = (j + 1) % 3
+            else:
+                break
+            tt = t.neis[i]
+            j = tt.get_ind(t.pt(i + 1))
+            q = self.pts[tt.pt(j + 2)]
+            # self.print_triangle(t)
+            # print("flipping in", i)
+            # self.print_triangle(tt)
+        ti = t.nei(i + 1)
+        tj = tt.nei(j + 1)
+        pi = t.pt(i + 2)
+        pj = tt.pt(j + 2)
+        t.pts[(i + 1) % 3] = pj
+        t.neis[i] = tj
+        if tj:
+            tj.neis[tj.get_ind(pj)] = t
+        t.neis[(i + 1) % 3] = tt
+        tt.pts[(j + 1) % 3] = pi
+        tt.neis[j] = ti
+        if ti:
+            ti.neis[ti.get_ind(pi)] = tt
+        tt.neis[(j + 1) % 3] = t
+        # print('Flip done!')
+        
 
     def delaunay_triangulate(self):
         while True:
@@ -609,6 +680,9 @@ class Data:
                         if self.is_in_circumcircle(t, q):
                             self.flip(t, i)
                             check = True
+                            break
+                        elif self.is_on_circumcircle(t, q) and self.is_obtuse(t):
+                            self.flip(t, i)
                             break
             if not check:
                 break
@@ -1504,6 +1578,232 @@ class Data:
                 self.triangulate()
                 self.delaunay_triangulate()
 
+    def make_non_obtuse3(self, t:Triangle):
+        #print("resolve obtuse")
+        #self.print_triangle(t)
+        if angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0:
+            i = 0
+        if angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]]) > 0:
+            i = 1
+        if angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]]) > 0:
+            i = 2
+        #print("obtuse at", i)
+        if t.neis[i]:
+            tt = t.neis[i]
+            j = (tt.get_ind(t.pts[i]) + 1) % 3
+            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0:
+                return self.make_non_obtuse3(tt)
+        if t.nei(i + 2):
+            tt = t.nei(i + 2)
+            j = (tt.get_ind(t.pt(i + 2)) + 1) % 3
+            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0:
+                return self.make_non_obtuse3(tt)
+        self.triangles.discard(t)
+        q = self.pts[t.pts[i]]
+        r = self.pts[t.pt(i + 1)]
+        l = self.pts[t.pt(i + 2)]
+        l_neis = []
+        r_neis = []
+        l_chain = []
+        r_chain = []
+        r_chain.append(t.pts[i])
+        r_chain.append(t.pt(i + 1))
+        l_chain.append(t.pts[i])
+        l_chain.append(t.pt(i + 2))
+        r_neis.append(t.neis[i])
+        l_neis.append(t.nei(i + 2))
+        tt = t.nei(i + 1)
+        stop = [False]
+        s = q
+        j = i
+        def cutright():
+            if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0:
+                stop[0] = True
+            else:
+                nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
+                self.triangles.add(nt)
+                nt.neis[2] = r_neis[-1]
+                r_neis.pop()
+                nt.neis[1] = r_neis[-1]
+                r_neis.pop()
+                r_neis.append(nt)
+                r_chain.pop()
+                #print("line 697")
+                #self.print_triangle(nt)
+        def cutleft():
+            if turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0:
+                stop[0] = True
+            else:
+                nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
+                self.triangles.add(nt)
+                nt.neis[2] = l_neis[-1]
+                l_neis.pop()
+                nt.neis[0] = l_neis[-1]
+                l_neis.pop()
+                l_neis.append(nt)
+                l_chain.pop()
+                #print("line 715")
+                #self.print_triangle(nt)
+        while True:
+            if not tt:
+                break
+            #self.print_triangle(tt)
+            stop[0] = False
+            j = (tt.get_ind(r_chain[-1]) + 1) % 3
+            s = self.pts[tt.pts[j]]
+            self.triangles.discard(tt)
+            # self.DrawResult("step")
+            l_neis.append(tt.neis[j])
+            r_neis.append(tt.nei(j + 2))
+            if turn(q, r, s) <= 0:
+                while not stop[0]:
+                    cutright()
+                r_chain.append(tt.pts[j])
+                tt = l_neis[-1]
+                l_neis.pop()
+            elif turn(q, l, s) >= 0:
+                while not stop[0]:
+                    cutleft()
+                l_chain.append(tt.pts[j])
+                tt = r_neis[-1]
+                r_neis.pop()
+            else:
+                while (not stop[0]) and len(r_chain) > 2:
+                    cutright()
+                stop[0] = False
+                while (not stop[0]) and len(l_chain) > 2:
+                    cutleft()
+                rsgn = turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0
+                lsgn = turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0
+                if not rsgn:
+                    l = s
+                    l_chain.append(tt.pts[j])
+                    tt = r_neis[-1]
+                    r_neis.pop()
+                elif not lsgn:
+                    r = s
+                    r_chain.append(tt.pts[j])
+                    tt = l_neis[-1]
+                    l_neis.pop()
+                else:
+                    r_chain.append(tt.pts[j])
+                    break
+        #print(len(r_chain), len(l_chain))
+        ri = 1
+        while ri < len(r_chain) - 1 and turn(self.pts[r_chain[ri - 1]], self.pts[r_chain[ri]], self.pts[r_chain[ri + 1]]) > 0:
+            ri += 1
+        li = 1
+        while li < len(l_chain) - 1 and turn(self.pts[l_chain[li - 1]], self.pts[l_chain[li]], self.pts[l_chain[li + 1]]) < 0:
+            li += 1
+        #print(ri, li)
+        while turn(self.pts[l_chain[li]], self.pts[r_chain[ri]], self.pts[r_chain[ri - 1]]) >= 0:
+            li -= 1
+        while turn(self.pts[l_chain[li - 1]], self.pts[l_chain[li]], self.pts[r_chain[ri]]) >= 0:
+            ri -= 1
+        #print(ri, li)
+        
+        if ri < len(r_chain) - 1 or li < len(l_chain) - 1:
+            r_chain = r_chain[:ri + 1]
+            l_chain = l_chain[:li + 1]
+            r_neis = r_neis[:ri]
+            l_neis = l_neis[:li]
+            tt = t
+        flag = len(l_chain) == 2 and angle(self.pts[t.pts[i]], self.pts[l_chain[1]], self.pts[r_chain[-1]]) < 0
+        flag = flag or (len(r_chain) == 2 and angle(self.pts[t.pts[i]], self.pts[r_chain[1]], self.pts[l_chain[-1]]) < 0)
+        if flag:
+            if not tt:
+                cands = []
+                pp = projection(self.pts[t.pts[i]], self.pts[l_chain[-1]], self.pts[r_chain[-1]])
+                if self.is_on(l_chain[-1], r_chain[-1], pp) and self.is_in_circumcircle(t, pp):
+                    cands.append(pp)
+                if (l_neis[0] and self.is_obtuse(l_neis[0])) or len(l_chain) > 2:
+                    lp = right_angle_point(self.pts[r_chain[1]], self.pts[t.pts[i]], self.pts[l_chain[-1]], self.pts[r_chain[-1]])
+                    if lp and self.is_on(l_chain[-1], r_chain[-1], lp) and self.is_in_circumcircle(t, lp):
+                        cands.append(lp)
+                if (r_neis[0] and self.is_obtuse(r_neis[0])) or len(r_chain) > 2:
+                    rp = right_angle_point(self.pts[l_chain[1]], self.pts[t.pts[i]], self.pts[l_chain[-1]], self.pts[r_chain[-1]])
+                    if rp and self.is_on(l_chain[-1], r_chain[-1], rp) and self.is_in_circumcircle(t, rp):
+                        cands.append(rp)
+                stp = random.choice(cands)
+                self.add_steiner(stp)
+                return
+            elif tt != t and self.is_obtuse(tt):
+                for t in self.triangles:
+                    del t
+                self.triangles = set()
+                self.triangulate()
+                self.delaunay_triangulate()
+                return
+        cands = []
+        r_neis.append(tt)
+        neis = r_neis + l_neis[::-1]
+        chain = r_chain + l_chain[:0:-1]
+        for i in range(2, len(chain)):
+            if not neis[i - 1] and angle(self.pts[chain[i - 1]], self.pts[chain[0]], self.pts[chain[i]]) > 0:
+                pp = projection(self.pts[chain[0]], self.pts[chain[i - 1]], self.pts[chain[i]])
+                if self.is_on(chain[i - 1], chain[i], pp) and self.is_in_circumcircle(t, pp):
+                    cands.append(pp)
+        if cands:
+            stp = random.choice(cands)
+            self.add_steiner(stp)
+        else:
+            for i in range(len(chain)):
+                for ii in range(i, len(chain)):
+                    for pp in intersections_of_orthogonals(self.pts[chain[i - 1]], self.pts[chain[i]], self.pts[chain[ii - 1]], self.pts[chain[ii]]):
+                        check = self.is_in_circumcircle(t, pp)
+                        for iii in range(len(chain)):
+                            if turn(self.pts[chain[iii - 1]], self.pts[chain[iii]], pp) <= 0 or sqdist(pp, self.pts[chain[iii]]) <= MINDIST:
+                                check = False
+                                break
+                        if check:
+                            cands.append(pp)
+                    for pp in intersections_of_disks(midpoint(self.pts[chain[i - 1]], self.pts[chain[i]]), sqdist(self.pts[chain[i - 1]], self.pts[chain[i]]) / 4, midpoint(self.pts[chain[ii - 1]], self.pts[chain[ii]]), sqdist(self.pts[chain[ii - 1]], self.pts[chain[ii]]) / 4):
+                        check = self.is_in_circumcircle(t, pp)
+                        for iii in range(len(chain)):
+                            if turn(self.pts[chain[iii - 1]], self.pts[chain[iii]], pp) <= 0 or sqdist(pp, self.pts[chain[iii]]) <= MINDIST:
+                                check = False
+                                break
+                        if check:
+                            cands.append(pp)
+                    for pp in intersections_of_ortho_disk(self.pts[chain[i - 1]], self.pts[chain[i]], self.pts[chain[ii - 1]], self.pts[chain[ii]]):
+                        check = self.is_in_circumcircle(t, pp)
+                        for iii in range(len(chain)):
+                            if turn(self.pts[chain[iii - 1]], self.pts[chain[iii]], pp) <= 0 or sqdist(pp, self.pts[chain[iii]]) <= MINDIST:
+                                check = False
+                                break
+                        if check:
+                            cands.append(pp)
+            bcands = []
+            conedges = []
+            for i in range(len(chain)):
+                if not neis[i - 1] and ((chain[i], chain[i - 1]) in self.constraints or (chain[i - 1], chain[i]) in self.constraints):
+                    conedges.append(i)
+            bscore = (0, 0)
+            for pp in cands:
+                score = 0
+                cscore = 0
+                for i in conedges:
+                    if angle(self.pts[chain[i]], pp, self.pts[chain[i - 1]]) <= 0:
+                        cscore += 1
+                for i in range(len(chain)):
+                    if angle(self.pts[chain[i]], self.pts[chain[i - 1]], pp) <= 0 and angle(self.pts[chain[i - 1]], self.pts[chain[i]], pp) <= 0 and angle(self.pts[chain[i]], pp, self.pts[chain[i - 1]]) <= 0:
+                        score += 1
+                if (cscore, score) < bscore:
+                    continue
+                if (cscore, score) > bscore:
+                    bscore = (cscore, score)
+                    bcands = []
+                bcands.append(pp)
+            if bcands:
+                stp = random.choice(bcands)
+                self.add_steiner(stp)
+            else:
+                for t in self.triangles:
+                    del t
+                self.triangles = set()
+                self.triangulate()
+                self.delaunay_triangulate()
+
     def make_non_obtuse_boundary(self):
         inserting = []
         def gen_cands(t, j):
@@ -1579,6 +1879,7 @@ class Data:
                     rind %= len(self.region_boundary)
                     rq = self.pts[self.region_boundary[rind]]
                 inserting.append(random.choice(gen_cands(t, j)))
+        print("boundary done!")
         for con in self.constraints:
             e1, e2 = con
             t1 = self.find_triangle(e1, e2)
@@ -1673,9 +1974,149 @@ class Data:
                         bscore = (ascore, score)
                     bcands.append(cand)
                 inserting.append(random.choice(bcands))
+        print("constraints done!")
         self.add_steiners(list(inserting))
-                
+        print("inserting done!")
 
+    def make_non_obtuse_ortho(self):
+        while True:
+            done = True
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    p0 = self.pts[t.pts[0]]
+                    p1 = self.pts[t.pts[1]]
+                    p2 = self.pts[t.pts[2]]
+                    if angle(p2, p0, p1) > 0:
+                        q, r = p0, p1
+                        i = 0
+                    elif angle(p0, p1, p2) > 0:
+                        q, r = p1, p2
+                        i = 1
+                    else:
+                        q, r = p2, p0
+                        i = 2
+                    if q.x <= r.x and q.y > r.y:
+                        self.insert_grid_point(q, t, 0)
+                    elif q.x < r.x and q.y <= r.y:
+                        self.insert_grid_point(q, t, 1)
+                    elif q.x >= r.x and q.y < r.y:
+                        self.insert_grid_point(q, t, 2)
+                    else:
+                        self.insert_grid_point(q, t, 3)
+                    done = False
+                    break
+            if done:
+                break
+
+    def make_non_obtuse_ortho2(self):
+        while True:
+            while True:
+                npts = []
+                for i in range(len(self.region_boundary)):
+                    t = self.find_triangle(self.region_boundary[i - 1], self.region_boundary[i])
+                    j = (t.get_ind(self.region_boundary[i]) + 1) % 3
+                    p0 = self.pts[t.pts[j]]
+                    p1 = self.pts[t.pt(j + 1)]
+                    p2 = self.pts[t.pt(j + 2)]
+                    if angle(p2, p0, p1) > 0:
+                        npts.append(projection(self.pts[t.pts[j]], self.pts[t.pt(j + 1)], self.pts[t.pt(j + 2)]))
+                    else:
+                        if p1.x == p2.x or p1.y == p2.y:
+                            continue
+                        elif (p1.x < p2.x) == (p1.y < p2.y):
+                            q = Point(p1.x, p2.y)
+                            if p1.x < p2.x:
+                                d = 1
+                            else:
+                                d = 3
+                        else:
+                            q = Point(p2.x, p1.y)
+                            if p1.x < p2.x:
+                                d = 0
+                            else:
+                                d = 2
+                if npts:
+                    self.add_steiners(npts)
+                else:
+                    break
+            done = True
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    p0 = self.pts[t.pts[0]]
+                    p1 = self.pts[t.pts[1]]
+                    p2 = self.pts[t.pts[2]]
+                    if angle(p2, p0, p1) > 0:
+                        q, r = p0, p1
+                        i = 0
+                    elif angle(p0, p1, p2) > 0:
+                        q, r = p1, p2
+                        i = 1
+                    else:
+                        q, r = p2, p0
+                        i = 2
+                    if q.x <= r.x and q.y > r.y:
+                        self.insert_grid_point(q, t, 0)
+                    elif q.x < r.x and q.y <= r.y:
+                        self.insert_grid_point(q, t, 1)
+                    elif q.x >= r.x and q.y < r.y:
+                        self.insert_grid_point(q, t, 2)
+                    else:
+                        self.insert_grid_point(q, t, 3)
+                    done = False
+                    break
+            self.DrawResult("step")
+            print(self.score())
+            #input()
+            if done:
+                break
+    
+    def insert_grid_point(self, p:Point, t:Triangle, d:int):
+        p0, p1, p2 = [self.pts[t.pts[i]] for i in range(3)]
+        # print(p, p0, p1, p2, d)
+        # input()
+        midx = p0.x + p1.x + p2.x - min(p0.x, p1.x, p2.x) - max(p0.x, p1.x, p2.x)
+        midy = p0.y + p1.y + p2.y - min(p0.y, p1.y, p2.y) - max(p0.y, p1.y, p2.y)
+        if d == 0:
+            q = Point(midx, p.y)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.y < p.y and p1.y > p.y:
+                return self.insert_grid_point(p, t.neis[0], 0)
+            elif p1.y < p.y and p2.y > p.y:
+                return self.insert_grid_point(p, t.neis[1], 0)
+            else:
+                return self.insert_grid_point(p, t.neis[2], 0)
+        elif d == 1:
+            q = Point(p.x, midy)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.x > p.x and p1.x < p.x:
+                return self.insert_grid_point(p, t.neis[0], 1)
+            elif p1.x > p.x and p2.x < p.x:
+                return self.insert_grid_point(p, t.neis[1], 1)
+            else:
+                return self.insert_grid_point(p, t.neis[2], 1)
+        elif d == 2:
+            q = Point(midx, p.y)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.y > p.y and p1.y < p.y:
+                return self.insert_grid_point(p, t.neis[0], 2)
+            elif p1.y > p.y and p2.y < p.y:
+                return self.insert_grid_point(p, t.neis[1], 2)
+            else:
+                return self.insert_grid_point(p, t.neis[2], 2)
+        else:
+            q = Point(p.x, midy)
+            if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
+                self.add_steiner(q)
+            elif p0.x < p.x and p1.x > p.x:
+                return self.insert_grid_point(p, t.neis[0], 3)
+            elif p1.x < p.x and p2.x > p.x:
+                return self.insert_grid_point(p, t.neis[1], 3)
+            else:
+                return self.insert_grid_point(p, t.neis[2], 3)
+        # print(q)
 
     def insert_point_on(self, e1:int, e2:int, p:Point):
         if not self.is_on(e1, e2, p):
@@ -1732,13 +2173,21 @@ class Data:
             if self.is_obtuse(t):
                 obtt.append(t)
         if not obtt:
-            print("Done!")
+            # print("Done!")
             self.done = True
         else:
+            self.done - False
             target = random.choice(obtt)
             # self.print_triangle(target)
-            self.make_non_obtuse2(target)
+            self.make_non_obtuse3(target)
             self.delaunay_triangulate()
+            obtt = []
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    obtt.append(t)
+            if not obtt:
+                # print("Done!")
+                self.done = True
 
     def step_proj(self):
         obtt = []

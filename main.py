@@ -51,7 +51,7 @@ def none_obtuse_iter(dt):
             if cnt % 5 == 0:
                 lim += 10
             cnt += 1
-            print(f"{dt.instance_name} Iteration: [{cnt}/{maxcnt}] score: {score} (best: {best_score})")
+            print(f"{dt.instance_name} Iteration: [{cnt}/{maxcnt}] score: {dt.score()} (best: {best_score})")
             for t in dt.triangles:
                 del t
             dt.triangles = set()
@@ -60,11 +60,6 @@ def none_obtuse_iter(dt):
             dt.DrawResult("step")
             dt.make_non_obtuse_boundary()
             dt.DrawResult("step")
-        n_obs = 0
-        n_pts = len(dt.pts) - dt.fp_ind
-        for t in dt.triangles:
-            if dt.is_obtuse(t):
-                n_obs += 1
         if dt.score() > score:
             score = dt.score()
             dt.DrawResult("best")
@@ -143,7 +138,7 @@ if __name__=="__main__":
             else:
                 none_obtuse_iter(dt)
         else:
-            break
+            none_obtuse_iter(dt)
 
 
                 
