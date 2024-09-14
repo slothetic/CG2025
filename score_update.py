@@ -16,8 +16,8 @@ Lee_folder = "/home/jagunlee/CG2025/*/*.solution.json"
 Ahn_folder = "/home/sloth/CGSHOP2025/*/*.solution.json"
 # Ahn_folder = "/home/sloth/CGSHOP2025/opt_sloth/cgshop2025_examples_ortho_150_a39ede60.solution.json"
 score_dict = df1.iloc[-1].to_dict()
-for key in score_dict.keys():
-    score_dict[key] = [score_dict[key]]
+# for key in score_dict.keys():
+#     score_dict[key] = [score_dict[key]]
 # pdb.set_trace()
 # for d in os.listdir("/home/jagunlee/CG2025/example_instances/"):
 #     if "json" in d:
@@ -25,6 +25,8 @@ for key in score_dict.keys():
 #             root = json.load(f)
 #             score_dict[root["instance_uid"]] = [0]
 #             pdb.set_trace()
+for k in score_dict.keys():
+    score_dict[k] = [0]
 for d in glob.glob(Lee_folder):
     print(d)
     try:
@@ -78,7 +80,7 @@ for d in glob.glob(Ahn_folder):
 # pdb.set_trace()
 df = pd.DataFrame(score_dict, index = [x.strftime("%Y-%m-%d")])
 df1 = pd.concat([df1, df])
-pdb.set_trace()
+# pdb.set_trace()
 df1.to_excel("score.xlsx")
 date_list = []
 names = ["ortho", "point-set", "simple-polygon_", "simple-polygon-exterior_", "simple-polygon-exterior-20"]

@@ -2275,6 +2275,27 @@ class Data:
         print(t.neis[1])
         print(t.neis[2])
 
+    def merge_result(self, dt):
+        e1 = [set() for _ in range(self.fp_ind)]
+        e2 = [set() for _ in range(self.fp_ind)]
+        for t in self.triangles:
+            for i in range(3):
+                if t.pts[i]<self.fp_ind and t.pts[i-1]<self.fp_ind:
+                    e1[t.pts[i]].add(t.pts[i-1])
+                    e1[t.pts[i-1]].add(t.pts[i])
+        for t in dt.triangles:
+            for i in range(3):
+                if t.pts[i]<self.fp_ind and t.pts[i-1]<self.fp_ind:
+                    e2[t.pts[i]].add(t.pts[i-1])
+                    e2[t.pts[i-1]].add(t.pts[i])
+        merged_e = [set() for _ in range(self.fp_ind)]
+        for i in range(self.fp_ind):
+            merged_e[i] = e1[i].intersection(e2[i])
+        
+
+
+        pass
+
 
 def angle(p1:Point, p2:Point, p3:Point):
     if p1==p2:
