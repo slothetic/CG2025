@@ -93,7 +93,7 @@ class Data:
         new_d.done = self.done
         return new_d
 
-    def score(self):
+    def score(self, p = False):
         obt = 0
         for t in self.triangles:
             if self.is_obtuse(t):
@@ -101,11 +101,15 @@ class Data:
 
         if obt:
             score = 0.5*(0.9)**(obt-1)
+            if p:
+                print(f"obtuse num: {obt}, steiner num: {len(self.pts)-self.fp_ind}")
             return score
         
         else:
             spt = len(self.pts)- self.fp_ind+1
             score = 0.5+0.5/spt
+            if p:
+                print(f"obtuse num: {obt}, steiner num: {len(self.pts)-self.fp_ind}")
             return score
         
 
@@ -2275,6 +2279,59 @@ class Data:
         print(t.neis[1])
         print(t.neis[2])
 
+    def dfs(self, merged_e):
+        checked = dict()
+        for t in self.triangles:
+            checked[t] = False
+        score = dict()
+        for i in range(len(merged_e)):
+            for _e1 in merged_e[i]:
+                # pdb.set_trace()
+                score[(i,_e1)] = (False, (-1,-1),[],set())
+        # pdb.set_trace()
+        for i in range(len(merged_e)):
+            for _e1 in merged_e[i]:
+                if score[(i,_e1)][0]:
+                    continue
+                st:Triangle = self.find_triangle(i, _e1)
+                if st==None:
+                    score[(i,_e1)] = (True, (float("INF"),float("INF")),[],set())
+                    continue
+                p_score = 0
+                p_obt = 0
+                p_stei = set()
+                p_tri = set()
+                stack = [(st, st.get_ind(i))]
+                bound = [(i,_e1)]
+                while stack:
+                    t, ind = stack.pop()
+                    if checked[t]:
+                        continue
+                    p_score += 1
+                    p_tri.add(t)
+                    if self.is_obtuse(t):
+                        p_obt += 1
+                    checked[t] = True
+                    for ii in range(3):
+                        if t.pt(ii)>=self.fp_ind:
+                            p_stei.add(t.pt(ii))
+                    if (t.pt(ind+1), t.pt(ind+2)) not in score:
+                        tt = self.find_triangle(t.pt(ind+2), t.pt(ind+1))
+                        if tt!=None and checked[tt]!=True:
+                            stack.append((tt, tt.get_ind(t.pt(ind+2))))
+                    else:
+                        bound.append((t.pt(ind+1), t.pt(ind+2)))
+                    if (t.pt(ind+2), t.pt(ind)) not in score:
+                        tt = self.find_triangle(t.pt(ind), t.pt(ind+2))
+                        if tt!=None and checked[tt]!=True:
+                            stack.append((tt, tt.get_ind(t.pt(ind))))
+                    else:
+                        bound.append((t.pt(ind+2), t.pt(ind)))
+                for b in bound:
+                    score[b] = (True, (p_obt, p_score), list(p_stei), p_tri)
+        return score
+
+
     def merge_result(self, dt):
         e1 = [set() for _ in range(self.fp_ind)]
         e2 = [set() for _ in range(self.fp_ind)]
@@ -2291,10 +2348,95 @@ class Data:
         merged_e = [set() for _ in range(self.fp_ind)]
         for i in range(self.fp_ind):
             merged_e[i] = e1[i].intersection(e2[i])
+        # pdb.set_trace()
+        # print(merged_e)
+        score_1 = self.dfs(merged_e)
+        score_2 = dt.dfs(merged_e)
+        new_ind1 = [-1]*len(self.pts)
+        new_ind2 = [-1]*len(dt.pts)
+        add_pts = []
+        add_e = []
+        for key in score_1.keys():
+            if score_1[key][1]>score_2[key][1]:
+                for t in score_2[key][3]:
+                    ind0, ind1, ind2 = t.pts[0], t.pts[1], t.pts[2]
+                    if ind0>=self.fp_ind:
+                        if new_ind2[ind0]==-1:
+                            new_ind2[ind0] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind0])
+                        ind0 = new_ind2[ind0]
+                    if ind1>=self.fp_ind:
+                        if new_ind2[ind1]==-1:
+                            new_ind2[ind1] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind1])
+                        ind1 = new_ind2[ind1]
+                    if ind2>=self.fp_ind:
+                        if new_ind2[ind2]==-1:
+                            new_ind2[ind2] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind2])
+                        ind2 = new_ind2[ind2]
+                    add_e.append((ind0,ind1))
+                    add_e.append((ind1,ind2))
+                    add_e.append((ind2,ind0))
+            else:
+                for t in score_1[key][3]:
+                    ind0, ind1, ind2 = t.pts[0], t.pts[1], t.pts[2]
+                    if ind0>=self.fp_ind:
+                        if new_ind1[ind0]==-1:
+                            new_ind1[ind0] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind0])
+                        ind0 = new_ind1[ind0]
+                    if ind1>=self.fp_ind:
+                        if new_ind1[ind1]==-1:
+                            new_ind1[ind1] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind1])
+                        ind1 = new_ind1[ind1]
+                    if ind2>=self.fp_ind:
+                        if new_ind1[ind2]==-1:
+                            new_ind1[ind2] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind2])
+                        ind2 = new_ind1[ind2]
+                    add_e.append((ind0,ind1))
+                    add_e.append((ind1,ind2))
+                    add_e.append((ind2,ind0))
+                    
+        print("Find new Sol! merging....")
+                # pdb.set_trace()
+                # score_1[key] = score_2[key]
+        while len(self.pts)>self.fp_ind:
+            self.delete_steiner(len(self.pts)-1)
+        for t in self.triangles:
+            del t
+        self.triangles = set()
+        # new_ind = [-1]*len(self.pts)
+        # add_pts = []
+        # i = 0
+        # for key in score_1.keys():
+        #     for t in score_1[key][3]:
+        #         for _i in range(3):
+        #             print(t.pts[_i])
+        #             if new_ind[t.pts[_i]]==-1:
+        #                 new_ind[t.pts[_i]] = i
+        #                 if t.pts[_i]>=self.fp_ind:
+        #                     add_pts.append(self.pts(t.pts[_i]))
+        #                 i+=1
+        # while len(self.pts)>self.fp_ind:
+        #     self.delete_steiner(len(self.pts)-1)
+        self.triangulate()
+        self.DrawResult("step")
+        # pdb.set_trace()
+        self.add_steiners(add_pts)
+        self.DrawResult("step")
+        # pdb.set_trace()
+        for e in add_e:
+            if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
+                self.resolve_cross(e)
+                self.DrawResult("step")
+                # pdb.set_trace()
+
         
 
-
-        pass
+        
 
 
 def angle(p1:Point, p2:Point, p3:Point):

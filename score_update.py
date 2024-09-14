@@ -11,9 +11,9 @@ df1 = pd.read_excel("score.xlsx", index_col=0, engine = "openpyxl")
 # plt.plot()
 x = dt.datetime.now()
 print(x)
-Lee_folder = "/home/jagunlee/CG2025/*/*.solution.json"
+Lee_folder = "/home/jagunlee/CG2025/*/*.solutio*.json"
 # Lee_folder = "/home/jagunlee/CG2025/opt_solutions/cgshop2025_examples_ortho_80_f9b89ad1.solution.json"
-Ahn_folder = "/home/sloth/CGSHOP2025/*/*.solution.json"
+Ahn_folder = "/home/sloth/CGSHOP2025/*/*.solutio*.json"
 # Ahn_folder = "/home/sloth/CGSHOP2025/opt_sloth/cgshop2025_examples_ortho_150_a39ede60.solution.json"
 score_dict = df1.iloc[-1].to_dict()
 # for key in score_dict.keys():
