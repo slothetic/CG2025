@@ -871,7 +871,11 @@ class Data:
                 return t
         return None
 
-    def add_steiner(self, p:Point):
+    def add_steiner(self, p:Point, on_constraint = True):
+        if not on_constraint:
+            for e in self.constraints:
+                if self.is_on(e[0], e[1], p):
+                    return
         self.pts.append(p)
         for i in range(len(self.region_boundary)):
             if self.is_on(self.region_boundary[i - 1], self.region_boundary[i], p):
@@ -1609,7 +1613,7 @@ class Data:
                 self.triangulate()
                 self.delaunay_triangulate()
 
-    def make_non_obtuse3(self, t:Triangle):
+    def make_non_obtuse3(self, t:Triangle, on_constraint = True):
         #print("resolve obtuse")
         #self.print_triangle(t)
         if angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0:
@@ -1623,12 +1627,12 @@ class Data:
             tt = t.neis[i]
             j = (tt.get_ind(t.pts[i]) + 1) % 3
             if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0:
-                return self.make_non_obtuse3(tt)
+                return self.make_non_obtuse3(tt, on_constraint)
         if t.nei(i + 2):
             tt = t.nei(i + 2)
             j = (tt.get_ind(t.pt(i + 2)) + 1) % 3
             if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0:
-                return self.make_non_obtuse3(tt)
+                return self.make_non_obtuse3(tt, on_constraint)
         self.triangles.discard(t)
         q = self.pts[t.pts[i]]
         r = self.pts[t.pt(i + 1)]
@@ -1756,7 +1760,7 @@ class Data:
                     if rp and self.is_on(l_chain[-1], r_chain[-1], rp) and self.is_in_circumcircle(t, rp):
                         cands.append(rp)
                 stp = random.choice(cands)
-                self.add_steiner(stp)
+                self.add_steiner(stp, on_constraint)
                 return
             elif tt != t and self.is_obtuse(tt):
                 for t in self.triangles:
@@ -1776,7 +1780,7 @@ class Data:
                     cands.append(pp)
         if cands:
             stp = random.choice(cands)
-            self.add_steiner(stp)
+            self.add_steiner(stp, on_constraint)
         else:
             for i in range(len(chain)):
                 for ii in range(i, len(chain)):
@@ -1827,7 +1831,7 @@ class Data:
                 bcands.append(pp)
             if bcands:
                 stp = random.choice(bcands)
-                self.add_steiner(stp)
+                self.add_steiner(stp, on_constraint)
             else:
                 for t in self.triangles:
                     del t
@@ -2305,6 +2309,105 @@ class Data:
         print(t.neis[0])
         print(t.neis[1])
         print(t.neis[2])
+
+    def dfs_constraint(self):
+        total_bound = []
+        checked = dict()
+        for t in self.triangles:
+            checked[t] = False
+        for _ in range(len(self.region_boundary)):
+            st = self.find_triangle(self.region_boundary[_-1], self.region_boundary[_])
+            if checked[st]:
+                continue
+            # bd = [self.region_boundary[_]]
+            bd = [self.region_boundary[_]]
+            stack = [(st, st.get_ind(self.region_boundary[_]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                # print(t.pts, ind)
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        # bd.append(t.pt(ind+i+1))
+                        # print(bd)
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        for e in self.constraints:
+            st = self.find_triangle(e[0], e[1])
+            if checked[st]:
+                continue
+            bd = [e[1]]
+            stack = [(st, st.get_ind(e[1]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        for e in self.constraints:
+            st = self.find_triangle(e[1], e[0])
+            if checked[st]:
+                continue
+            bd = [e[0]]
+            stack = [(st, st.get_ind(e[0]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        return total_bound
+
+    def exterior_solver(self):
+        bds = self.dfs_constraint()
+        bds.sort(key=len, reverse=True)
+        lb = bds[0]
+        # lb.reverse()
+        # pdb.set_trace()
+        dt = Data(input="", pts = [self.pts[i] for i in lb], constraints = [], bds = list(range(len(lb))), fp_ind=len(lb), triangles=set())
+        dt.instance_name = self.instance_name+"_extract"
+        dt.DrawPoint()
+        dt.triangulate()
+        
+        dt.WriteData()
+        print(self.instance_name+" Done!")
+        pass
+
 
     def dfs(self, merged_e):
         checked = dict()

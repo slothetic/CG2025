@@ -30,7 +30,7 @@ for k in score_dict.keys():
 for d in glob.glob(Lee_folder):
     print(d)
     try:
-        if "solution.json" in d:
+        if "example_instances" not in d:
             check = False
             with open(d, "r", encoding="utf-8") as f:
                 root = json.load(f)
@@ -54,7 +54,7 @@ for d in glob.glob(Lee_folder):
 for d in glob.glob(Ahn_folder):
     print(d)
     try:
-        if "solution.json" in d:
+        if "example_instances" not in d:
             check = False
             with open(d, "r", encoding="utf-8") as f:
                 root = json.load(f)
