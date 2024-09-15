@@ -8,6 +8,7 @@ from collections import deque
 import pdb
 import copy
 import math
+import collections
 import shutil
 # import feather
 
@@ -137,6 +138,7 @@ class Data:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 self.instance_name = root["instance_uid"]
+                # print(self.instance_name)
                 inp = "./example_instances/"+self.instance_name+".instance.json"
                 st_x = root["steiner_points_x"]
                 st_y = root["steiner_points_y"]
@@ -222,9 +224,9 @@ class Data:
                 already_exist = True
                 with open(self.input, "r", encoding="utf-8") as ff:
                     root = json.load(ff)
-                    try:
+                    if "score" in root:
                         old_score = root["score"]
-                    except:
+                    else:
                         dt = Data(path+"/"+sol)
                         old_score = dt.score()
                 # pdb.set_trace()
@@ -917,38 +919,6 @@ class Data:
             raise Exception("There is no such point to delete")
         if i < self.fp_ind:
             pass
-            # raise Exception("Cannot delete given point")
-        # if i in self.region_boundary:
-        #     pass
-        # for t in self.triangles:
-        #     if i in t.pts:
-        #         break
-        # t_list = [t]
-        # small_boundary = [t.pt(t.get_ind(i)+2)]
-        # outer_t_list = [t.nei(t.get_ind(i)+1)]
-        # while True:  
-        #     t_ind = t_list[-1].get_ind(i)+2
-        #     new_t = t_list[-1].nei(t_ind)
-        #     if new_t!=t_list[0] and new_t:
-        #         t_list.append(new_t)
-        #         outer_t_list.append(t_list[-1].nei(t_list[-1].get_ind(i)+1))  
-        #         small_boundary.append(t_list[-1].pt(t_list[-1].get_ind(i)+2))
-        #     else:
-        #         if not new_t:
-        #             outer_t_list.append(None)
-        #             small_boundary.append(t.pt(t.get_ind(i)+1))
-        #         break
-        # for t in t_list:
-        #     self.triangles.remove(t)
-                
-        # self.triangulate_polygon(deque(small_boundary))
-        # small_boundary.append(small_boundary[0])
-        # for t in self.triangles:
-        #     for j in range(len(small_boundary)-1):
-        #         if t.get_ind(small_boundary[j])!=-1 and t.get_ind(small_boundary[j+1])==(t.get_ind(small_boundary[j])+1)%3:
-        #             t.neis[t.get_ind(small_boundary[j])] = outer_t_list[j]
-        #             if outer_t_list[j]!=None:
-        #                 outer_t_list[j].neis[outer_t_list[j].get_ind(small_boundary[j])] = t
         if i in self.region_boundary:
             self.region_boundary.remove(i)
         i_connect = []
@@ -994,6 +964,63 @@ class Data:
         self.pts.pop()
         for t in self.triangles:
            del t
+        self.triangles = set()
+        self.triangulate()
+        self.delaunay_triangulate()
+
+    def delete_steiners(self, l:list):
+        l.sort(reverse=True)
+        for i in l:
+            if i > len(self.pts):
+                raise Exception("There is no such point to delete")
+        for i in l:
+            if i < self.fp_ind:
+                pass
+            if i in self.region_boundary:
+                self.region_boundary.remove(i)
+            i_connect = []
+            e_list = []
+            for e in self.constraints:
+                if e[0]==i:
+                    i_connect.append(e[1])
+                    e_list.append(e)
+                if e[1]==i:
+                    i_connect.append(e[0])
+                    e_list.append(e)
+            if i_connect:
+                self.constraints.add(tuple(i_connect))
+            for e in e_list:
+                self.const_dict[tuple(i_connect)] = self.const_dict[e]
+                self.constraints.remove(e)
+                del self.const_dict[e]
+            if i!=len(self.pts) - 1:
+                self.pts[i] = self.pts[-1]
+                # for t in self.triangles:
+                #     if t.get_ind(len(self.pts) - 1) != -1:
+                #         t.pts[t.get_ind(len(self.pts)-1)] = i
+                for j in range(len(self.region_boundary)):
+                    if self.region_boundary[j] == len(self.pts) - 1:
+                        self.region_boundary[j] = i
+                delcon = set()
+                newcon = set()
+                for con in self.constraints:
+                    if con[0] == len(self.pts) - 1:
+                        delcon.add(con)
+                        newcon.add((i, con[1]))
+                        self.const_dict[(i, con[1])] = self.const_dict[con]
+                        del self.const_dict[con]
+                    elif con[1] == len(self.pts) - 1:
+                        delcon.add(con)
+                        newcon.add((con[0], i))
+                        self.const_dict[(con[0], i)] = self.const_dict[con]
+                        del self.const_dict[con]
+                for con in delcon:
+                    self.constraints.remove(con)
+                for con in newcon:
+                    self.constraints.add(con)
+            self.pts.pop()
+        for t in self.triangles:
+            del t
         self.triangles = set()
         self.triangulate()
         self.delaunay_triangulate()
@@ -1883,7 +1910,7 @@ class Data:
                     rind %= len(self.region_boundary)
                     rq = self.pts[self.region_boundary[rind]]
                 inserting.append(random.choice(gen_cands(t, j)))
-        print("boundary done!")
+        # print("boundary done!")
         for con in self.constraints:
             e1, e2 = con
             t1 = self.find_triangle(e1, e2)
@@ -1978,9 +2005,9 @@ class Data:
                         bscore = (ascore, score)
                     bcands.append(cand)
                 inserting.append(random.choice(bcands))
-        print("constraints done!")
+        # print("constraints done!")
         self.add_steiners(list(inserting))
-        print("inserting done!")
+        # print("inserting done!")
 
     def make_non_obtuse_ortho(self):
         while True:
@@ -2331,6 +2358,125 @@ class Data:
                     score[b] = (True, (p_obt, p_score), list(p_stei), p_tri)
         return score
 
+    def delete_random_steiner(self, del_num):
+        while del_num>0:
+            bp = False
+            dn = random.randint(1,del_num)
+            del_num -= dn
+            ind = 0
+            del_pts = set()
+            checked = dict()
+            qt = None
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    qt = t
+                checked[t] = False
+            if qt==None:
+                break
+            q = collections.deque([qt])
+            while q:
+                if bp:
+                    break
+                newt = q.popleft()
+                if checked[newt]:
+                    continue
+                checked[newt] = True
+                for p in newt.pts:
+                    if p>=self.fp_ind:
+                        del_pts.add(p)
+                        if len(del_pts)==dn:
+                            bp = True
+                            break
+                if bp:
+                    break
+                for t in newt.neis:
+                    if t!=None and checked[t]==False:
+                        q.append(t)
+            
+            self.delete_steiners(list(del_pts))
+
+    def delete_random_steiner_query(self, _i, dn):
+        bp = False
+        ind = 0
+        del_pts = set()
+        checked = dict()
+        qt = None
+        for t in self.triangles:
+            checked[t] = False
+        for t in self.triangles:
+            if _i in t.pts:
+                qt = t
+                if self.is_obtuse(t):
+                    break
+        if qt==None:
+            return
+        q = collections.deque([qt])
+        while q:
+            if bp:
+                break
+            newt = q.popleft()
+            if checked[newt]:
+                continue
+            checked[newt] = True
+            for p in newt.pts:
+                if p>=self.fp_ind:
+                    del_pts.add(p)
+                    if len(del_pts)==dn:
+                        bp = True
+                        break
+                        
+            if bp:
+                break
+            for t in newt.neis:
+                if t!=None and checked[t]==False:
+                    q.append(t)
+        # for p in del_pts:
+        self.delete_steiners(list(del_pts))
+
+
+                
+        # # pdb.set_trace()
+        # for i in range(len(merged_e)):
+        #     for _e1 in merged_e[i]:
+        #         if score[(i,_e1)][0]:
+        #             continue
+        #         st:Triangle = self.find_triangle(i, _e1)
+        #         if st==None:
+        #             score[(i,_e1)] = (True, (float("INF"),float("INF")),[],set())
+        #             continue
+        #         p_score = 0
+        #         p_obt = 0
+        #         p_stei = set()
+        #         p_tri = set()
+        #         stack = [(st, st.get_ind(i))]
+        #         bound = [(i,_e1)]
+        #         while stack:
+        #             t, ind = stack.pop()
+        #             if checked[t]:
+        #                 continue
+        #             p_score += 1
+        #             p_tri.add(t)
+        #             if self.is_obtuse(t):
+        #                 p_obt += 1
+        #             checked[t] = True
+        #             for ii in range(3):
+        #                 if t.pt(ii)>=self.fp_ind:
+        #                     p_stei.add(t.pt(ii))
+        #             if (t.pt(ind+1), t.pt(ind+2)) not in score:
+        #                 tt = self.find_triangle(t.pt(ind+2), t.pt(ind+1))
+        #                 if tt!=None and checked[tt]!=True:
+        #                     stack.append((tt, tt.get_ind(t.pt(ind+2))))
+        #             else:
+        #                 bound.append((t.pt(ind+1), t.pt(ind+2)))
+        #             if (t.pt(ind+2), t.pt(ind)) not in score:
+        #                 tt = self.find_triangle(t.pt(ind), t.pt(ind+2))
+        #                 if tt!=None and checked[tt]!=True:
+        #                     stack.append((tt, tt.get_ind(t.pt(ind))))
+        #             else:
+        #                 bound.append((t.pt(ind+2), t.pt(ind)))
+        #         for b in bound:
+        #             score[b] = (True, (p_obt, p_score), list(p_stei), p_tri)
+        # return score
 
     def merge_result(self, dt):
         e1 = [set() for _ in range(self.fp_ind)]
@@ -2403,8 +2549,8 @@ class Data:
         print("Find new Sol! merging....")
                 # pdb.set_trace()
                 # score_1[key] = score_2[key]
-        while len(self.pts)>self.fp_ind:
-            self.delete_steiner(len(self.pts)-1)
+        
+        self.delete_steiners(list(range(self.fp_ind, len(self.pts))))
         for t in self.triangles:
             del t
         self.triangles = set()
@@ -2434,7 +2580,6 @@ class Data:
                 self.DrawResult("step")
                 # pdb.set_trace()
 
-        
 
         
 
