@@ -29,11 +29,11 @@ def none_obtuse_iter(dt:Data, lim=50):
     global best_dt
     global total_num
     global __
-    if "example_instances" in inp:
-        dt.triangulate()
-        dt.DrawPoint()
-        dt.delaunay_triangulate()
-        dt.WriteData()
+    dt.triangles = set()
+    dt.triangulate()
+    dt.DrawPoint()
+    dt.delaunay_triangulate()
+    dt.WriteData()
     dt.DrawResult()
     cnt = 0
     dt.make_non_obtuse_boundary()
@@ -103,8 +103,6 @@ if __name__=="__main__":
     print(inp)
     for __ in range(total_num):
         dt = Data(inp)
-        if "3b35441e" in inp:
-            break
         print(f"{dt.instance_name} Start!!!!")
         if os.path.isfile(f"opt_solutions/{dt.instance_name}.solution.json"):
             best_dt = Data("opt_solutions/"+dt.instance_name+".solution.json")

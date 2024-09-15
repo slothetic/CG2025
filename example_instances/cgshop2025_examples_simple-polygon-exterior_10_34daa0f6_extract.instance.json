@@ -1,0 +1,42 @@
+{
+	"instance_uid": "cgshop2025_examples_simple-polygon-exterior_10_34daa0f6_extract",
+	"num_points": 10,
+	"points_x": [
+		523,
+		2871,
+		7817,
+		5267,
+		5927,
+		6153,
+		7855,
+		7583,
+		4077,
+		734
+	],
+	"points_y": [
+		8263,
+		1116,
+		13,
+		5779,
+		6541,
+		6995,
+		8978,
+		9635,
+		8616,
+		9043
+	],
+	"region_boundary": [
+		0,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
+		7,
+		8,
+		9
+	],
+	"num_constraints": 0,
+	"additional_constraints": []
+}

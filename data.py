@@ -173,6 +173,18 @@ class Data:
 
             self.DrawResult("old_data")    
             # pdb.set_trace()
+    def MakeInstance(self):
+        inst = dict()
+        inst["instance_uid"] = self.instance_name
+        inst["num_points"] = len(self.pts)
+        inst["points_x"] = [p.x.toString() for p in self.pts]
+        inst["points_y"] = [p.y.toString() for p in self.pts]
+        inst["region_boundary"] = self.region_boundary
+        inst["num_constraints"] = 0
+        inst["additional_constraints"] = []
+        with open("example_instances/" + self.instance_name + ".instance.json", "w", encoding="utf-8") as f:
+            json.dump(inst, f, indent='\t')
+
 
     def WriteData(self, name = ""):
         if name:
@@ -222,7 +234,7 @@ class Data:
         for sol in opt_list:
             if self.instance_name in sol and "json" in sol:
                 already_exist = True
-                with open(self.input, "r", encoding="utf-8") as ff:
+                with open(path+"/"+sol, "r", encoding="utf-8") as ff:
                     root = json.load(ff)
                     if "score" in root:
                         old_score = root["score"]
@@ -2403,7 +2415,7 @@ class Data:
         dt.instance_name = self.instance_name+"_extract"
         dt.DrawPoint()
         dt.triangulate()
-        
+        dt.MakeInstance()
         dt.WriteData()
         print(self.instance_name+" Done!")
         pass
