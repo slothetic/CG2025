@@ -78,7 +78,7 @@ for d in glob.glob(Ahn_folder):
         continue
 
 # pdb.set_trace()
-df = pd.DataFrame(score_dict, index = [x.strftime("%Y-%m-%d")])
+df = pd.DataFrame(score_dict, index = [x.strftime("%m-%d")])
 df1 = pd.concat([df1, df])
 # pdb.set_trace()
 df1.to_excel("score.xlsx")
@@ -91,5 +91,6 @@ for n in names:
 df2 = pd.concat(l, axis=1)
 df2.columns = names
 df2.plot()
+plt.xticks(rotation=90)
 plt.savefig("score.png")
 
