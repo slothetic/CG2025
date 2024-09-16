@@ -42,7 +42,7 @@ def none_obtuse_iter(dt:Data, lim=50):
         if dt.is_obtuse(t):
             n_obs += 1
     score = dt.score()
-    maxcnt = 100
+    maxcnt = 30
     dt.DrawResult("best")
     dt.WriteData("best")
     while True:  
@@ -64,7 +64,8 @@ def none_obtuse_iter(dt:Data, lim=50):
                 dt.delete_random_steiner_query(mini, ndn)
             if cnt % 5 == 0:
                 lim += 10
-                lim = min(lim, len(best_dt.pts)-dt.fp_ind)
+                if best_dt.score()>0.5:
+                    lim = min(lim, len(best_dt.pts)-dt.fp_ind)
             cnt += 1
             for t in dt.triangles:
                 del t
@@ -99,10 +100,12 @@ if __name__=="__main__":
         inp = argument[1]
     else:
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
-    total_num = 100
+    total_num = 30
     print(inp)
     for __ in range(total_num):
         dt = Data(inp)
+        dt.triangulate()
+        dt.WriteData()
         print(f"{dt.instance_name} Start!!!!")
         if os.path.isfile(f"opt_solutions/{dt.instance_name}.solution.json"):
             best_dt = Data("opt_solutions/"+dt.instance_name+".solution.json")

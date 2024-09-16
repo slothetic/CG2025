@@ -2213,7 +2213,7 @@ class Data:
             t2.pts[(i + 1) % 3] = ind
             self.triangles.add(nt)
 
-    def step(self):
+    def step(self, on_constraint = True):
         #self.make_non_obtuse_boundary()
         obtt = []
         for t in self.triangles:
@@ -2226,7 +2226,7 @@ class Data:
             self.done - False
             target = random.choice(obtt)
             # self.print_triangle(target)
-            self.make_non_obtuse3(target)
+            self.make_non_obtuse3(target, on_constraint)
             self.delaunay_triangulate()
             obtt = []
             for t in self.triangles:
