@@ -1,9 +1,9 @@
 #!/bin/sh
 
-ls opt_solutions/cgshop2025_examples_simple-polygon*soluti*.json | while read line
+ls example_instances/cgshop2025_examples_simple-polygon-exterior_*.json | while read line
 do
 
-    /bin/python3 merge.py $line
+    /bin/python3 exterior_solver.py $line
 
 done
 

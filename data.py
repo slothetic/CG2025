@@ -454,6 +454,7 @@ class Data:
         return sqdist(o, q) == sqdist(o, p1)
 
     def triangulate(self):
+        self.triangles = set()
         check = [False] * len(self.pts)
         self.triangulate_polygon(deque(self.region_boundary))
         for d in self.region_boundary:

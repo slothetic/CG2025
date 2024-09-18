@@ -105,40 +105,41 @@ if __name__=="__main__":
         inp = argument[1]
     else:
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
-    total_num = 30
-    print(inp)
-    with open(inp, "r", encoding="utf-8") as f:
-        root = json.load(f)
-        instance_name = root["instance_uid"]
-    extract_sol = f"opt_solutions/{instance_name}_extract.solution.json"
-    with open(extract_sol, "r", encoding="utf-8") as f:
-        root = json.load(f)
-        x = root["steiner_points_x"]
-        y = root["steiner_points_y"]
-        print(x,y)
-        st_pt = []
-        for i in range(len(x)):
-            st_pt.append(Point(x[i], y[i])) 
-            # print(st_pt)
-    stn = len(st_pt)     
-    for __ in range(total_num):
-        dt = Data(inp)
-        dt.triangulate()
-        for p in st_pt:
-            dt.add_steiner(p)
-            dt.DrawResult()
-        dt.WriteData()
-        print(f"{dt.instance_name} Start!!!!")
-        best_dt = Data("opt_solutions/"+dt.instance_name+".solution.json")
-        best_score = best_dt.score()
-        print(f"Previous Best: {best_score}")
-        none_obtuse_iter(dt, lim = int((len(best_dt.pts)-best_dt.fp_ind)*0.8), stn=stn)
-        # print(f"Base sol: {best_dt.score(True)}")
-        # print(f"Adding sol: {dt.score(True)}")
-        # best_dt.merge_result(dt)
-        # print(f"Result sol: {best_dt.score(True)}")
-        # best_dt.WriteData()
-        del dt
+    if "extract" not in inp:
+        total_num = 30
+        print(inp)
+        with open(inp, "r", encoding="utf-8") as f:
+            root = json.load(f)
+            instance_name = root["instance_uid"]
+        extract_sol = f"opt_solutions/{instance_name}_extract.solution.json"
+        with open(extract_sol, "r", encoding="utf-8") as f:
+            root = json.load(f)
+            x = root["steiner_points_x"]
+            y = root["steiner_points_y"]
+            # print(x,y)
+            st_pt = []
+            for i in range(len(x)):
+                st_pt.append(Point(x[i], y[i])) 
+                # print(st_pt)
+        stn = len(st_pt)     
+        for __ in range(total_num):
+            dt = Data(inp)
+            dt.triangulate()
+            for p in st_pt:
+                dt.add_steiner(p)
+                dt.DrawResult()
+            dt.WriteData()
+            print(f"{dt.instance_name} Start!!!!")
+            best_dt = Data("opt_solutions/"+dt.instance_name+".solution.json")
+            best_score = best_dt.score()
+            print(f"Previous Best: {best_score}")
+            none_obtuse_iter(dt, lim = int((len(best_dt.pts)-best_dt.fp_ind)*0.8), stn=stn)
+            # print(f"Base sol: {best_dt.score(True)}")
+            # print(f"Adding sol: {dt.score(True)}")
+            # best_dt.merge_result(dt)
+            # print(f"Result sol: {best_dt.score(True)}")
+            # best_dt.WriteData()
+            del dt
 
             
 
