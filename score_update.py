@@ -80,6 +80,7 @@ for d in glob.glob(Ahn_folder):
 # pdb.set_trace()
 df = pd.DataFrame(score_dict, index = [x.strftime("%m-%d")])
 df1 = pd.concat([df1, df])
+df1 = df1.reindex(sorted(df1.columns), axis=1)
 # pdb.set_trace()
 df1.to_excel("score.xlsx")
 date_list = []
