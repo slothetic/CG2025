@@ -69,6 +69,7 @@ class Triangle:
     
 class Data:
     def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None):
+        self.ban = set()
         if input:
             self.input = input
             self.triangles = set()
@@ -84,6 +85,9 @@ class Data:
             self.constraints = constraints.copy()
             self.triangles = triangles.copy()
             self.done = False
+            self.const_dict = dict()
+            for con in self.constraints:
+                self.const_dict[(con[0], con[1])] = (con[0], con[1])
         
         
     def copy(self):
@@ -463,7 +467,16 @@ class Data:
             if not check[i]:
                 self.insert_point(i)
         for con in self.constraints:
-            self.resolve_cross(con)
+            notadd = False
+            for i in range(len(self.region_boundary)):
+                if (self.region_boundary[i-1], self.region_boundary[i])==con:
+                    notadd = True
+                    break
+                if (self.region_boundary[i], self.region_boundary[i-1])==con:
+                    notadd = True
+                    break
+            if not notadd:
+                self.resolve_cross(con)
 
     def triangulate_polygon(self, polygon:deque):
         if len(polygon) == 3:
@@ -884,11 +897,10 @@ class Data:
                 return t
         return None
 
-    def add_steiner(self, p:Point, on_constraint = True):
-        if not on_constraint:
-            for e in self.constraints:
-                if self.is_on(e[0], e[1], p):
-                    return
+    def add_steiner(self, p:Point, on_constraint = set()):
+        for e in self.ban:
+            if self.is_on(e[0], e[1], p):
+                return
         self.pts.append(p)
         for i in range(len(self.region_boundary)):
             if self.is_on(self.region_boundary[i - 1], self.region_boundary[i], p):
@@ -911,6 +923,13 @@ class Data:
 
     def add_steiners(self, l:list):
         for p in l:
+            cont = True
+            for e in self.ban:
+                if self.is_on(e[0], e[1], p):
+                    cont = False
+                    break
+            if cont==False:
+                continue
             self.pts.append(p)
             for i in range(len(self.region_boundary)):
                 if self.is_on(self.region_boundary[i - 1], self.region_boundary[i], p):
@@ -1626,7 +1645,7 @@ class Data:
                 self.triangulate()
                 self.delaunay_triangulate()
 
-    def make_non_obtuse3(self, t:Triangle, on_constraint = True):
+    def make_non_obtuse3(self, t:Triangle, on_constraint = set()):
         #print("resolve obtuse")
         #self.print_triangle(t)
         if angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0:
@@ -2227,7 +2246,7 @@ class Data:
             self.done - False
             target = random.choice(obtt)
             # self.print_triangle(target)
-            self.make_non_obtuse3(target, on_constraint)
+            self.make_non_obtuse3(target, self.ban)
             self.delaunay_triangulate()
             obtt = []
             for t in self.triangles:
@@ -2421,6 +2440,24 @@ class Data:
         print(self.instance_name+" Done!")
         pass
 
+    def partial_datas(self):
+        bds = self.dfs_constraint()
+        bds.sort(key=len, reverse=True)
+        bds.pop(0)
+        dts = []
+        for lb in bds:
+            cs = []
+            for i in range(len(lb)):
+                if (lb[i-1], lb[i]) in self.constraints:
+                    cs.append(((len(lb)+i-1)%len(lb), i))
+                if (lb[i], lb[i-1]) in self.constraints:
+                    cs.append((i,(len(lb)+i-1)%len(lb)))
+            # pdb.set_trace()
+            dt = Data(input="", pts = [self.pts[i] for i in lb], constraints = set(), bds = list(range(len(lb))), fp_ind=len(lb), triangles=set())
+            dt.ban = set(cs)
+            dts.append(dt)
+            del dt
+        return dts
 
     def dfs(self, merged_e):
         checked = dict()

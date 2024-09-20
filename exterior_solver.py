@@ -27,11 +27,12 @@ def closest_pair(dt:Data):
 
 def none_obtuse_iter(dt:Data, lim=50, stn = 0):
     global best_dt
-    global total_num
-    global __
+    # global total_num
+    # global __
+    # best_dt = dt.copy()
     dt.triangles = set()
     dt.triangulate()
-    dt.DrawPoint()
+    # dt.DrawPoint()
     dt.delaunay_triangulate()
     dt.make_non_obtuse_boundary()
     cnt = 0
@@ -39,16 +40,16 @@ def none_obtuse_iter(dt:Data, lim=50, stn = 0):
     for t in dt.triangles:
         if dt.is_obtuse(t):
             n_obs += 1
-    score = dt.score()
+    score = best_dt.score()
     maxcnt = 30
-    dt.DrawResult("best")
-    dt.WriteData("best")
-    dt.fp_ind+=stn
+    # dt.DrawResult("best")
+    # dt.WriteData("best")
+    # dt.fp_ind+=stn
     while True:  
         if cnt>=maxcnt:
             break
         if len(dt.pts) - dt.fp_ind >= lim:
-            print(f"{dt.instance_name} Iteration: ({cnt}/{maxcnt})[{__}/{total_num}] score: {dt.score()} (best: {best_dt.score()})")
+            print(f"{dt.instance_name} Iteration: ({cnt}/{maxcnt}) score: {dt.score()} (best: {best_dt.score()})")
             best_dt.merge_result(dt)
             print(f"Result sol: {best_dt.score(True)}")
             best_dt.WriteData()
@@ -71,32 +72,41 @@ def none_obtuse_iter(dt:Data, lim=50, stn = 0):
             dt.triangles = set()
             dt.triangulate()
             dt.delaunay_triangulate()
-            dt.DrawResult("step")
-            dt.make_non_obtuse_boundary()
-            dt.DrawResult("step")
-        dt.fp_ind-=stn
+            dt.merge_result(best_dt)
+            # dt.DrawResult("step")
+            # dt.make_non_obtuse_boundary()
+            # dt.DrawResult("step")
+        # dt.fp_ind-=stn
         if dt.score() > score:
             score = dt.score()
-            dt.DrawResult("best")
-            dt.WriteData("best")
-        dt.fp_ind+=stn
+            # dt.DrawResult("best")
+            # dt.WriteData("best")
+            del best_dt
+            best_dt = dt.copy()
+        # dt.fp_ind+=stn
 
         dt.step(False)
         dt.DrawResult("step")
         if dt.done:
-            dt.fp_ind-=stn
+            # dt.fp_ind-=stn
             # print(f"Base sol: {best_dt.score(True)}")
             # print(f"Adding sol: {dt.score(True)}")
             # best_dt.merge_result(dt)
             # print(f"Result sol: {best_dt.score(True)}")
-            dt.WriteData()
-            dt.fp_ind+=stn
-            maxcnt = maxcnt//2
+            # dt.WriteData()
+            # dt.fp_ind+=stn
+            # maxcnt = maxcnt//2
+            del best_dt
+            best_dt = dt.copy()
+            return True
     if dt.done:
-        dt.fp_ind-=stn
-        dt.WriteData("nonobs")
-        dt.DrawResult("nonobs")
-        dt.fp_ind+=stn
+        del best_dt
+        best_dt = dt.copy()
+        return True
+        # dt.fp_ind-=stn
+        # dt.WriteData("nonobs")
+        # dt.DrawResult("nonobs")
+        # dt.fp_ind+=stn
     
 
 if __name__=="__main__":
@@ -122,111 +132,39 @@ if __name__=="__main__":
                 st_pt.append(Point(x[i], y[i])) 
                 # print(st_pt)
         stn = len(st_pt)     
-        for __ in range(total_num):
-            dt = Data(inp)
-            dt.triangulate()
-            for p in st_pt:
-                dt.add_steiner(p)
-                dt.DrawResult()
+        dt = Data(inp)
+        dt.triangulate()
+        dt.add_steiners(st_pt)
+        dts = dt.partial_datas()
+        st_pt = []
+        for d in dts:
+            d.triangulate()
+            d.DrawResult()
+            # pdb.set_trace()
+            best_dt = d.copy()
+            it = 0
+            while none_obtuse_iter(d):
+                it+=1
+                if it>100:
+                    break
+            for p in best_dt.pts[best_dt.fp_ind:]:
+                st_pt.append(p)
+            dt.add_steiners(st_pt)
             dt.WriteData()
-            print(f"{dt.instance_name} Start!!!!")
-            best_dt = Data("opt_solutions/"+dt.instance_name+".solution.json")
-            best_score = best_dt.score()
-            print(f"Previous Best: {best_score}")
-            none_obtuse_iter(dt, lim = int((len(best_dt.pts)-best_dt.fp_ind)*0.8), stn=stn)
-            # print(f"Base sol: {best_dt.score(True)}")
-            # print(f"Adding sol: {dt.score(True)}")
-            # best_dt.merge_result(dt)
-            # print(f"Result sol: {best_dt.score(True)}")
-            # best_dt.WriteData()
-            del dt
-
             
 
+        
 
-                
-            
-        # else:
-        #     best_score = 0
-        # if "example_instances" in inp:
+        # for __ in range(total_num):
+        #     dt = Data(inp)
         #     dt.triangulate()
-        #     dt.DrawPoint()
-        #     dt.delaunay_triangulate()
+        #     for p in st_pt:
+        #         dt.add_steiner(p)
+        #         dt.DrawResult()
         #     dt.WriteData()
-        # dt.DrawResult()
-        # cnt = 0
-        # c = ""
-        # lim = 20
-        # dt.make_non_obtuse_boundary()
-        # n_obs = 0
-        # n_pts = len(dt.pts) - dt.fp_ind
-        # for t in dt.triangles:
-        #     if dt.is_obtuse(t):
-        #         n_obs += 1
-        # # score = (n_obs, n_pts)
-        # score = dt.score()
-        # maxcnt = 100
-        # dt.DrawResult("best")
-        # dt.WriteData("best")
-        # while True:
-        #     # print("score:", score)
-            
-        #     if cnt>maxcnt:
-        #         break
-        #     if len(dt.pts) - dt.fp_ind >= lim:
-        #         for _ in range(5):
-        #             p = random.randint(dt.fp_ind, len(dt.pts) - 1)
-        #             dt.delete_steiner(p)
-        #         for _ in range(10):
-        #             mini = dt.fp_ind
-        #             mind = sqdist(dt.pts[dt.fp_ind], dt.pts[0])
-        #             for i in range(dt.fp_ind, len(dt.pts)):
-        #                 for j in range(len(dt.pts)):
-        #                     if i == j:
-        #                         continue
-        #                     if sqdist(dt.pts[i], dt.pts[j]) < mind:
-        #                         mini = i
-        #                         mind = sqdist(dt.pts[i], dt.pts[j])
-        #             dt.delete_steiner(mini)
-        #         if cnt % 5 == 0:
-        #             lim += 10
-        #         cnt += 1
-        #         print(f"{dt.instance_name} Iteration: [{cnt}/{maxcnt}] score: {score} (best: {best_score})")
-        #         for t in dt.triangles:
-        #             del t
-        #         dt.triangles = set()
-        #         dt.triangulate()
-        #         dt.delaunay_triangulate()
-        #         dt.DrawResult("step")
-        #         dt.make_non_obtuse_boundary()
-        #         dt.DrawResult("step")
-        #     n_obs = 0
-        #     n_pts = len(dt.pts) - dt.fp_ind
-        #     for t in dt.triangles:
-        #         if dt.is_obtuse(t):
-        #             n_obs += 1
-        #     if dt.score() > score:
-        #         score = dt.score()
-        #         dt.DrawResult("best")
-        #         dt.WriteData("best")
-                
-        #     #c = input("Take a step?(y/n/r): ")
-        #     #dt.DrawResult("prev")
-        #     # if c == "n":
-        #     #     break
-        #     #if c == "y":
-        #     dt.step()
-        #     #if c == "r":
-        #         #dt.resolve_dense_pts()
-        #     #print("step", cnt)
-        #     dt.DrawResult("step")
-        #     #input()
-        #     #dt.DrawResult(str(cnt))
-        #     if dt.done:
-        #         total_true = False
-        #         break
-        # if dt.done:
-        #     dt.WriteData("nonobs")
-        #     dt.DrawResult("nonobs")
-        #     total_true = False
-
+        #     print(f"{dt.instance_name} Start!!!!")
+        #     best_dt = Data("opt_solutions/"+dt.instance_name+".solution.json")
+        #     best_score = best_dt.score()
+        #     print(f"Previous Best: {best_score}")
+        #     none_obtuse_iter(dt, lim = int((len(best_dt.pts)-best_dt.fp_ind)*0.8), stn=stn)
+        #     del dt
