@@ -28,7 +28,7 @@ score_dict = df1.iloc[-1].to_dict()
 for k in score_dict.keys():
     score_dict[k] = [0]
 for d in glob.glob(Lee_folder):
-    print(d)
+    # print(d)
     try:
         if "example_instances" not in d:
             check = False
@@ -52,7 +52,7 @@ for d in glob.glob(Lee_folder):
     except:
         continue
 for d in glob.glob(Ahn_folder):
-    print(d)
+    # print(d)
     try:
         if "example_instances" not in d:
             check = False
