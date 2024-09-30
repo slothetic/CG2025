@@ -7,7 +7,6 @@ import glob
 from data import *
 import matplotlib.pyplot as plt
 df1 = pd.read_excel("/home/jagunlee/CG2025/score.xlsx", index_col=0, engine = "openpyxl")
-
 # plt.plot()
 x = dt.datetime.now()
 print(x)
@@ -16,6 +15,7 @@ Lee_folder = "/home/jagunlee/CG2025/*/*.solutio*.json"
 Ahn_folder = "/home/sloth/CGSHOP2025/*/*.solutio*.json"
 # Ahn_folder = "/home/sloth/CGSHOP2025/opt_sloth/cgshop2025_examples_ortho_150_a39ede60.solution.json"
 score_dict = df1.iloc[-1].to_dict()
+best_dict = {}
 # for key in score_dict.keys():
 #     score_dict[key] = [score_dict[key]]
 # pdb.set_trace()
@@ -38,11 +38,13 @@ for d in glob.glob(Lee_folder):
                     score = root["score"]
                     if score>score_dict[root["instance_uid"]][0]:
                         score_dict[root["instance_uid"]] = [score]
+                        best_dict[root["instance_uid"]] = d
                 else:
                     dt1 = Data(d)
                     score = dt1.score()
                     if score>score_dict[root["instance_uid"]][0]:
                         score_dict[root["instance_uid"]] = [score]
+                        best_dict[root["instance_uid"]] = d
                         check = True
                     del dt1
             if check:
@@ -62,11 +64,13 @@ for d in glob.glob(Ahn_folder):
                     score = root["score"]
                     if score>score_dict[root["instance_uid"]][0]:
                         score_dict[root["instance_uid"]] = [score]
+                        best_dict[root["instance_uid"]] = d
                 else:
                     dt1 = Data(d)
                     score = dt1.score()
                     if score>score_dict[root["instance_uid"]][0]:
                         score_dict[root["instance_uid"]] = [score]
+                        best_dict[root["instance_uid"]] = d
                         check = True
                     del dt1
             if check:
@@ -94,4 +98,9 @@ df2.columns = names
 df2.plot()
 plt.xticks(rotation=90)
 plt.savefig("/home/jagunlee/CG2025/score.png")
-
+print(best_dict)
+opt_list = os.listdir("./best_zip")
+for sol in opt_list:
+    os.remove("./best_zip/"+sol)
+for k in best_dict.keys():
+    shutil.copyfile(best_dict[k], "./best_zip" + k + ".solution.json")

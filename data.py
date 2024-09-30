@@ -120,7 +120,7 @@ class Data:
 
     def ReadData(self):
         # print("--------------------ReadData--------------------")
-        if "example_instances" in self.input:
+        if "challenge_instances_cgshop25" in self.input:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 # print(root)
@@ -143,7 +143,7 @@ class Data:
                 root = json.load(f)
                 self.instance_name = root["instance_uid"]
                 # print(self.instance_name)
-                inp = "./example_instances/"+self.instance_name+".instance.json"
+                inp = "./challenge_instances_cgshop25/"+self.instance_name+".instance.json"
                 st_x = root["steiner_points_x"]
                 st_y = root["steiner_points_y"]
                 st_pt = []
@@ -165,18 +165,15 @@ class Data:
                 for con in root["additional_constraints"]:
                     self.constraints.add((con[0], con[1]))
                     self.const_dict[(con[0], con[1])] = (con[0], con[1])
-            # pdb.set_trace()
 
             self.triangulate()
             self.delaunay_triangulate()
             self.add_steiners(st_pt)
-            # pdb.set_trace()
             for e in edges:
                 if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
                     self.resolve_cross(e)
 
             self.DrawResult("old_data")    
-            # pdb.set_trace()
     def MakeInstance(self):
         inst = dict()
         inst["instance_uid"] = self.instance_name
@@ -245,12 +242,8 @@ class Data:
                     else:
                         dt = Data(path+"/"+sol)
                         old_score = dt.score()
-                # pdb.set_trace()
-                # print(dt.score)
                 if old_score<score:
-                    # pdb.set_trace()
                     print(f"New High Score!!! {old_score}->{score}")
-                    # pdb.set_trace()
                     os.remove(path+"/"+sol)
                     shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
                     # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
@@ -262,7 +255,6 @@ class Data:
             # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
             #     json.dump(inst, f, indent='\t')
             self.DrawResult(folder="opt_solutions")
-        # pdb.set_trace()
 
                     
 
@@ -458,26 +450,35 @@ class Data:
         return sqdist(o, q) == sqdist(o, p1)
 
     def triangulate(self):
-        self.triangles = set()
         check = [False] * len(self.pts)
-        self.triangulate_polygon(deque(self.region_boundary))
+        # self.triangulate_polygon(deque(self.region_boundary))
         for d in self.region_boundary:
             check[d] = True
         for i in range(len(self.pts)):
             if not check[i]:
+                p = self.pts[i]
+                for j in range(len(self.region_boundary)):
+                    if self.is_on(self.region_boundary[j - 1], self.region_boundary[j], p):
+                        self.region_boundary.insert(j, i)
+                        check[i] = True
+                        break
+                for e in self.constraints:
+                    if self.is_on(e[0], e[1], p):
+                        self.constraints.add((e[0],i))
+                        self.constraints.add((e[1],i))
+                        self.const_dict[(e[0], i)] = self.const_dict[e]
+                        self.const_dict[(e[1], i)] = self.const_dict[e]
+                        del self.const_dict[e]
+                        self.constraints.remove(e)
+                        break
+        self.triangulate_polygon(deque(self.region_boundary))
+        for i in range(len(self.pts)):
+            if not check[i]:
                 self.insert_point(i)
         for con in self.constraints:
-            notadd = False
-            for i in range(len(self.region_boundary)):
-                if (self.region_boundary[i-1], self.region_boundary[i])==con:
-                    notadd = True
-                    break
-                if (self.region_boundary[i], self.region_boundary[i-1])==con:
-                    notadd = True
-                    break
-            if not notadd:
-                self.resolve_cross(con)
+            self.resolve_cross(con)
 
+        
     def triangulate_polygon(self, polygon:deque):
         if len(polygon) == 3:
             nt = Triangle(polygon[0], polygon[1], polygon[2])
@@ -2429,8 +2430,6 @@ class Data:
         bds = self.dfs_constraint()
         bds.sort(key=len, reverse=True)
         lb = bds[0]
-        # lb.reverse()
-        # pdb.set_trace()
         dt = Data(input="", pts = [self.pts[i] for i in lb], constraints = [], bds = list(range(len(lb))), fp_ind=len(lb), triangles=set())
         dt.instance_name = self.instance_name+"_extract"
         dt.DrawPoint()
@@ -2452,7 +2451,6 @@ class Data:
                     cs.append(((len(lb)+i-1)%len(lb), i))
                 if (lb[i], lb[i-1]) in self.constraints:
                     cs.append((i,(len(lb)+i-1)%len(lb)))
-            # pdb.set_trace()
             dt = Data(input="", pts = [self.pts[i] for i in lb], constraints = set(), bds = list(range(len(lb))), fp_ind=len(lb), triangles=set())
             dt.ban = set(cs)
             dts.append(dt)
@@ -2466,9 +2464,7 @@ class Data:
         score = dict()
         for i in range(len(merged_e)):
             for _e1 in merged_e[i]:
-                # pdb.set_trace()
                 score[(i,_e1)] = (False, (-1,-1),[],set())
-        # pdb.set_trace()
         for i in range(len(merged_e)):
             for _e1 in merged_e[i]:
                 if score[(i,_e1)][0]:
@@ -2587,50 +2583,6 @@ class Data:
         self.delete_steiners(list(del_pts))
 
 
-                
-        # # pdb.set_trace()
-        # for i in range(len(merged_e)):
-        #     for _e1 in merged_e[i]:
-        #         if score[(i,_e1)][0]:
-        #             continue
-        #         st:Triangle = self.find_triangle(i, _e1)
-        #         if st==None:
-        #             score[(i,_e1)] = (True, (float("INF"),float("INF")),[],set())
-        #             continue
-        #         p_score = 0
-        #         p_obt = 0
-        #         p_stei = set()
-        #         p_tri = set()
-        #         stack = [(st, st.get_ind(i))]
-        #         bound = [(i,_e1)]
-        #         while stack:
-        #             t, ind = stack.pop()
-        #             if checked[t]:
-        #                 continue
-        #             p_score += 1
-        #             p_tri.add(t)
-        #             if self.is_obtuse(t):
-        #                 p_obt += 1
-        #             checked[t] = True
-        #             for ii in range(3):
-        #                 if t.pt(ii)>=self.fp_ind:
-        #                     p_stei.add(t.pt(ii))
-        #             if (t.pt(ind+1), t.pt(ind+2)) not in score:
-        #                 tt = self.find_triangle(t.pt(ind+2), t.pt(ind+1))
-        #                 if tt!=None and checked[tt]!=True:
-        #                     stack.append((tt, tt.get_ind(t.pt(ind+2))))
-        #             else:
-        #                 bound.append((t.pt(ind+1), t.pt(ind+2)))
-        #             if (t.pt(ind+2), t.pt(ind)) not in score:
-        #                 tt = self.find_triangle(t.pt(ind), t.pt(ind+2))
-        #                 if tt!=None and checked[tt]!=True:
-        #                     stack.append((tt, tt.get_ind(t.pt(ind))))
-        #             else:
-        #                 bound.append((t.pt(ind+2), t.pt(ind)))
-        #         for b in bound:
-        #             score[b] = (True, (p_obt, p_score), list(p_stei), p_tri)
-        # return score
-
     def merge_result(self, dt):
         e1 = [set() for _ in range(self.fp_ind)]
         e2 = [set() for _ in range(self.fp_ind)]
@@ -2647,8 +2599,6 @@ class Data:
         merged_e = [set() for _ in range(self.fp_ind)]
         for i in range(self.fp_ind):
             merged_e[i] = e1[i].intersection(e2[i])
-        # pdb.set_trace()
-        # print(merged_e)
         score_1 = self.dfs(merged_e)
         score_2 = dt.dfs(merged_e)
         new_ind1 = [-1]*len(self.pts)
@@ -2700,8 +2650,6 @@ class Data:
                     add_e.append((ind2,ind0))
                     
         print("Find new Sol! merging....")
-                # pdb.set_trace()
-                # score_1[key] = score_2[key]
         
         self.delete_steiners(list(range(self.fp_ind, len(self.pts))))
         for t in self.triangles:
@@ -2723,15 +2671,12 @@ class Data:
         #     self.delete_steiner(len(self.pts)-1)
         self.triangulate()
         self.DrawResult("step")
-        # pdb.set_trace()
         self.add_steiners(add_pts)
         self.DrawResult("step")
-        # pdb.set_trace()
         for e in add_e:
             if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
                 self.resolve_cross(e)
                 self.DrawResult("step")
-                # pdb.set_trace()
 
 
         

@@ -28,7 +28,7 @@ if __name__=="__main__":
     dt = Data(inp)
     Lee_folder = "/home/jagunlee/CG2025/*/*.solutio*.json"
     # Lee_folder = "/home/jagunlee/CG2025/opt_solutions/cgshop2025_examples_ortho_80_f9b89ad1.solution.json"
-    Ahn_folder = "/home/sloth/CGSHOP2025/*/*.solutio*.json"
+    Ahn_folder = "/home/sloth/CGSHOP2025/opt_solutions/*.solutio*.json"
     with open(inp, "r", encoding="utf-8") as f:
         root = json.load(f)
         # print(root)

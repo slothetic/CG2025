@@ -42,7 +42,7 @@ def none_obtuse_iter(dt:Data, lim=50):
         if dt.is_obtuse(t):
             n_obs += 1
     score = dt.score()
-    maxcnt = 100
+    maxcnt = 30
     dt.DrawResult("best")
     dt.WriteData("best")
     while True:  
@@ -81,6 +81,7 @@ def none_obtuse_iter(dt:Data, lim=50):
             dt.WriteData("best")
 
         dt.step()
+        dt.make_non_obtuse_boundary()
         dt.DrawResult("step")
         if dt.done:
             print(f"Base sol: {best_dt.score(True)}")
@@ -100,7 +101,7 @@ if __name__=="__main__":
         inp = argument[1]
     else:
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
-    total_num = 30
+    total_num = 10
     print(inp)
     for __ in range(total_num):
         dt = Data(inp)
