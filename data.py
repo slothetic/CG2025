@@ -120,7 +120,7 @@ class Data:
 
     def ReadData(self):
         # print("--------------------ReadData--------------------")
-        if "challenge_instances_cgshop25" in self.input:
+        if "challenge_instances_cgshop25" in self.input or "extract_instances" in self.input:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 # print(root)
@@ -183,7 +183,7 @@ class Data:
         inst["region_boundary"] = self.region_boundary
         inst["num_constraints"] = 0
         inst["additional_constraints"] = []
-        with open("example_instances/" + self.instance_name + ".instance.json", "w", encoding="utf-8") as f:
+        with open("extract_instances/" + self.instance_name + ".instance.json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
 
 
@@ -2426,7 +2426,48 @@ class Data:
             total_bound.append(bd)
         return total_bound
 
+    def exterior_mandatory_st(self):
+        apt = 0
+        next = True
+        while next:
+            next = False
+            obtuse = False
+            for t in self.triangles:
+                obt = -1
+                q1 = self.pts[t.pts[0]]
+                q2 = self.pts[t.pts[1]]
+                q3 = self.pts[t.pts[2]]
+                if (angle(q1,q2,q3) > MyNum(0)): obt = 1
+                if (angle(q2,q3,q1) > MyNum(0)): obt = 2
+                if (angle(q3,q1,q2) > MyNum(0)): obt = 0
+                if obt==-1:
+                    obtuse = True
+                    continue
+                e1 = (t.pt(obt+1),t.pt(obt+2))
+                e2 = (t.pt(obt+2),t.pt(obt+1))
+                if e1 in self.constraints or e2 in self.constraints:
+                    # e11 = (t.pt(obt),t.pt(obt+1))
+                    # e12 = (t.pt(obt+1),t.pt(obt))
+                    # e21 = (t.pt(obt+2),t.pt(obt))
+                    # e22 = (t.pt(obt),t.pt(obt+2))
+                    # if e11 in self.constraints or e12 in self.constraints or e21 in self.constraints or e22 in self.constraints:
+                    p = projection(self.pts[t.pt(obt)], self.pts[t.pt(obt+1)], self.pts[t.pt(obt+2)])
+                    # print(p.x.toString(), p.y.toString())
+                    self.add_steiner(p)
+                    apt+=1
+                    self.DrawResult(f"step_{apt}")
+                    next = True
+                    break
+                    
+
+
+
+            if not obtuse:
+                return
+
+
     def exterior_solver(self):
+        print("extracting...")
         bds = self.dfs_constraint()
         bds.sort(key=len, reverse=True)
         lb = bds[0]

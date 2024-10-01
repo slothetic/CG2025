@@ -97,8 +97,8 @@ df2.plot()
 plt.xticks(rotation=90)
 plt.savefig("/home/jagunlee/CG2025/score.png")
 print(best_dict)
-opt_list = os.listdir("./best_zip")
+opt_list = os.listdir("/home/jagunlee/CG2025/best_zip")
 for sol in opt_list:
-    os.remove("./best_zip/"+sol)
+    os.remove("/home/jagunlee/CG2025/best_zip/"+sol)
 for k in best_dict.keys():
-    shutil.copyfile(best_dict[k], "./best_zip/" + k + ".solution.json")
+    shutil.copyfile(best_dict[k], "/home/jagunlee/CG2025/best_zip/" + k + ".solution.json")
