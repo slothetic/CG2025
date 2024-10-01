@@ -81,11 +81,9 @@ for d in glob.glob(Ahn_folder):
     except:
         continue
 
-# pdb.set_trace()
 df = pd.DataFrame(score_dict, index = [x.strftime("%m-%d")])
 df1 = pd.concat([df1, df])
 df1 = df1.reindex(sorted(df1.columns), axis=1)
-# pdb.set_trace()
 df1.to_excel("/home/jagunlee/CG2025/score.xlsx")
 date_list = []
 names = ["ortho", "point-set", "simple-polygon_", "simple-polygon-exterior_", "simple-polygon-exterior-20"]
@@ -103,4 +101,4 @@ opt_list = os.listdir("./best_zip")
 for sol in opt_list:
     os.remove("./best_zip/"+sol)
 for k in best_dict.keys():
-    shutil.copyfile(best_dict[k], "./best_zip" + k + ".solution.json")
+    shutil.copyfile(best_dict[k], "./best_zip/" + k + ".solution.json")
