@@ -42,7 +42,7 @@ def none_obtuse_iter(dt:Data, lim=50):
         if dt.is_obtuse(t):
             n_obs += 1
     score = dt.score()
-    maxcnt = 30
+    maxcnt = 100
     dt.DrawResult("best")
     dt.WriteData("best")
     while True:  

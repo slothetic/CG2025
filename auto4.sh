@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while :
+ls challenge_instances_cgshop25/simple-polygon-exterior_*.json | while read line
 do
-    /bin/python3 main.py opt_solutions/cgshop2025_examples_simple-polygon-exterior_250_e264ffed_simple.solution.json
+    python3 exterior.py $line
 done
