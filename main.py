@@ -101,7 +101,7 @@ if __name__=="__main__":
         inp = argument[1]
     else:
         inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
-    total_num = 10
+    total_num = 1000
     print(inp)
     for __ in range(total_num):
         dt = Data(inp)
