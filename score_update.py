@@ -86,7 +86,7 @@ for d in glob.glob(Ahn_folder):
 df = pd.DataFrame(score_dict, index = [x.strftime("%m-%d")])
 df1 = pd.concat([df1, df])
 df1 = df1.reindex(sorted(df1.columns), axis=1)
-# df1.to_excel("/home/jagunlee/CG2025/score.xlsx")
+df1.to_excel("/home/jagunlee/CG2025/score.xlsx")
 date_list = []
 names = ["ortho", "point-set", "simple-polygon_", "simple-polygon-exterior_", "simple-polygon-exterior-20"]
 l = []
@@ -97,7 +97,7 @@ df2 = pd.concat(l, axis=1)
 df2.columns = names
 df2.plot()
 plt.xticks(rotation=90)
-# plt.savefig("/home/jagunlee/CG2025/score.png")
+plt.savefig("/home/jagunlee/CG2025/score.png")
 print(best_dict)
 opt_list = os.listdir("/home/jagunlee/CG2025/best_zip")
 # for sol in opt_list:
