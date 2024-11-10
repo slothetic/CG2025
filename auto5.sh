@@ -1,6 +1,7 @@
 #!/bin/sh
 
-ls challenge_instances_cgshop25/*extract.instance.json | while read line
+ls best_zip/*.solution.json | while read line
 do
-    python3 main.py $line
+    
+    python3 json_update.py $line
 done

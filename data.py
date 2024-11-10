@@ -186,8 +186,7 @@ class Data:
         with open("extract_instances/" + self.instance_name + ".instance.json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
 
-
-    def WriteData(self, name = ""):
+    def WriteData(self, name = "",self_update = False):
         if name:
             name = "_" + name
         # print("--------------------WriteData--------------------")
@@ -207,11 +206,17 @@ class Data:
             e1 = sorted([t.pts[0],t.pts[1]])
             e2 = sorted([t.pts[0],t.pts[2]])
             e3 = sorted([t.pts[1],t.pts[2]])
-            if e1 not in const_edges and e1 not in int_edges:
+            # if e1 not in const_edges and e1 not in int_edges:
+            #     int_edges.append(e1)
+            # if e2 not in const_edges and e2 not in int_edges:
+            #     int_edges.append(e2)
+            # if e3 not in const_edges and e3 not in int_edges:
+            #     int_edges.append(e3)
+            if e1 not in int_edges:
                 int_edges.append(e1)
-            if e2 not in const_edges and e2 not in int_edges:
+            if e2 not in int_edges:
                 int_edges.append(e2)
-            if e3 not in const_edges and e3 not in int_edges:
+            if e3 not in int_edges:
                 int_edges.append(e3)
         obt = 0
         for t in self.triangles:
@@ -227,13 +232,18 @@ class Data:
         # print("Score: ", score)
 
         # print(inst)
-        with open("solutions/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
+        folder = "solutions"
+        if self_update:
+            with open(self.input, "w", encoding="utf-8") as f:
+                json.dump(inst, f, indent='\t')
+        with open(folder+"/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
         path = "./opt_solutions"
         opt_list = os.listdir(path)
         already_exist = False
         for sol in opt_list:
-            if self.instance_name in sol and "json" in sol:
+            if self.instance_name + ".solution.json" in sol:
+            # if self.instance_name in sol and "json" in sol:
                 already_exist = True
                 with open(path+"/"+sol, "r", encoding="utf-8") as ff:
                     root = json.load(ff)
@@ -255,6 +265,75 @@ class Data:
             # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
             #     json.dump(inst, f, indent='\t')
             self.DrawResult(folder="opt_solutions")
+
+    # def WriteData(self, name = ""):
+    #     if name:
+    #         name = "_" + name
+    #     # print("--------------------WriteData--------------------")
+    #     inst = dict()
+    #     inst["content_type"]="CG_SHOP_2025_Solution"
+    #     inst["instance_uid"]=self.instance_name
+    #     inst["steiner_points_x"] =  list(p.x.toString() for p in self.pts[self.fp_ind:])
+    #     inst["steiner_points_y"] =  list(p.y.toString() for p in self.pts[self.fp_ind:])
+    #     const_edges = []
+    #     for e in self.constraints:
+    #         const_edges.append(sorted(list(e)))
+    #     for i in range(1,len(self.region_boundary)):
+    #         const_edges.append(sorted([self.region_boundary[i-1],self.region_boundary[i]]))
+    #     const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
+    #     int_edges = []
+    #     for t in self.triangles:
+    #         e1 = sorted([t.pts[0],t.pts[1]])
+    #         e2 = sorted([t.pts[0],t.pts[2]])
+    #         e3 = sorted([t.pts[1],t.pts[2]])
+    #         if e1 not in const_edges and e1 not in int_edges:
+    #             int_edges.append(e1)
+    #         if e2 not in const_edges and e2 not in int_edges:
+    #             int_edges.append(e2)
+    #         if e3 not in const_edges and e3 not in int_edges:
+    #             int_edges.append(e3)
+    #     obt = 0
+    #     for t in self.triangles:
+    #         if self.is_obtuse(t):
+    #             obt+=1
+    #     inst["edges"] = int_edges
+    #     # print("indstance id: ", self.instance_name)
+    #     # print("Steiner point: ", len(self.pts)-self.fp_ind)
+    #     # print("Total Triangle: ", len(self.triangles))
+    #     # print("Obtuse Triangle: ", obt)
+    #     score = self.score()
+    #     inst["score"] = score
+    #     # print("Score: ", score)
+
+    #     # print(inst)
+    #     with open("solutions/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
+    #         json.dump(inst, f, indent='\t')
+    #     path = "./opt_solutions"
+    #     opt_list = os.listdir(path)
+    #     already_exist = False
+    #     for sol in opt_list:
+    #         if self.instance_name in sol and "json" in sol:
+    #             already_exist = True
+    #             with open(path+"/"+sol, "r", encoding="utf-8") as ff:
+    #                 root = json.load(ff)
+    #                 if "score" in root:
+    #                     old_score = root["score"]
+    #                 else:
+    #                     dt = Data(path+"/"+sol)
+    #                     old_score = dt.score()
+    #             if old_score<score:
+    #                 print(f"New High Score!!! {old_score}->{score}")
+    #                 os.remove(path+"/"+sol)
+    #                 shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+    #                 # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+    #                 #     json.dump(inst, f, indent='\t')
+    #                 self.DrawResult(folder="opt_solutions")
+    #             break
+    #     if not already_exist:
+    #         shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+    #         # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+    #         #     json.dump(inst, f, indent='\t')
+    #         self.DrawResult(folder="opt_solutions")
 
                     
 
