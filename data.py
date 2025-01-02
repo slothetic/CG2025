@@ -15,9 +15,10 @@ import shutil
 IMP = 1
 GRID = 3
 MINDIST = MyNum((GRID - (GRID // 2) + 1) * (GRID - (GRID // 2) + 1), IMP * IMP)
+
 from typing import List
 import sys
-sys.setrecursionlimit(1000000)
+sys.setrecursionlimit(1000000) # to enable DFS
 
 class Point:
     def __init__(self, x, y):
@@ -26,6 +27,7 @@ class Point:
             self.x = MyNum(a,b)
         else:
             self.x = MyNum(x)
+
         if isinstance(y, str):
             a,b = map(int, y.split("/"))
             self.y = MyNum(a,b)
@@ -40,18 +42,23 @@ class Point:
     
     def __ne__(self, p):
         return self.x != p.x or self.y != p.y
+    
     def __lt__(self, p):
         return (self.x,self.y)<(p.x,p.y)
+    
     def __le__(self, p):
         return (self.x,self.y)<=(p.x,p.y)
+    
     def __gt__(self, p):
         return (self.x,self.y)>(p.x,p.y)
+    
     def __ge__(self, p):
         return (self.x,self.y)>=(p.x,p.y)
 
 class Triangle:
     def __init__(self, p:int, q:int, r:int):
         self.pts = [p, q, r]
+        # neighboring triangles ?
         self.neis = [None, None, None]
     
     def get_ind(self, p:int):
@@ -66,79 +73,113 @@ class Triangle:
     def nei(self, i:int):
         return self.neis[i % 3]
 
-    
+# free_point index?
+# input이 있는 상황이니까 지금은 
+# input을 넣어주고.
+# triangle을 넣어주고.
+
+# 그럼 해야 하는 게 디버그에서 self 안에 뭐 들어있는지? 아니 그건 당연하잖아.
+# read data에서 뭘 하는지 보고 오기.
+# 짧은 여행
+
 class Data:
     def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None):
-        self.ban = set()
+
+        self.ban = set() # ban이 무엇인가
+
         if input:
-            self.input = input
-            self.triangles = set()
-            self.ReadData()
-            self.done = False
-        else:
+            self.input = input #
+            self.triangles = set() # triangle의 집합
+            self.ReadData() # json 파일 받아오기
+            self.done = False # 알고리즘이 완료돼서 올바른 결과를 얻었는지에 해당하는 flag인 듯 ?
+
+        else: # input parameter 0개와 함께 호출된 경우
             self.input = ""
             self.instance_name = ""
             self.fp_ind = fp_ind
             self.pts = pts[:]
             self.region_boundary = bds.copy()
-            self.num_constraints = len(constraints)
-            self.constraints = constraints.copy()
+            self.num_constraints = len(constraints) # number of constraints
+            self.constraints = constraints.copy() # constraints
             self.triangles = triangles.copy()
-            self.done = False
+            self.done = False # finish flag ?
             self.const_dict = dict()
+
             for con in self.constraints:
                 self.const_dict[(con[0], con[1])] = (con[0], con[1])
         
-        
     def copy(self):
-        new_d = Data(input = "", pts = self.pts, constraints = self.constraints, bds = self.region_boundary, fp_ind = self.fp_ind, triangles=self.triangles)
+
+        new_d = Data( input = "", 
+                     pts = self.pts, 
+                     constraints = self.constraints, 
+                     bds = self.region_boundary, 
+                     fp_ind = self.fp_ind, 
+                     triangles=self.triangles )
+        
         new_d.input = self.input
         new_d.instance_name = self.instance_name
         new_d.const_dict = self.const_dict.copy()
         new_d.done = self.done
+
         return new_d
 
     def score(self, p = False):
+
         obt = 0
+        
         for t in self.triangles:
             if self.is_obtuse(t):
                 obt+=1
 
         if obt:
             score = 0.5*(0.9)**(obt-1)
+
             if p:
                 print(f"obtuse num: {obt}, steiner num: {len(self.pts)-self.fp_ind}")
+
             return score
         
         else:
+            # 이거 보면 self.pts가 Steiner points 집합인 것 같고
+            # self.fp_ind가 뭐인 것 같은데.
+
             spt = len(self.pts)- self.fp_ind+1
             score = 0.5+0.5/spt
+
             if p:
                 print(f"obtuse num: {obt}, steiner num: {len(self.pts)-self.fp_ind}")
+
             return score
-        
 
     def ReadData(self):
         # print("--------------------ReadData--------------------")
+
+        # challenge instances 안에 있으므로.
         if "challenge_instances_cgshop25" in self.input or "extract_instances" in self.input:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
-                # print(root)
-                self.instance_name = root["instance_uid"]
-                self.fp_ind = int(root["num_points"])
-                pts_x = root["points_x"]
+                
+                self.instance_name = root["instance_uid"] # instance 이름 
+                self.fp_ind = int(root["num_points"]) # 왜 ind로 해 놓은지는 모르겠지만, point 개수 
+                pts_x = root["points_x"] 
                 pts_y = root["points_y"]
                 self.pts = []
+
                 for i in range(len(pts_y)):
-                    self.pts.append(Point(pts_x[i], pts_y[i]))
-                self.region_boundary = deque(root["region_boundary"])
-                self.num_constraints =  root["num_constraints"]
-                self.constraints = set()
-                self.const_dict = dict()
-                for con in root["additional_constraints"]:
-                    self.constraints.add((con[0], con[1]))
-                    self.const_dict[(con[0], con[1])] = (con[0], con[1])
+                    self.pts.append(Point(pts_x[i], pts_y[i])) # 받아놓은 x들과 y들로 점 정보 저장 (pts에)
+
+                self.region_boundary = deque(root["region_boundary"]) # deque인 이유는 convex hull을 triangulate 해야 돼서?
+                self.num_constraints =  root["num_constraints"] # constraint 개수 
+                self.constraints = set() 
+                self.const_dict = dict() 
+
+                for con in root["additional_constraints"]: # edge를 강제하는 거니까 point 2개로 나타내어짐
+                    self.constraints.add((con[0], con[1])) # set 형태로도 추가하고
+                    self.const_dict[(con[0], con[1])] = (con[0], con[1]) # dictionary 형태로도 추가
+
         else:
+
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 self.instance_name = root["instance_uid"]
@@ -150,6 +191,7 @@ class Data:
                 for i in range(len(st_x)):
                     st_pt.append(Point(st_x[i], st_y[i]))
                 edges = root["edges"]
+
             with open(inp, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 self.fp_ind = int(root["num_points"])
@@ -174,6 +216,7 @@ class Data:
                     self.resolve_cross(e)
 
             self.DrawResult("old_data")    
+    
     def MakeInstance(self):
         inst = dict()
         inst["instance_uid"] = self.instance_name
@@ -187,21 +230,28 @@ class Data:
             json.dump(inst, f, indent='\t')
 
     def WriteData(self, name = "",self_update = False):
+
         if name:
             name = "_" + name
+        
         # print("--------------------WriteData--------------------")
+
         inst = dict()
         inst["content_type"]="CG_SHOP_2025_Solution"
         inst["instance_uid"]=self.instance_name
         inst["steiner_points_x"] =  list(p.x.toString() for p in self.pts[self.fp_ind:])
         inst["steiner_points_y"] =  list(p.y.toString() for p in self.pts[self.fp_ind:])
         const_edges = []
+
         for e in self.constraints:
             const_edges.append(sorted(list(e)))
+
         for i in range(1,len(self.region_boundary)):
             const_edges.append(sorted([self.region_boundary[i-1],self.region_boundary[i]]))
+
         const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
         int_edges = []
+
         for t in self.triangles:
             e1 = sorted([t.pts[0],t.pts[1]])
             e2 = sorted([t.pts[0],t.pts[2]])
@@ -218,10 +268,13 @@ class Data:
                 int_edges.append(e2)
             if e3 not in int_edges:
                 int_edges.append(e3)
+
         obt = 0
+
         for t in self.triangles:
             if self.is_obtuse(t):
                 obt+=1
+
         inst["edges"] = int_edges
         # print("indstance id: ", self.instance_name)
         # print("Steiner point: ", len(self.pts)-self.fp_ind)
@@ -233,14 +286,18 @@ class Data:
 
         # print(inst)
         folder = "solutions"
+
         if self_update:
             with open(self.input, "w", encoding="utf-8") as f:
                 json.dump(inst, f, indent='\t')
+
         with open(folder+"/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
+
         path = "./opt_solutions"
         opt_list = os.listdir(path)
         already_exist = False
+
         for sol in opt_list:
             if self.instance_name + ".solution.json" in sol:
             # if self.instance_name in sol and "json" in sol:
@@ -260,6 +317,7 @@ class Data:
                     #     json.dump(inst, f, indent='\t')
                     self.DrawResult(folder="opt_solutions")
                 break
+
         if not already_exist:
             shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
             # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
@@ -334,10 +392,7 @@ class Data:
     #         # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
     #         #     json.dump(inst, f, indent='\t')
     #         self.DrawResult(folder="opt_solutions")
-
                     
-
-
     def DrawResult(self, name="", folder = ""):
         # print("--------------------DrawResult--------------------")
         if name:
@@ -557,7 +612,6 @@ class Data:
         for con in self.constraints:
             self.resolve_cross(con)
 
-        
     def triangulate_polygon(self, polygon:deque):
         if len(polygon) == 3:
             nt = Triangle(polygon[0], polygon[1], polygon[2])
@@ -781,7 +835,6 @@ class Data:
         tt.neis[(j + 1) % 3] = t
         # print('Flip done!')
         
-
     def delaunay_triangulate(self):
         while True:
             check = False
@@ -978,14 +1031,18 @@ class Data:
         return None
 
     def add_steiner(self, p:Point, on_constraint = set()):
+
         for e in self.ban:
             if self.is_on(e[0], e[1], p):
                 return
+            
         self.pts.append(p)
+        
         for i in range(len(self.region_boundary)):
             if self.is_on(self.region_boundary[i - 1], self.region_boundary[i], p):
                 self.region_boundary.insert(i, len(self.pts) - 1)
                 break
+
         for e in self.constraints:
             if self.is_on(e[0], e[1], p):
                 self.constraints.add((e[0],len(self.pts) - 1))
@@ -995,8 +1052,10 @@ class Data:
                 del self.const_dict[e]
                 self.constraints.remove(e)
                 break
+
         for t in self.triangles:
             del t
+
         self.triangles = set()
         self.triangulate()
         self.delaunay_triangulate()
@@ -1140,10 +1199,7 @@ class Data:
         self.triangles = set()
         self.triangulate()
         self.delaunay_triangulate()
-        
-
-
-            
+                    
     def make_non_obtuse(self, t:Triangle):
         #print("resolve obtuse")
         #self.print_triangle(t)
@@ -2411,7 +2467,6 @@ class Data:
         self.triangulate()
         self.delaunay_triangulate()
 
-
     def print_triangle(self, t:Triangle):
         print("Triangle :", end="")
         print(t)
@@ -2543,7 +2598,6 @@ class Data:
 
             if not obtuse:
                 return
-
 
     def exterior_solver(self):
         print("extracting...")
@@ -2702,7 +2756,6 @@ class Data:
         # for p in del_pts:
         self.delete_steiners(list(del_pts))
 
-
     def merge_result(self, dt):
         e1 = [set() for _ in range(self.fp_ind)]
         e2 = [set() for _ in range(self.fp_ind)]
@@ -2797,10 +2850,6 @@ class Data:
             if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
                 self.resolve_cross(e)
                 self.DrawResult("step")
-
-
-        
-
 
 def angle(p1:Point, p2:Point, p3:Point):
     if p1==p2:
