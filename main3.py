@@ -12,51 +12,67 @@ def sqdist1(px, py, qx, qy):
     yd = py-qy
     return xd * xd + yd * yd
 
+# minimum index
+
 def closest_pair(dt:Data):
     dist = float("INF")
     mini = 0
-    for i in range(dt.fp_ind, len(dt.pts)-1):
+
+    # 각 Steiner point에 대해서
+    for i in range(dt.fp_ind, len(dt.pts)-1): # fp_ind는 number of fixed points 인가 보네.
+        # 자기부터, 끝 Steiner point까지지
         for j in range(i,len(dt.pts)-1):
+            # pairwise distance가 가장 짧은 index를 구하기
             newdist = sqdist1(float(dt.pts[i].x),float(dt.pts[i].y),float(dt.pts[j].x),float(dt.pts[j].y))
             if newdist<dist:
                 dist = newdist
                 mini = i
+
     return mini
-
-
 
 def none_obtuse_iter(dt:Data, lim=50):
     global best_dt
     global total_num
     global __
+
+    # triangulation 다시 하기 위해 triangles를 초기화 ?
     dt.triangles = set()
     dt.triangulate()
     dt.DrawPoint()
     dt.delaunay_triangulate()
     dt.WriteData()
     dt.DrawResult()
+
     cnt = 0
     dt.make_non_obtuse_boundary()
     n_obs = 0
+
     for t in dt.triangles:
         if dt.is_obtuse(t):
             n_obs += 1
+
     score = dt.score()
     maxcnt = 15
+
     dt.DrawResult("best")
     dt.WriteData("best")
+
     while True:  
         if cnt>=maxcnt:
             break
+
         if len(dt.pts) - dt.fp_ind >= lim:
+
             print(f"{dt.instance_name} Iteration: ({cnt}/{maxcnt})[{__}/{total_num}] score: {dt.score()} (best: {best_dt.score()})")
             best_dt.merge_result(dt)
             print(f"Result sol: {best_dt.score(True)}")
             best_dt.WriteData()
+
             del_num = min(30, len(dt.pts) - int(len(best_dt.pts)*0.6))
             random_del_num = random.randint(0, del_num)
-            dt.delete_random_steiner(random_del_num)
+            dt.delete_random_steiner(random_del_num) # 어떻게 지우나?
             del_num -= random_del_num
+
             while del_num:
                 ndn = random.randint(1,del_num)
                 del_num -= ndn

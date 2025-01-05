@@ -21,7 +21,16 @@ import sys
 sys.setrecursionlimit(1000000) # to enable DFS
 
 class Point:
-    def __init__(self, x, y):
+    def __init__(self, x, y, id = None):
+        # edge list 같이 사용. 리스트의 각 원소는 [pointID, bool] 꼴로, 
+        # bool이 true면 constrained edge이고 false면 아님 
+        self.incidentPoints = []
+
+        if id == None:
+            self.id = -1
+        else:
+            self.id = id
+
         if isinstance(x, str):
             a,b = map(int, x.split("/"))
             self.x = MyNum(a,b)
@@ -58,6 +67,7 @@ class Point:
 class Triangle:
     def __init__(self, p:int, q:int, r:int):
         self.pts = [p, q, r]
+
         # neighboring triangles ?
         self.neis = [None, None, None]
     
@@ -65,6 +75,7 @@ class Triangle:
         for i in range(3):
             if self.pts[i] == p:
                 return i
+            
         return -1
     
     def pt(self, i:int):
@@ -103,7 +114,7 @@ class Data:
             self.constraints = constraints.copy() # constraints
             self.triangles = triangles.copy()
             self.done = False # finish flag ?
-            self.const_dict = dict()
+            self.const_dict = dict() # constraints stored in a dictionary?
 
             for con in self.constraints:
                 self.const_dict[(con[0], con[1])] = (con[0], con[1])
@@ -167,7 +178,7 @@ class Data:
                 self.pts = []
 
                 for i in range(len(pts_y)):
-                    self.pts.append(Point(pts_x[i], pts_y[i])) # 받아놓은 x들과 y들로 점 정보 저장 (pts에)
+                    self.pts.append(Point(pts_x[i], pts_y[i], i)) # 받아놓은 x들과 y들로 점 정보 저장 (pts에)
 
                 self.region_boundary = deque(root["region_boundary"]) # deque인 이유는 convex hull을 triangulate 해야 돼서?
                 self.num_constraints =  root["num_constraints"] # constraint 개수 
@@ -231,10 +242,10 @@ class Data:
 
     def WriteData(self, name = "",self_update = False):
 
+        print("--------------------WriteData START--------------------")
+
         if name:
             name = "_" + name
-        
-        # print("--------------------WriteData--------------------")
 
         inst = dict()
         inst["content_type"]="CG_SHOP_2025_Solution"
@@ -299,8 +310,10 @@ class Data:
         already_exist = False
 
         for sol in opt_list:
+
             if self.instance_name + ".solution.json" in sol:
             # if self.instance_name in sol and "json" in sol:
+
                 already_exist = True
                 with open(path+"/"+sol, "r", encoding="utf-8") as ff:
                     root = json.load(ff)
@@ -309,6 +322,7 @@ class Data:
                     else:
                         dt = Data(path+"/"+sol)
                         old_score = dt.score()
+
                 if old_score<score:
                     print(f"New High Score!!! {old_score}->{score}")
                     os.remove(path+"/"+sol)
@@ -316,13 +330,29 @@ class Data:
                     # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
                     #     json.dump(inst, f, indent='\t')
                     self.DrawResult(folder="opt_solutions")
+
+                else:
+                    print("Not the best score, but we have done it")
+
+                    # 지우고 다시 파일 적기
+                    os.remove(path+"/"+sol)
+                    shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+                    # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+                    #     json.dump(inst, f, indent='\t')
+                    self.DrawResult(folder="opt_solutions")
+
                 break
 
         if not already_exist:
+            
+            print("there was no solution. already_exist = false")
+
             shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
             # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
             #     json.dump(inst, f, indent='\t')
             self.DrawResult(folder="opt_solutions")
+
+        print("--------------------WriteData END--------------------")
 
     # def WriteData(self, name = ""):
     #     if name:
@@ -394,7 +424,7 @@ class Data:
     #         self.DrawResult(folder="opt_solutions")
                     
     def DrawResult(self, name="", folder = ""):
-        # print("--------------------DrawResult--------------------")
+        print("--------------------DrawResult START--------------------")
         if name:
             name = "_" + name
         minx = min(list(p.x for p in self.pts))
@@ -453,9 +483,13 @@ class Data:
             else:
                 cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(255,0,0),-1)
         if folder:
+            print("directory: ", folder+"/"+self.instance_name + ".solution" + name + ".png")
             cv2.imwrite(folder+"/"+self.instance_name + ".solution" + name + ".png", img)
         else:
+            print("directory: ", "solutions/"+self.instance_name + ".solution" + name + ".png")
             cv2.imwrite("solutions/"+self.instance_name + ".solution" + name + ".png", img)
+
+        print("--------------------DrawResult END--------------------")
 
     def DrawPoint(self, add = ""):
         fontFace = cv2.FONT_HERSHEY_SIMPLEX
@@ -583,6 +617,7 @@ class Data:
         o = Point(ox, oy)
         return sqdist(o, q) == sqdist(o, p1)
 
+
     def triangulate(self):
         check = [False] * len(self.pts)
         # self.triangulate_polygon(deque(self.region_boundary))
@@ -611,6 +646,7 @@ class Data:
                 self.insert_point(i)
         for con in self.constraints:
             self.resolve_cross(con)
+
 
     def triangulate_polygon(self, polygon:deque):
         if len(polygon) == 3:
@@ -648,6 +684,7 @@ class Data:
                 t1.neis[t1.get_ind(polygon[c])] = t2
                 t2.neis[t2.get_ind(polygon[0])] = t1
     
+
     def insert_point(self, p:int):
         q = self.pts[p]
         for t in self.triangles:
@@ -834,7 +871,8 @@ class Data:
             ti.neis[ti.get_ind(pi)] = tt
         tt.neis[(j + 1) % 3] = t
         # print('Flip done!')
-        
+    
+    # 주어진 triangulation을, flip을 통해 delaunay triangulation로 바꾸는 함수
     def delaunay_triangulate(self):
         while True:
             check = False
@@ -1032,6 +1070,7 @@ class Data:
 
     def add_steiner(self, p:Point, on_constraint = set()):
 
+        # edge 위에 있으면 안 되므로
         for e in self.ban:
             if self.is_on(e[0], e[1], p):
                 return
@@ -1042,7 +1081,7 @@ class Data:
             if self.is_on(self.region_boundary[i - 1], self.region_boundary[i], p):
                 self.region_boundary.insert(i, len(self.pts) - 1)
                 break
-
+        
         for e in self.constraints:
             if self.is_on(e[0], e[1], p):
                 self.constraints.add((e[0],len(self.pts) - 1))
@@ -1057,7 +1096,7 @@ class Data:
             del t
 
         self.triangles = set()
-        self.triangulate()
+        self.triangulate() # 다시 triangulate?
         self.delaunay_triangulate()
 
     def add_steiners(self, l:list):
@@ -2009,11 +2048,17 @@ class Data:
 
     def make_non_obtuse_boundary(self):
         inserting = []
+
+        # t: triangle
+        # j : index
+        # triangle의 pt는 시계 방향?
         def gen_cands(t, j):
             p = self.pts[t.pts[j]]
             lp = self.pts[t.pt(j + 1)]
             rp = self.pts[t.pt(j + 2)]
-            cands = [projection(p, lp, rp)]
+
+            cands = [projection(p, lp, rp)] # projection 구하고.
+
             rs = False
             if t.nei(j + 2):
                 tt = t.nei(j + 2)
@@ -2082,6 +2127,7 @@ class Data:
                     rind %= len(self.region_boundary)
                     rq = self.pts[self.region_boundary[rind]]
                 inserting.append(random.choice(gen_cands(t, j)))
+
         # print("boundary done!")
         for con in self.constraints:
             e1, e2 = con
@@ -2126,6 +2172,7 @@ class Data:
                         bscore = score
                     bcands.append(cand)
                 inserting.append(random.choice(bcands))
+                
             if b1 and b2:
                 cands = gen_cands(t1, i1)
                 rq, lq = lq, rq
@@ -2682,9 +2729,11 @@ class Data:
         return score
 
     def delete_random_steiner(self, del_num):
-        while del_num>0:
+        while del_num>0: # 지울 개수가 늘어나는 만큼 
+            # 쿰쿰 ?
+            
             bp = False
-            dn = random.randint(1,del_num)
+            dn = random.randint(1,del_num) # 
             del_num -= dn
             ind = 0
             del_pts = set()
@@ -2876,17 +2925,21 @@ def sqdist(p:Point, q:Point):
     yd = p.y - q.y
     return xd * xd + yd * yd
 
+# 어귀
+# hwi
 def projection(p:Point, q1:Point, q2:Point):
     if q1.x == q2.x:
         return Point(q1.x, p.y)
     if q1.y == q2.y:
         return Point(p.x, q1.y)
+    
     s1 = (q2.y - q1.y) / (q2.x - q1.x)
     b1 = q1.y - s1 * q1.x
     s2 = MyNum(-1) / s1
     b2 = p.y - s2 * p.x
     rx = (b2 - b1) / (s1 - s2)
     ry = rx * s1 + b1
+
     return Point(rx, ry)
 
 def right_angle_point(p1:Point, p2:Point, p3:Point, p4:Point):
