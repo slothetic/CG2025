@@ -46,34 +46,59 @@ def findAnyObtuseTriangle(dt : Data):
 def findPathToBoundary(dt : Data):
 
     t = findAnyObtuseTriangle(dt)
+    if t is None:
+        return
 
-    oT = None # oT stands for opposingTriangle
+    while True:
+        oT = None # oT stands for opposingTriangle
 
-    len01 = sqdist1(t.pts[0], t.pts[1])
-    len12 = sqdist1(t.pts[1], t.pts[2])
-    len20 = sqdist1(t.pts[2], t.pts[0])
+        len01 = sqdist1(t.pts[0], t.pts[1])
+        len12 = sqdist1(t.pts[1], t.pts[2])
+        len20 = sqdist1(t.pts[2], t.pts[0])
 
-    aHV = None # aHV stands for antiHypotenuseVertex
-    hV1 = None # hypotenuseVertex1
-    hV2 = None # hypotenuseVertex2
+        aHV = None # aHV stands for antiHypotenuseVertex
+        hV1 = None # hypotenuseVertex1
+        hV2 = None # hypotenuseVertex2
 
-    if len01 > len12 and len01 > len20:
-        # pts[0]pts[1] is the hypotenuse
-        aHV = t.pts[2]; hV1 = t.pts[0]; hV2 = t.pts[1]; # oT = nei
+        if len01 > len12 and len01 > len20:
+            # pts[0]pts[1] is the hypotenuse
+            aHV = t.pts[2]; hV1 = t.pts[0]; hV2 = t.pts[1]; oT = t.neis[0]
 
-    elif len12 > len01 and len12 > len20:
-        aHV = t.pts[0]; hV1 = t.pts[1], hV2 = t.pts[2]; # oT =
+        elif len12 > len01 and len12 > len20:
+            aHV = t.pts[0]; hV1 = t.pts[1], hV2 = t.pts[2]; oT = t.neis[1]
 
-    elif len20 > len01 and len20 > len12:
-        aHV = t.pts[1]; hV1 = t.pts[2], hV2 = t.pts[0]; # oT =
+        elif len20 > len01 and len20 > len12:
+            aHV = t.pts[1]; hV1 = t.pts[2], hV2 = t.pts[0]; oT = t.neis[2]
 
-    else:
-        raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges"
+        else:
+            raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges"
 
-    while t is not None:
-        # a로부터 b 위에 수선을 내림. 현재 삼각형 t는 t1과 t2로 나누어짐
         proj = projection(aHV, hV1, hV2)
         dt.add_steiner(proj)
+
+        # 새로 추가한 Steiner point가 boundary 위에 있다면 올바르게 종료
+        if oT is None:
+            return
+        else:
+            pass
+            # twin vertex (빗변을 공유하며 마주보는 두 triangle의, 총 4개 vertex 가운데 빗변의 양 끝점을 제외한 2개 vertex를 twin이라 함)
+            # 로부터 Steiner point까지 edge로 연결하여 하나의 둔각삼각형 생성
+
+
+            # twin =
+            # addEdge
+
+            # dt.
+            # oT.
+            # getTwin()
+
+
+        t = oT # opposing triangle로 업데이트
+
+        while t is not None:
+            pass
+           # a로부터 b 위에 수선을 내림. 현재 삼각형 t는 t1과 t2로 나누어짐
+
 
 
 
