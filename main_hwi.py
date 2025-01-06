@@ -35,6 +35,55 @@ def isAllEdgesNonConstrained(p : Point) -> bool:
 
     return True
 
+def findAnyObtuseTriangle(dt : Data):
+    for t in dt.triangles:
+        if (dt.is_obtuse(t)):
+            return t
+
+    return None
+
+
+def findPathToBoundary(dt : Data):
+
+    t = findAnyObtuseTriangle(dt)
+
+    oT = None # oT stands for opposingTriangle
+
+    len01 = sqdist1(t.pts[0], t.pts[1])
+    len12 = sqdist1(t.pts[1], t.pts[2])
+    len20 = sqdist1(t.pts[2], t.pts[0])
+
+    aHV = None # aHV stands for antiHypotenuseVertex
+    hV1 = None # hypotenuseVertex1
+    hV2 = None # hypotenuseVertex2
+
+    if len01 > len12 and len01 > len20:
+        # pts[0]pts[1] is the hypotenuse
+        aHV = t.pts[2]; hV1 = t.pts[0]; hV2 = t.pts[1]; # oT = nei
+
+    elif len12 > len01 and len12 > len20:
+        aHV = t.pts[0]; hV1 = t.pts[1], hV2 = t.pts[2]; # oT =
+
+    elif len20 > len01 and len20 > len12:
+        aHV = t.pts[1]; hV1 = t.pts[2], hV2 = t.pts[0]; # oT =
+
+    else:
+        raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges"
+
+    while t is not None:
+        # a로부터 b 위에 수선을 내림. 현재 삼각형 t는 t1과 t2로 나누어짐
+        proj = projection(aHV, hV1, hV2)
+        dt.add_steiner(proj)
+
+
+
+        # 맞닿아 있는 삼각형 역시 obtuse면 거기서 멈춤
+
+    # while ()
+    # boundary edge인지 아닌지 판단
+
+    return "끝"
+
 def moveSteinerPoint(dt : Data, instanceName : str):
     
     obtuseTriangles = []
@@ -72,7 +121,7 @@ if __name__=="__main__":
         inp = argument[1]
 
     else:
-        raise
+        raise "error"
         # inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
 
     print(inp) # instance 이름 출력
@@ -195,7 +244,7 @@ def none_obtuse_iter(dt:Data, lim=50):
             break
 
         # dt.fp_ind는 전체 point 개수
-        # 결국 좌변이 의미하는 것이 추가한한 Steiner point의 개수?
+        # 결국 좌변이 의미하는 것이 추가한 Steiner point의 개수?
         if len(dt.pts) - dt.fp_ind >= lim:
 
             print(f"{dt.instance_name} Iteration: ({cnt}/{maxcnt})[{__}/{total_num}] score: {dt.score()} (best: {best_dt.score()})")

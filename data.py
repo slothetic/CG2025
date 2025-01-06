@@ -64,6 +64,9 @@ class Point:
     def __ge__(self, p):
         return (self.x,self.y)>=(p.x,p.y)
 
+    def print(self):
+        print('(', self.x , self.y, ')')
+
 class Triangle:
     def __init__(self, p:int, q:int, r:int):
         self.pts = [p, q, r]
@@ -83,6 +86,23 @@ class Triangle:
     
     def nei(self, i:int):
         return self.neis[i % 3]
+
+    # L is a list of points (Data.pts)
+    def printPoints(self, L):
+        print('\nprintPoints begin\n')
+        for i in range(3):
+            print('point', i, ",", "index", self.pts[i])
+            L[self.pts[i]].print()
+        print('\nprintPoints end\n')
+
+    # L is a list of points (Data.pts)
+    def printNeis(self, L):
+        print('\nprintNeis begin\n')
+        for i in range(3):
+            if self.neis[i] is not None:
+                print('neis', i)
+                self.neis[i].printPoints(L)
+        print('\nprintNeis end\n')
 
 # free_point index?
 # input이 있는 상황이니까 지금은 
