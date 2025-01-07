@@ -1122,7 +1122,7 @@ class Data:
     def add_steiners(self, l:list):
         for p in l:
             cont = True
-            for e in self.ban:
+            for e in self.ban: # 아니 이게 뭔데 self.ban이
                 if self.is_on(e[0], e[1], p):
                     cont = False
                     break
@@ -1142,6 +1142,7 @@ class Data:
                     del self.const_dict[e]
                     self.constraints.remove(e)
                     break
+
         for t in self.triangles:
             del t
         self.triangles = set()
@@ -1878,6 +1879,7 @@ class Data:
         stop = [False]
         s = q
         j = i
+
         def cutright():
             if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0:
                 stop[0] = True
@@ -1906,6 +1908,7 @@ class Data:
                 l_chain.pop()
                 #print("line 715")
                 #self.print_triangle(nt)
+
         while True:
             if not tt:
                 break
@@ -2130,6 +2133,7 @@ class Data:
                     if div > 10000:
                         break
             return cands
+
         for i in range(len(self.region_boundary)):
             t = self.find_triangle(self.region_boundary[i - 1], self.region_boundary[i])
             j = (t.get_ind(self.region_boundary[i]) + 1) % 3

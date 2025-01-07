@@ -42,7 +42,6 @@ def findAnyObtuseTriangle(dt : Data):
 
     return None
 
-
 def findPathToBoundary(dt : Data):
 
     t = findAnyObtuseTriangle(dt)
@@ -75,6 +74,8 @@ def findPathToBoundary(dt : Data):
 
         proj = projection(aHV, hV1, hV2)
         dt.add_steiner(proj)
+
+        # triangle 생성자 확인
 
         # 새로 추가한 Steiner point가 boundary 위에 있다면 올바르게 종료
         if oT is None:
