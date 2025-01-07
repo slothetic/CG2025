@@ -87,6 +87,12 @@ class Triangle:
     def nei(self, i:int):
         return self.neis[i % 3]
 
+    def getOppositeNeiID(self, ptID):
+        return (ptID + 1) % 3
+
+    def getOppositeNei(self, ptID):
+        return self.neis[(ptID + 1) % 3]
+
     # L is a list of points (Data.pts)
     def printPoints(self, L):
         print('\nprintPoints begin\n')
@@ -103,6 +109,13 @@ class Triangle:
                 print('neis', i)
                 self.neis[i].printPoints(L)
         print('\nprintNeis end\n')
+
+    # 삼각형의 (한 edge를 이루는) 두 vertex의 index가 주어졌을 때,
+    # 나머지 vertex의 index를 반환해주는 함수
+    def getThirdVertexID(self, vID1, vID2):
+        for vID in self.pts:
+            if vID != vID1 and vID != vID2:
+                return vID
 
 # free_point index?
 # input이 있는 상황이니까 지금은 
@@ -1078,6 +1091,7 @@ class Data:
             w1.neis[w2] = w3
         return True
 
+    # 이게 unique하다는 얘기는, 변으로 맞닿아있는 두 triangle의 vertex 인덱스가 항상 둘다 CW 혹은 CCW임을 의미
     def find_triangle(self, q1:int, q2:int):
         for t in self.triangles:
             if t.pts[0] == q1 and t.pts[1] == q2:
@@ -1087,6 +1101,21 @@ class Data:
             if t.pts[2] == q1 and t.pts[0] == q2:
                 return t
         return None
+
+    def addSteinerNoTriangulation(self, p:Point):
+        
+        self.pts.append(p)
+        
+        # constraint edge 위에 있다면 edge를 둘로 쪼개줌
+        for e in self.constraints:
+            if self.is_on(e[0], e[1], p):
+                self.constraints.add((e[0],len(self.pts) - 1))
+                self.constraints.add((e[1],len(self.pts) - 1))
+                self.const_dict[(e[0], len(self.pts) - 1)] = self.const_dict[e]
+                self.const_dict[(e[1], len(self.pts) - 1)] = self.const_dict[e]
+                del self.const_dict[e]
+                self.constraints.remove(e)
+                break
 
     def add_steiner(self, p:Point, on_constraint = set()):
 

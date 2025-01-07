@@ -35,16 +35,31 @@ def isAllEdgesNonConstrained(p : Point) -> bool:
 
     return True
 
-def findAnyObtuseTriangle(dt : Data):
-    for t in dt.triangles:
+def getAnyObtuseTriangle(dt : Data):
+    for n, t in enumerate(dt.triangles):
         if (dt.is_obtuse(t)):
-            return t
+            return n, t
 
+    print('There is no obtuse triangle in the triangulation.')
+    return None
+
+# 3개의 vertex id가 주어졌을 때, 해당하는 triangle의 리스트 dt.triangles 상에서의 index 찾기
+def getTriangleID(dt : Data, v_id1 : int, v_id2 : int, v_id3 : int): # vID stands for vertexID
+
+    # for n, i in enumerate(dt.triangles):
+
+    for n, t in enumerate(dt.triangles):
+        if v_id1 in t.pts:
+            if v_id2 in t.pts:
+                if v_id3 in t.pts:
+                    return n
+
+    print('No matching triangle found.')
     return None
 
 def findPathToBoundary(dt : Data):
 
-    t = findAnyObtuseTriangle(dt)
+    n, t = getAnyObtuseTriangle(dt)
     if t is None:
         return
 
@@ -55,35 +70,89 @@ def findPathToBoundary(dt : Data):
         len12 = sqdist1(t.pts[1], t.pts[2])
         len20 = sqdist1(t.pts[2], t.pts[0])
 
-        aHV = None # aHV stands for antiHypotenuseVertex
-        hV1 = None # hypotenuseVertex1
-        hV2 = None # hypotenuseVertex2
+        aHV = None; aHVid = None # aHV stands for antiHypotenuseVertex
+        hV1 = None; hV1id = None # hypotenuseVertex1
+        hV2 = None; hV2id = None # hypotenuseVertex2
+
+        # oT may be None
 
         if len01 > len12 and len01 > len20:
-            # pts[0]pts[1] is the hypotenuse
             aHV = t.pts[2]; hV1 = t.pts[0]; hV2 = t.pts[1]; oT = t.neis[0]
+            aHVid = 2; hV1id = 0; hV2id = 1
 
         elif len12 > len01 and len12 > len20:
             aHV = t.pts[0]; hV1 = t.pts[1], hV2 = t.pts[2]; oT = t.neis[1]
+            aHVid = 0; hV1id = 1; hV2id = 2
 
         elif len20 > len01 and len20 > len12:
             aHV = t.pts[1]; hV1 = t.pts[2], hV2 = t.pts[0]; oT = t.neis[2]
+            aHVid = 1; hV1id = 2; hV2id = 0
 
         else:
-            raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges"
+            raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges."
 
         proj = projection(aHV, hV1, hV2)
-        dt.add_steiner(proj)
+        dt.addSteinerNoTriangulation(proj)
+
+        # 새로 추가한 Steiner point가 boundary 위에 있다면,
+        if oT is None:
+            # (1) 기존 triangle을 지우고,
+            # (2) 새로운 두 triangle을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
+
+            newT = copy.deepcopy(t)
+
+            t.neis[t.getOppositeNeiID(hV1id)] = newT
+            t.pts[hV2id] = proj
+
+            newT.neis[newT.getOppositeNeiID(hV2id)] = t
+            newT.pts[hV1id] = proj
+
+            return
+
+        else:
+
+            newT = copy.deepcopy(t)
+
+            t.neis[t.getOppositeNeiID(hV1id)] = newT
+            t.pts[hV2id] = proj
+
+            newT.neis[newT.getOppositeNeiID(hV2id)] = t
+            newT.pts[hV1id] = proj
+
+            # oT 역시 복사를 하면 되지?
+            newOT = copy.deepcopy(oT)
+
+            thirdVid = oT.getThirdVertexID(hV1, hV2)
+
+            hV1idOT = oT.get_ind(hV1)
+            hV2idOT = oT.get_ind(hV2)
+            aVidOT = oT.get_ind(thirdVid) # aV stands for antiVertex
+
+
+            oT.pts[hV2idOT] = proj
+
+            newOT.pts[hV1idOT] = proj
+            hV2idOT = proj
+
+            # oT 기준으로 index 파악
+
+
+
+        # twin vertex (= antiVertex, thirdVertex)
+        # 빗변을 공유하며 마주보는 두 triangle의, 총 4개 vertex 가운데 빗변의 양 끝점을 제외한 2개 vertex를 twin이라 함)
+        # 로부터 Steiner point까지 edge로 연결하여 하나의 둔각삼각형 생성
+
+
+        # 
+
+
 
         # triangle 생성자 확인
 
-        # 새로 추가한 Steiner point가 boundary 위에 있다면 올바르게 종료
-        if oT is None:
-            return
+
         else:
             pass
-            # twin vertex (빗변을 공유하며 마주보는 두 triangle의, 총 4개 vertex 가운데 빗변의 양 끝점을 제외한 2개 vertex를 twin이라 함)
-            # 로부터 Steiner point까지 edge로 연결하여 하나의 둔각삼각형 생성
+
 
 
             # twin =
