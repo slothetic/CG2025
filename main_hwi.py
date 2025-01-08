@@ -66,19 +66,31 @@ def getOppositeNeiID(ptID):
     return (ptID + 1) % 3
 '''
 
+# square dist (L2 제곱) 계산하는 함수
+def sqdist1(px, py, qx, qy):
+    xd = px-qx
+    yd = py-qy
+    return xd * xd + yd * yd
+
 def findPathToBoundary(dt : Data):
 
     _, t = getAnyObtuseTriangle(dt)
     if t is None:
         print('No triangle selected')
         return
+    else:
+        print('triangle #', _, 'selected')
 
     while True:
         oT = None # oT stands for opposingTriangle
 
-        len01 = sqdist1(t.pts[0], t.pts[1])
-        len12 = sqdist1(t.pts[1], t.pts[2])
-        len20 = sqdist1(t.pts[2], t.pts[0])
+        # len01 = sqdist1(t.pts[0].x, t.pts[0].y, t.pts[1].x, t.pts[1].y)
+        # len12 = sqdist1(t.pts[1].x, t.pts[1].y, t.pts[2].x, t.pts[2].y)
+        # len20 = sqdist1(t.pts[2].x, t.pts[2].y, t.pts[0].x, t.pts[0].y)
+
+        len01 = sqdist(dt.pts[t.pts[0]], dt.pts[t.pts[1]]); print('len01 dist: ', len01)
+        len12 = sqdist(dt.pts[t.pts[1]], dt.pts[t.pts[2]]); print('len12 dist: ', len12)
+        len20 = sqdist(dt.pts[t.pts[2]], dt.pts[t.pts[0]]); print('len20 dist: ', len20)
 
         aHV = None; aHVtID = None # aHV stands for antiHypotenuseVertex
         hV1 = None; hV1tID = None # hypotenuseVertex1
@@ -96,18 +108,18 @@ def findPathToBoundary(dt : Data):
 
         # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
         elif len12 > len01 and len12 > len20:
-            aHV = t.pts[0]; hV1 = t.pts[1], hV2 = t.pts[2]; oT = t.neis[1]
+            aHV = t.pts[0]; hV1 = t.pts[1]; hV2 = t.pts[2]; oT = t.neis[1]
             aHVtID = 0; hV1tID = 1; hV2tID = 2
 
         # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
         elif len20 > len01 and len20 > len12:
-            aHV = t.pts[1]; hV1 = t.pts[2], hV2 = t.pts[0]; oT = t.neis[2]
+            aHV = t.pts[1]; hV1 = t.pts[2]; hV2 = t.pts[0]; oT = t.neis[2]
             aHVtID = 1; hV1tID = 2; hV2tID = 0
 
         else:
             raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges."
 
-        proj = projection(aHV, hV1, hV2)
+        proj = projection(dt.pts[aHV], dt.pts[hV1], dt.pts[hV2])
         projID = dt.addSteinerNoTriangulation(proj)
 
         # 새로 추가한 Steiner point가 boundary 위에 있다면,
@@ -115,6 +127,8 @@ def findPathToBoundary(dt : Data):
         # (2) 새로운 두 triangle (newT1, newT2) 을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
         if oT is None:
             
+            print('oT is None')
+
             # triangle 정보 복사
 
             newT1 = copy.deepcopy(t)
@@ -127,8 +141,8 @@ def findPathToBoundary(dt : Data):
 
             # neis 정보 수정 (neis의 각 원소는 triangle index (int형) 가 아니라 triangle 객체임)
 
-            newT1.neis[Triangle.getOppositeNeiID(hV1tID)] = newT2
-            newT2.neis[Triangle.getOppositeNeiID(hV2tID)] = newT1
+            newT1.neis[newT1.getOppositeNeiID(hV1tID)] = newT2
+            newT2.neis[newT2.getOppositeNeiID(hV2tID)] = newT1
 
             # 최종적으로, triangles 삽입 및 삭제
 
@@ -141,6 +155,8 @@ def findPathToBoundary(dt : Data):
             return
 
         else:
+
+            print('oT is not None')
 
             # triangle 정보 복사
 
@@ -165,16 +181,30 @@ def findPathToBoundary(dt : Data):
 
             # neis 정보 수정 (neis의 각 원소는 triangle index (int형) 가 아니라 triangle 객체임)
 
-            newT1.neis[Triangle.getOppositeNeiID(hV1tID)] = newT2
-            newT2.neis[Triangle.getOppositeNeiID(hV2tID)] = newT1
+            newT1.neis[newT1.getOppositeNeiID(hV1tID)] = newT2
+            newT2.neis[newT2.getOppositeNeiID(hV2tID)] = newT1
 
-            newOT1.neis[Triangle.getOppositeNeiID(hV1otID)] = newOT2
-            newOT2.neis[Triangle.getOppositeNeiID(hV2otID)] = newOT1
+            newOT1.neis[newOT1.getOppositeNeiID(hV1otID)] = newOT2
+            newOT2.neis[newOT2.getOppositeNeiID(hV2otID)] = newOT1
+
+            # newT1.neis[Triangle.getOppositeNeiID(hV1tID)] = newT2
+            # newT2.neis[Triangle.getOppositeNeiID(hV2tID)] = newT1
+
+            # newOT1.neis[Triangle.getOppositeNeiID(hV1otID)] = newOT2
+            # newOT2.neis[Triangle.getOppositeNeiID(hV2otID)] = newOT1
+
+            print(hV1)
+            print(projID)
 
             newT1.neis[newT1.getNeiID(hV1, projID)] = newOT1
             newOT1.neis[newOT1.getNeiID(hV1, projID)] = newT1
             newT2.neis[newT2.getNeiID(hV2, projID)] = newOT2
             newOT2.neis[newOT2.getNeiID(hV2, projID)] = newT2
+
+            # newT1.neis[newT1.getNeiID(dt.pts[hV1], dt.pts[projID])] = newOT1
+            # newOT1.neis[newOT1.getNeiID(dt.pts[hV1], dt.pts[projID])] = newT1
+            # newT2.neis[newT2.getNeiID(dt.pts[hV2], dt.pts[projID])] = newOT2
+            # newOT2.neis[newOT2.getNeiID(dt.pts[hV2], dt.pts[projID])] = newT2
 
             # 최종적으로, triangles 삽입 및 삭제
 
@@ -231,19 +261,19 @@ def moveSteinerPoint(dt : Data, instanceName : str):
 # 
 if __name__=="__main__":
 
-    print('hey')
+    # print('hey')
 
     argument = sys.argv
     if len(argument)>=2:
         inp = argument[1]
 
     else:
-        inp = "hwi_instances/simple-polygon-exterior-20_40_65de7236.solution.json"
+        inp = "challenge_instances_cgshop25_hwi/simple-polygon-exterior-20_40_65de7236.solution.json"
 
         # raise "error"
         # inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
 
-    print(inp) # instance 이름 출력
+    # print(inp) # instance 이름 출력
 
     dt = Data(inp) # data 받아 오기
 
@@ -311,12 +341,6 @@ if __name__=="__main__":
     '''
             
     # 어쨌든 none_obtuse_iter - make_non_obtuse_boundary가 메인 로직이네
-
-# square dist (L2 제곱) 계산하는 함수
-def sqdist1(px, py, qx, qy):
-    xd = px-qx
-    yd = py-qy
-    return xd * xd + yd * yd
 
 # 오케이 dt가 데이터 
 def closest_pair(dt:Data):

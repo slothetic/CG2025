@@ -75,6 +75,10 @@ class Triangle:
         self.neis = [None, None, None]
     
     def get_ind(self, p:int):
+        
+        # print('get_ind start')
+        # print(type(p))
+
         for i in range(3):
             if self.pts[i] == p:
                 return i
@@ -119,9 +123,12 @@ class Triangle:
 
     # 삼각형의 세 vertex 중 두 개 (dt.pts에서의 id - int형)이 주어졌을 때,
     # 해당 두 vertex가 이루는 edge에 해당하는 neis의 인덱스를 구하기
-    def getNeiID(self, vID1, vID2):
+    def getNeiID(self, vID1:int, vID2:int):
         i1 = self.get_ind(vID1)
         i2 = self.get_ind(vID2)
+    #def getNeiID(self, p1 : Point, p2 : Point):
+    #    i1 = self.get_ind(p1)
+    #    i2 = self.get_ind(p2)
 
         if i1 == 0 and i2 == 1 or i1 == 1 and i2 == 0:
             return 0
@@ -130,7 +137,7 @@ class Triangle:
         elif i1 == 2 and i2 == 0 or i1 == 0 and i2 == 2:
             return 2
         else:
-            raise "index error occurred during getNeiID."
+            raise "error occurred during getNeiID."
 
 
 
