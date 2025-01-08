@@ -87,8 +87,8 @@ class Triangle:
     def nei(self, i:int):
         return self.neis[i % 3]
 
-    #def getOppositeNeiID(self, ptID):
-    #    return (ptID + 1) % 3
+    def getOppositeNeiID(self, ptID):
+        return (ptID + 1) % 3
 
     def getOppositeNei(self, ptID):
         return self.neis[(ptID + 1) % 3]
@@ -116,6 +116,23 @@ class Triangle:
         for vID in self.pts:
             if vID != vID1 and vID != vID2:
                 return vID
+
+    # 삼각형의 세 vertex 중 두 개 (dt.pts에서의 id - int형)이 주어졌을 때,
+    # 해당 두 vertex가 이루는 edge에 해당하는 neis의 인덱스를 구하기
+    def getNeiID(self, vID1, vID2):
+        i1 = self.get_ind(vID1)
+        i2 = self.get_ind(vID2)
+
+        if i1 == 0 and i2 == 1 or i1 == 1 and i2 == 0:
+            return 0
+        elif i1 == 1 and i2 == 2 or i1 == 2 and i2 == 1:
+            return 1
+        elif i1 == 2 and i2 == 0 or i1 == 0 and i2 == 2:
+            return 2
+        else:
+            raise "index error occurred during getNeiID."
+
+
 
 # free_point index?
 # input이 있는 상황이니까 지금은 
@@ -151,7 +168,21 @@ class Data:
 
             for con in self.constraints:
                 self.const_dict[(con[0], con[1])] = (con[0], con[1])
-        
+
+    # 3개의 vertex id가 주어졌을 때, 해당하는 triangle의 리스트 dt.triangles 상에서의 index 찾기
+    def getTriangleID(self, v_id1: int, v_id2: int, v_id3: int):  # vID stands for vertexID
+
+        # for n, i in enumerate(dt.triangles):
+
+        for n, t in enumerate(self.triangles):
+            if v_id1 in t.pts:
+                if v_id2 in t.pts:
+                    if v_id3 in t.pts:
+                        return n
+
+        print('No matching triangle found.')
+        return None
+
     def copy(self):
 
         new_d = Data( input = "", 
@@ -1116,6 +1147,9 @@ class Data:
                 del self.const_dict[e]
                 self.constraints.remove(e)
                 break
+
+        # 추가한 Steiner point의 인덱스를 반환
+        return len(self.pts) - 1
 
     def add_steiner(self, p:Point, on_constraint = set()):
 
@@ -2962,13 +2996,15 @@ def angle(p1:Point, p2:Point, p3:Point):
     p12y = p2.y-p1.y
     p23x = p2.x-p3.x
     p23y = p2.y-p3.y
-    ab = p12x * p23x + p12y * p23y
-    a = p12x * p12x + p12y * p12y
-    b = p23x * p23x + p23y * p23y
+    ab = p12x * p23x + p12y * p23y #
+    a = p12x * p12x + p12y * p12y # squared L2 distance between p1 and p2
+    b = p23x * p23x + p23y * p23y # squared L2 distance between p2 and p3
     if (ab >= MyNum(0)):
         return - ab * ab / a / b
     else:
         return ab * ab / a / b
+
+# def angle()
 
 def turn(p1:Point, p2:Point, p3:Point):
     return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)

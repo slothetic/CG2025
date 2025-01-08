@@ -43,6 +43,7 @@ def getAnyObtuseTriangle(dt : Data):
     print('There is no obtuse triangle in the triangulation.')
     return None
 
+'''
 # 3개의 vertex id가 주어졌을 때, 해당하는 triangle의 리스트 dt.triangles 상에서의 index 찾기
 def getTriangleID(dt : Data, v_id1 : int, v_id2 : int, v_id3 : int): # vID stands for vertexID
 
@@ -56,14 +57,20 @@ def getTriangleID(dt : Data, v_id1 : int, v_id2 : int, v_id3 : int): # vID stand
 
     print('No matching triangle found.')
     return None
+'''
 
-def getOppositeNeiID(self, ptID):
+'''
+# triangle.pts 인덱스 (0, 1 혹은 2) 가 주어졌을 때,
+# 해당 point의 맞은편 edge를 기준으로 맞닿아있는 nei의 인덱스를 반환
+def getOppositeNeiID(ptID):
     return (ptID + 1) % 3
+'''
 
 def findPathToBoundary(dt : Data):
 
-    n, t = getAnyObtuseTriangle(dt)
+    _, t = getAnyObtuseTriangle(dt)
     if t is None:
+        print('No triangle selected')
         return
 
     while True:
@@ -73,115 +80,124 @@ def findPathToBoundary(dt : Data):
         len12 = sqdist1(t.pts[1], t.pts[2])
         len20 = sqdist1(t.pts[2], t.pts[0])
 
-        aHV = None; aHVid = None # aHV stands for antiHypotenuseVertex
-        hV1 = None; hV1id = None # hypotenuseVertex1
-        hV2 = None; hV2id = None # hypotenuseVertex2
+        aHV = None; aHVtID = None # aHV stands for antiHypotenuseVertex
+        hV1 = None; hV1tID = None # hypotenuseVertex1
+        hV2 = None; hV2tID = None # hypotenuseVertex2
 
         # oT may be None
 
+        # aHVid, hV1id, hV2id라고 표현했지만,
+        # 사실 aHV, hV1, hV2 역시 모두 index임
+
+        # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
         if len01 > len12 and len01 > len20:
             aHV = t.pts[2]; hV1 = t.pts[0]; hV2 = t.pts[1]; oT = t.neis[0]
-            aHVid = 2; hV1id = 0; hV2id = 1
+            aHVtID = 2; hV1tID = 0; hV2tID = 1
 
+        # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
         elif len12 > len01 and len12 > len20:
             aHV = t.pts[0]; hV1 = t.pts[1], hV2 = t.pts[2]; oT = t.neis[1]
-            aHVid = 0; hV1id = 1; hV2id = 2
+            aHVtID = 0; hV1tID = 1; hV2tID = 2
 
+        # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
         elif len20 > len01 and len20 > len12:
             aHV = t.pts[1]; hV1 = t.pts[2], hV2 = t.pts[0]; oT = t.neis[2]
-            aHVid = 1; hV1id = 2; hV2id = 0
+            aHVtID = 1; hV1tID = 2; hV2tID = 0
 
         else:
             raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges."
 
         proj = projection(aHV, hV1, hV2)
-        dt.addSteinerNoTriangulation(proj)
+        projID = dt.addSteinerNoTriangulation(proj)
 
         # 새로 추가한 Steiner point가 boundary 위에 있다면,
+        # (1) 기존 triangle (t) 을 지우고,
+        # (2) 새로운 두 triangle (newT1, newT2) 을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
         if oT is None:
-            # (1) 기존 triangle (t) 을 지우고,
-            # (2) 새로운 두 triangle (newT1, newT2) 을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
+            
+            # triangle 정보 복사
 
             newT1 = copy.deepcopy(t)
             newT2 = copy.deepcopy(t)
 
-            newT1.neis[t.getOppositeNeiID(hV1id)] = newT2
-            newT1.pts[hV2id] = proj
+            # pts 정보 수정
 
-            newT2.neis[newT2.getOppositeNeiID(hV2id)] = newT1
-            newT2.pts[hV1id] = proj
+            newT1.pts[hV2tID] = projID
+            newT2.pts[hV1tID] = projID
+
+            # neis 정보 수정 (neis의 각 원소는 triangle index (int형) 가 아니라 triangle 객체임)
+
+            newT1.neis[Triangle.getOppositeNeiID(hV1tID)] = newT2
+            newT2.neis[Triangle.getOppositeNeiID(hV2tID)] = newT1
+
+            # 최종적으로, triangles 삽입 및 삭제
+
+            tID = dt.getTriangleID(aHV, hV1, hV2)
+            del dt.triangles[tID]
+
+            dt.triangles.append(newT1)
+            dt.triangles.append(newT2)
 
             return
 
         else:
 
-            newT = copy.deepcopy(t)
+            # triangle 정보 복사
 
-            t.neis[t.getOppositeNeiID(hV1id)] = newT
-            t.pts[hV2id] = proj
+            newT1 = copy.deepcopy(t)
+            newT2 = copy.deepcopy(t)
 
-            newT.neis[newT.getOppositeNeiID(hV2id)] = t
-            newT.pts[hV1id] = proj
+            newOT1 = copy.deepcopy(oT)
+            newOT2 = copy.deepcopy(oT)
 
-            # oT 역시 복사를 하면 되지?
-            newOT = copy.deepcopy(oT)
+            # pts 정보 수정
+            
+            newT1.pts[hV2tID] = proj
+            newT2.pts[hV1tID] = proj
+
+            hV1otID = oT.get_ind(hV1)
+            hV2otID = oT.get_ind(hV2)
+
+                # newOT1.pts = [hV1, thirdVid, projID]
+            newOT1.pts[hV2otID] = projID
+                # newOT2.pts = [hV2, thirdVid, projID]
+            newOT2.pts[hV1otID] = projID
+
+            # neis 정보 수정 (neis의 각 원소는 triangle index (int형) 가 아니라 triangle 객체임)
+
+            newT1.neis[Triangle.getOppositeNeiID(hV1tID)] = newT2
+            newT2.neis[Triangle.getOppositeNeiID(hV2tID)] = newT1
+
+            newOT1.neis[Triangle.getOppositeNeiID(hV1otID)] = newOT2
+            newOT2.neis[Triangle.getOppositeNeiID(hV2otID)] = newOT1
+
+            newT1.neis[newT1.getNeiID(hV1, projID)] = newOT1
+            newOT1.neis[newOT1.getNeiID(hV1, projID)] = newT1
+            newT2.neis[newT2.getNeiID(hV2, projID)] = newOT2
+            newOT2.neis[newOT2.getNeiID(hV2, projID)] = newT2
+
+            # 최종적으로, triangles 삽입 및 삭제
+
+            tID = dt.getTriangleID(aHV, hV1, hV2)
+            del dt.triangles[tID]
+
+            dt.triangles.append(newT1)
+            dt.triangles.append(newT2)
 
             thirdVid = oT.getThirdVertexID(hV1, hV2)
+            otID = dt.getTriangleID(hV1, hV2, thirdVid)
+            # 이미 t를 지운 상태라고 해서, index가 밀려서 오류가 나지는 않음.
+            del dt.triangles[otID]
 
-            hV1idOT = oT.get_ind(hV1)
-            hV2idOT = oT.get_ind(hV2)
-            aVidOT = oT.get_ind(thirdVid) # aV stands for antiVertex
+            dt.triangles.append(newOT1)
+            dt.triangles.append(newOT2)
 
-            oT.pts[hV2idOT] = proj
-            newOT.pts[hV1idOT] = proj
+            # triangle 업데이트 (반복문 다음 step을 위해)
 
-
-            hV2idOT = proj
-
-            # oT 기준으로 index 파악
-
-
-
-        # twin vertex (= antiVertex, thirdVertex)
-        # 빗변을 공유하며 마주보는 두 triangle의, 총 4개 vertex 가운데 빗변의 양 끝점을 제외한 2개 vertex를 twin이라 함)
-        # 로부터 Steiner point까지 edge로 연결하여 하나의 둔각삼각형 생성
-
-
-        # 
-
-
-
-        # triangle 생성자 확인
-
-
-        else:
-            pass
-
-
-
-            # twin =
-            # addEdge
-
-            # dt.
-            # oT.
-            # getTwin()
-
-
-        t = oT # opposing triangle로 업데이트
-
-        while t is not None:
-            pass
-           # a로부터 b 위에 수선을 내림. 현재 삼각형 t는 t1과 t2로 나누어짐
-
-
-
-
-        # 맞닿아 있는 삼각형 역시 obtuse면 거기서 멈춤
-
-    # while ()
-    # boundary edge인지 아닌지 판단
-
-    return "끝"
+            if newOT1.is_obtuse():
+                t = newOT1
+            if newOT2.is_obtuse():
+                t = newOT2
 
 def moveSteinerPoint(dt : Data, instanceName : str):
     
@@ -215,18 +231,33 @@ def moveSteinerPoint(dt : Data, instanceName : str):
 # 
 if __name__=="__main__":
 
+    print('hey')
+
     argument = sys.argv
     if len(argument)>=2:
         inp = argument[1]
 
     else:
-        raise "error"
+        inp = "hwi_instances/simple-polygon-exterior-20_40_65de7236.solution.json"
+
+        # raise "error"
         # inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
 
     print(inp) # instance 이름 출력
 
     dt = Data(inp) # data 받아 오기
 
+    dt.triangulate()
+
+    dt.delaunay_triangulate()
+
+    findPathToBoundary(dt)
+
+    dt.WriteData()
+
+    dt.DrawResult()
+
+    '''
     dt.triangulate()
     
     dt.delaunay_triangulate()
@@ -235,6 +266,7 @@ if __name__=="__main__":
     # Configure Display Langage
 
     print(inp)
+    '''
 
     # ko(한국어)가 있으면 선택해주면 됩니다. ko가 없다면 Install Additional Languages…를 선택합니다.
 
