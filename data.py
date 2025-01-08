@@ -87,8 +87,8 @@ class Triangle:
     def nei(self, i:int):
         return self.neis[i % 3]
 
-    def getOppositeNeiID(self, ptID):
-        return (ptID + 1) % 3
+    #def getOppositeNeiID(self, ptID):
+    #    return (ptID + 1) % 3
 
     def getOppositeNei(self, ptID):
         return self.neis[(ptID + 1) % 3]

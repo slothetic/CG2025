@@ -57,6 +57,9 @@ def getTriangleID(dt : Data, v_id1 : int, v_id2 : int, v_id3 : int): # vID stand
     print('No matching triangle found.')
     return None
 
+def getOppositeNeiID(self, ptID):
+    return (ptID + 1) % 3
+
 def findPathToBoundary(dt : Data):
 
     n, t = getAnyObtuseTriangle(dt)
@@ -96,16 +99,17 @@ def findPathToBoundary(dt : Data):
 
         # 새로 추가한 Steiner point가 boundary 위에 있다면,
         if oT is None:
-            # (1) 기존 triangle을 지우고,
-            # (2) 새로운 두 triangle을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
+            # (1) 기존 triangle (t) 을 지우고,
+            # (2) 새로운 두 triangle (newT1, newT2) 을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
 
-            newT = copy.deepcopy(t)
+            newT1 = copy.deepcopy(t)
+            newT2 = copy.deepcopy(t)
 
-            t.neis[t.getOppositeNeiID(hV1id)] = newT
-            t.pts[hV2id] = proj
+            newT1.neis[t.getOppositeNeiID(hV1id)] = newT2
+            newT1.pts[hV2id] = proj
 
-            newT.neis[newT.getOppositeNeiID(hV2id)] = t
-            newT.pts[hV1id] = proj
+            newT2.neis[newT2.getOppositeNeiID(hV2id)] = newT1
+            newT2.pts[hV1id] = proj
 
             return
 
@@ -128,10 +132,10 @@ def findPathToBoundary(dt : Data):
             hV2idOT = oT.get_ind(hV2)
             aVidOT = oT.get_ind(thirdVid) # aV stands for antiVertex
 
-
             oT.pts[hV2idOT] = proj
-
             newOT.pts[hV1idOT] = proj
+
+
             hV2idOT = proj
 
             # oT 기준으로 index 파악
