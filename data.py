@@ -73,7 +73,14 @@ class Triangle:
 
         # neighboring triangles ?
         self.neis = [None, None, None]
-    
+
+        self.used = True
+
+        self.printFlag = None
+
+    #def setPrintFlag(self, s : str):
+    #    self.printFlag
+
     def get_ind(self, p:int):
         
         # print('get_ind start')
@@ -84,7 +91,10 @@ class Triangle:
                 return i
             
         return -1
-    
+
+    def setUnused(self):
+        self.used = False
+
     def pt(self, i:int):
         return self.pts[i % 3]
     
@@ -154,6 +164,10 @@ class Data:
     def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None):
 
         self.ban = set() # ban이 무엇인가
+
+        # list of [x축좌표 : MyNum, y축좌표 : MyNum, iterNum]
+        # WriteData 시 scaling?
+        self.SteinerChainMark = []
 
         if input:
             self.input = input #
@@ -335,6 +349,9 @@ class Data:
         int_edges = []
 
         for t in self.triangles:
+            if t.used == False:
+                continue
+
             e1 = sorted([t.pts[0],t.pts[1]])
             e2 = sorted([t.pts[0],t.pts[2]])
             e3 = sorted([t.pts[1],t.pts[2]])

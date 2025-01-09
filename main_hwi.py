@@ -74,6 +74,11 @@ def sqdist1(px, py, qx, qy):
 
 def findPathToBoundary(dt : Data):
 
+    # indicates the current iteration number
+    # 하나의 Steiner chain이 boundary에 도달해서, 새로운 obtuse triangle을 잡는 경우뿐만 아니라
+    # Steiner chain 매 step 끝날 때도 iterNum을 1씩 증가시킴 (WriteData 시 삼각형 위에 iterNum을 표시하기 위해)
+    iterNum = 0
+
     _, t = getAnyObtuseTriangle(dt)
     if t is None:
         print('No triangle selected')
@@ -144,13 +149,31 @@ def findPathToBoundary(dt : Data):
             newT1.neis[newT1.getOppositeNeiID(hV1tID)] = newT2
             newT2.neis[newT2.getOppositeNeiID(hV2tID)] = newT1
 
+            aHV_hV1_t = t.neis[t.getOppositeNeiID(hV2tID)] # aHV와 hV1를 잇는 직선을 t와 공유 (했던) triangle
+            for k in range(len(aHV_hV1_t.neis)):
+                if aHV_hV1_t.neis[k] == t:
+                    aHV_hV1_t.neis[k] = newT1
+
+            aHV_hV2_t = t.neis[t.getOppositeNeiID(hV1tID)] # aHV와 hV2를 잇는 직선을 t와 공유 (했던) triangle
+            for k in range(len(aHV_hV2_t.neis)):
+                if aHV_hV2_t.neis[k] == t:
+                    aHV_hV2_t.neis[k] = newT2
+
             # 최종적으로, triangles 삽입 및 삭제
 
-            tID = dt.getTriangleID(aHV, hV1, hV2)
-            del dt.triangles[tID]
+            t.setUnused()
+            # tID = dt.getTriangleID(aHV, hV1, hV2)
+            # del dt.triangles[tID]
 
-            dt.triangles.append(newT1)
-            dt.triangles.append(newT2)
+            dt.triangles.add(newT1)
+            dt.triangles.add(newT2)
+            # dt.triangles.append(newT1)
+            # dt.triangles.append(newT2)
+
+            iterNum += 1
+
+            # 중점 계산 (세 개의 수를 더해야 하니 두 번 통분이 이루어지고, 그래서 분모 분자 값이 너무 커지려나?)
+            dt.SteinerChainMark.append([iterNum])
 
             return
 
@@ -168,8 +191,8 @@ def findPathToBoundary(dt : Data):
 
             # pts 정보 수정
             
-            newT1.pts[hV2tID] = proj
-            newT2.pts[hV1tID] = proj
+            newT1.pts[hV2tID] = projID
+            newT2.pts[hV1tID] = projID
 
             hV1otID = oT.get_ind(hV1)
             hV2otID = oT.get_ind(hV2)
@@ -184,17 +207,26 @@ def findPathToBoundary(dt : Data):
             newT1.neis[newT1.getOppositeNeiID(hV1tID)] = newT2
             newT2.neis[newT2.getOppositeNeiID(hV2tID)] = newT1
 
-            newOT1.neis[newOT1.getOppositeNeiID(hV1otID)] = newOT2
-            newOT2.neis[newOT2.getOppositeNeiID(hV2otID)] = newOT1
-
             # newT1.neis[Triangle.getOppositeNeiID(hV1tID)] = newT2
             # newT2.neis[Triangle.getOppositeNeiID(hV2tID)] = newT1
+
+            newOT1.neis[newOT1.getOppositeNeiID(hV1otID)] = newOT2
+            newOT2.neis[newOT2.getOppositeNeiID(hV2otID)] = newOT1
 
             # newOT1.neis[Triangle.getOppositeNeiID(hV1otID)] = newOT2
             # newOT2.neis[Triangle.getOppositeNeiID(hV2otID)] = newOT1
 
-            print(hV1)
-            print(projID)
+            aHV_hV1_t = t.neis[t.getOppositeNeiID(hV2tID)] # aHV와 hV1를 잇는 직선을 t와 공유 (했던) triangle
+            if aHV_hV1_t is not None:
+                for k in range(len(aHV_hV1_t.neis)):
+                    if aHV_hV1_t.neis[k] == t:
+                        aHV_hV1_t.neis[k] = newT1
+
+            aHV_hV2_t = t.neis[t.getOppositeNeiID(hV1tID)] # aHV와 hV2를 잇는 직선을 t와 공유 (했던) triangle
+            if aHV_hV2_t is not None:
+                for k in range(len(aHV_hV2_t.neis)):
+                    if aHV_hV2_t.neis[k] == t:
+                        aHV_hV2_t.neis[k] = newT2
 
             newT1.neis[newT1.getNeiID(hV1, projID)] = newOT1
             newOT1.neis[newOT1.getNeiID(hV1, projID)] = newT1
@@ -206,28 +238,52 @@ def findPathToBoundary(dt : Data):
             # newT2.neis[newT2.getNeiID(dt.pts[hV2], dt.pts[projID])] = newOT2
             # newOT2.neis[newOT2.getNeiID(dt.pts[hV2], dt.pts[projID])] = newT2
 
+            hV1_third_oT = oT.neis[oT.getOppositeNeiID(hV2)]
+            if hV1_third_oT is not None:
+                for k in range(len(hV1_third_oT.neis)):
+                    if hV1_third_oT.neis[k] == oT:
+                        hV1_third_oT.neis[k] = newT1
+
+            hV2_third_oT = oT.neis[oT.getOppositeNeiID(hV1)]
+            if hV2_third_oT is not None:
+                for k in range(len(hV2_third_oT.neis)):
+                    if hV2_third_oT.neis[k] == oT:
+                        hV2_third_oT.neis[k] = newT2
+
             # 최종적으로, triangles 삽입 및 삭제
 
-            tID = dt.getTriangleID(aHV, hV1, hV2)
-            del dt.triangles[tID]
+            t.setUnused()
+            # tID = dt.getTriangleID(aHV, hV1, hV2)
+            # del dt.triangles[tID]
 
-            dt.triangles.append(newT1)
-            dt.triangles.append(newT2)
+            dt.triangles.add(newT1)
+            dt.triangles.add(newT2)
+            # dt.triangles.append(newT1)
+            # dt.triangles.append(newT2)
 
-            thirdVid = oT.getThirdVertexID(hV1, hV2)
-            otID = dt.getTriangleID(hV1, hV2, thirdVid)
-            # 이미 t를 지운 상태라고 해서, index가 밀려서 오류가 나지는 않음.
-            del dt.triangles[otID]
+            oT.setUnused()
+            #thirdVid = oT.getThirdVertexID(hV1, hV2)
+            #otID = dt.getTriangleID(hV1, hV2, thirdVid)
+                # 이미 t를 지운 상태라고 해서, index가 밀려서 오류가 나지는 않음.
+            #del dt.triangles[otID]
 
-            dt.triangles.append(newOT1)
-            dt.triangles.append(newOT2)
+            dt.triangles.add(newOT1)
+            dt.triangles.add(newOT2)
+            # dt.triangles.append(newOT1)
+            # dt.triangles.append(newOT2)
 
             # triangle 업데이트 (반복문 다음 step을 위해)
 
-            if newOT1.is_obtuse():
+            iterNum += 1
+
+            if dt.is_obtuse(newOT1):
                 t = newOT1
-            if newOT2.is_obtuse():
+            elif dt.is_obtuse(newOT2):
                 t = newOT2
+            # very unlikely, but both newOT1 and newOT2
+            else:
+                print('Both newOT1 and newOT2 are non-obtuse (they are right triangles). We are done.')
+                return
 
 def moveSteinerPoint(dt : Data, instanceName : str):
     
@@ -268,7 +324,8 @@ if __name__=="__main__":
         inp = argument[1]
 
     else:
-        inp = "challenge_instances_cgshop25_hwi/simple-polygon-exterior-20_40_65de7236.solution.json"
+        # inp = "challenge_instances_cgshop25_hwi/simple-polygon-exterior-20_40_65de7236.solution.json"
+        inp = "challenge_instances_cgshop25_hwi/ortho_10_d2723dcc.instance.json"
 
         # raise "error"
         # inp = "example_instances/cgshop2025_examples_ortho_10_ff68423e.instance.json"
