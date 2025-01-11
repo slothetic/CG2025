@@ -1,3 +1,5 @@
+# from signal import pthread_sigmask
+
 from MyNum import MyNum
 import os
 import json
@@ -81,6 +83,21 @@ class Triangle:
     #def setPrintFlag(self, s : str):
     #    self.printFlag
 
+    def copy(self):
+        new_t = Triangle(p=self.pts[0], q=self.pts[1], r=self.pts[2])
+
+        # 리스트를 reference 말고 value로 저장하는 방법?
+        new_t.neis[0] = self.neis[0]
+        new_t.neis[1] = self.neis[1]
+        new_t.neis[2] = self.neis[2]
+        # new_t.neis = self.neis
+
+        new_t.used = self.used
+
+        new_t.printFlag = self.printFlag
+
+        return new_t
+
     def get_ind(self, p:int):
         
         # print('get_ind start')
@@ -116,13 +133,21 @@ class Triangle:
         print('\nprintPoints end\n')
 
     # L is a list of points (Data.pts)
-    def printNeis(self, L):
-        print('\nprintNeis begin\n')
+    def printNeis(self, L, s:str=""):
+        if s == "":
+            pass
+        else:
+            print(s, ":", end = ' ')
+
+        # print('printNeis begin')
         for i in range(3):
-            if self.neis[i] is not None:
-                print('neis', i)
-                self.neis[i].printPoints(L)
-        print('\nprintNeis end\n')
+            if self.neis[i] is None:
+                print('None', end=' ')
+            else:
+                print(self.neis[i].pts, end=' ')
+
+        print()
+        # print('printNeis end')
 
     # 삼각형의 (한 edge를 이루는) 두 vertex의 index가 주어졌을 때,
     # 나머지 vertex의 index를 반환해주는 함수
@@ -147,9 +172,8 @@ class Triangle:
         elif i1 == 2 and i2 == 0 or i1 == 0 and i2 == 2:
             return 2
         else:
+            print('i1:', i1, 'i2:', i2)
             raise "error occurred during getNeiID."
-
-
 
 # free_point index?
 # input이 있는 상황이니까 지금은 
@@ -189,6 +213,33 @@ class Data:
 
             for con in self.constraints:
                 self.const_dict[(con[0], con[1])] = (con[0], con[1])
+
+    # SteinerChainMark를 초기화하는 (비우는) 함수
+    def emptySteinerChainMark(self):
+        self.SteinerChainMark = []
+
+    # SteinerChainMark에, triangle에 해당하는 신규 내용을 업데이트시키는 함수
+    def addSteinerChainMark(self, t:Triangle, s:str):
+        p0 = self.pts[t.pts[0]]
+        p1 = self.pts[t.pts[1]]
+        p2 = self.pts[t.pts[2]]
+
+        midX = (p0.x + p1.x + p2.x) / 3
+        midY = (p0.y + p1.y + p2.y) / 3
+
+        '''
+        minX = min(p0.x, p1.x, p2.x)
+        maxX = max(p0.x, p1.x, p2.x)
+
+        minY = min(p0.y, p1.y, p2.y)
+        maxY = max(p0.y, p1.y, p2.y)
+
+        midX = (minX + maxX) / 2
+        midY = (minY + maxY) / 2
+        '''
+
+        self.SteinerChainMark.append([midX, midY, s])
+
 
     # 3개의 vertex id가 주어졌을 때, 해당하는 triangle의 리스트 dt.triangles 상에서의 index 찾기
     def getTriangleID(self, v_id1: int, v_id2: int, v_id3: int):  # vID stands for vertexID
@@ -515,28 +566,41 @@ class Data:
         print("--------------------DrawResult START--------------------")
         if name:
             name = "_" + name
+
         minx = min(list(p.x for p in self.pts))
         miny = min(list(p.y for p in self.pts))
         maxx = max(list(p.x for p in self.pts))
         maxy = max(list(p.y for p in self.pts))
+
         width = int(maxx-minx)
         height = int(maxy-miny)
-        rad = 1000/width
+        rad = 1000/width # radius?
+
         width = int(width*rad)+40
         height = int(height*rad)+40
+
         minw = 20-int(minx*rad)
         minh = height + int(miny*rad)-20
+
         img = np.zeros((height, width, 3),dtype="uint8")+255
         rad = MyNum(rad)
+
         for t in self.triangles:
+            if t.used == False:
+                continue
+
             if self.is_obtuse(t):
-                pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
+                pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],
+                                [minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],
+                                [minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]],
+                               dtype=np.int32).reshape(1,-1,2)
                 # print(pts)
                 cv2.fillPoly(img, pts, color = (random.randint(50,100),random.randint(50,100),random.randint(50,100)))
             else:
                 pts = np.array([[minw+int(rad*self.pts[t.pts[0]].x), minh-int(rad*self.pts[t.pts[0]].y)],[minw+int(rad*self.pts[t.pts[1]].x), minh-int(rad*self.pts[t.pts[1]].y)],[minw+int(rad*self.pts[t.pts[2]].x), minh-int(rad*self.pts[t.pts[2]].y)]], dtype=np.int32).reshape(1,-1,2)
                 # print(pts)
                 cv2.fillPoly(img, pts, color = (random.randint(240,254),random.randint(240,254),random.randint(240,254)))
+
         const_edges = []
         for e in self.constraints:
             const_edges.append(sorted(e))
@@ -547,6 +611,7 @@ class Data:
         const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
         cv2.line(img, (minw+int(rad*self.pts[self.region_boundary[-1]].x),minh-int(rad*self.pts[self.region_boundary[-1]].y)), (minw+int(rad*self.pts[self.region_boundary[0]].x),minh-int(rad*self.pts[self.region_boundary[0]].y)), (0,0,0), 2)
         int_edges = []
+
         for t in self.triangles:
             e1 = sorted([t.pts[0],t.pts[1]])
             e2 = sorted([t.pts[0],t.pts[2]])
@@ -563,13 +628,43 @@ class Data:
 
         # print([p.x for p in self.pts],[p.y for p in self.pts])
         for i,p in enumerate(self.pts):
+            
+            # input point는 검은색으로 표시
             if i<self.fp_ind:
                 # print(p)
                 # print(rad*p.x)
                 cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(0,0,0),-1)
                 # print((minw+int(rad*p.x),minh-int(rad*p.y)))
+                
+            # Steiner point는 파란색으로 표시
             else:
                 cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(255,0,0),-1)
+
+        for i,p in enumerate(self.pts):
+            cv2.putText(img, str(i), (minw + int(rad * p.x), minh - int(rad * p.y)), 1, 1.5, (0, 0, 0), 2)
+
+        # T1, T2, OT1, OT2 등 표시
+        for scm in self.SteinerChainMark:
+            x, y, s = scm
+            cv2.putText(img, s, (minw + int(rad * x), minh - int(rad * y)), 1, 1, (0, 0, 0))
+
+        '''
+        scm = self.SteinerChainMark[-1]
+        x, y, iterNum = scm
+        cv2.putText(img, '*', (minw + int(rad * x), minh - int(rad * y)), 1, 3, (0, 0, 0))
+        '''
+
+        '''
+        for scm in self.SteinerChainMark:
+            x, y, iterNum = scm
+
+            # print('int(rad*x):', int(rad*x))
+            # print('int(rad*y):', int(rad * y))
+
+            # cv2.putText(img, 'SEX', (minw + int(rad * x), minh - int(rad * y)), 1, 3, (0, 0, 0))
+            cv2.putText(img, str(iterNum), (minw + int(rad * x), minh - int(rad * y)), 1, 3, (0, 0, 0))
+        '''
+
         if folder:
             print("directory: ", folder+"/"+self.instance_name + ".solution" + name + ".png")
             cv2.imwrite(folder+"/"+self.instance_name + ".solution" + name + ".png", img)
