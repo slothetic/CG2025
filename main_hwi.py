@@ -14,7 +14,7 @@ from cgshop2025_pyutils import (
     InstanceDatabase,
     ZipSolutionIterator,
     ZipWriter,
-    verify,
+    verify, Cgshop2025Solution,
 )
 
 sys.setrecursionlimit(100000)
@@ -117,9 +117,29 @@ def printCurrentTriangles(dt : Data):
         print(sorted(t.pts), end = ' ')
 
 def removeTriangle(dt : Data, t : Triangle):
-    # print('remove triangle with points', sorted(t.pts))
+
     # printCurrentTriangles(dt)
-    dt.triangles.remove(t)
+    try:
+        dt.triangles.remove(t)
+
+    except:
+        print('remove triangle with points', sorted(t.pts))
+
+        print('do we have it?')
+        for temp_t in dt.triangles:
+            if sorted(temp_t.pts) == sorted(t.pts):
+                print('Yes')
+
+                print('do we have the right neis?')
+
+                temp_t.printNeis(dt.pts, 'temp_t.neis')
+                t.printNeis(dt.pts, 't.neis')
+
+            else:
+                print('No')
+
+        # print('neis of ')
+
     # print('current number of triangles:', len(dt.triangles))
 
 def isAllNeisValid(dt : Data):
@@ -183,8 +203,6 @@ def findPathToBoundary(dt : Data):
 
     while True:
 
-        # isAllNeisValid(dt)
-
         t = getAnyObtuseTriangle(dt)
         if t is None:
             print('No triangle selected, end with iterNum', iterNum)
@@ -194,6 +212,8 @@ def findPathToBoundary(dt : Data):
             print('triangle selected, pts:', t.pts)
 
         while True:
+
+            isAllNeisValid(dt)
 
             if iterNum > macro.maxIter:
                 print('iterNum exceeded', macro.maxIter, ', we stop here.')
@@ -259,7 +279,7 @@ def findPathToBoundary(dt : Data):
             proj = projection(dt.pts[aHV], dt.pts[hV1], dt.pts[hV2])
             projID = dt.addSteinerNoTriangulation(proj)
 
-            print('hV1:', hV1, 'hV2:', hV2)
+            # print('hV1:', hV1, 'hV2:', hV2)
 
             # 새로 추가한 Steiner point가 boundary 위에 있다면,
             # (1) 기존 triangle (t) 을 지우고,
@@ -458,7 +478,7 @@ def findPathToBoundary(dt : Data):
                 # newT2.neis[newT2.getNeiID(dt.pts[hV2], dt.pts[projID])] = newOT2
                 # newOT2.neis[newOT2.getNeiID(dt.pts[hV2], dt.pts[projID])] = newT2
 
-                hV1_third_oT = oT.neis[oT.getOppositeNeiID(hV2)]
+                hV1_third_oT = oT.neis[oT.getOppositeNeiID(hV2otID)]
                 if hV1_third_oT is not None:
                     for k in range(len(hV1_third_oT.neis)):
                         if hV1_third_oT.neis[k] == oT:
@@ -466,7 +486,7 @@ def findPathToBoundary(dt : Data):
                             # print('nei of hV1_third_oT changed from oT to newOT1')
                             hV1_third_oT.neis[k] = newOT1
 
-                hV2_third_oT = oT.neis[oT.getOppositeNeiID(hV1)]
+                hV2_third_oT = oT.neis[oT.getOppositeNeiID(hV1otID)]
                 if hV2_third_oT is not None:
                     for k in range(len(hV2_third_oT.neis)):
                         if hV2_third_oT.neis[k] == oT:
@@ -599,25 +619,73 @@ def moveSteinerPoint(dt : Data, instanceName : str):
     # find a good direction
     pass
 
-# 
+# filePath ex) test_dir/ortho_10_d2723dcc.solution.json
+def sol2verifySol(filePath):
+    # json.load()
+    # print(filePath)
+
+    dt = Data(filePath)
+
+    # 원래 점이 7개고, Steiner point가 3개 있으면,
+    # Steiner point들의 index는 7, 8, 9
+
+    # Steiner point, x coordinates
+    xs = []
+    # Steiner point, y coordinates
+    ys = []
+
+    for i in range(dt.fp_ind, len(dt.pts)):
+        p = dt.pts[i]
+        xs.append(p.x)
+        ys.append(p.y)
+
+    with open(filePath, "r", encoding="utf-8") as f:
+        root = json.load(f)
+        _edges = root["edges"]
+
+    return Cgshop2025Solution(
+        instance_uid=instance.instance_uid,
+
+        steiner_points_x=root["steiner_points_x"],
+        steiner_points_y=root["steiner_points_y"],
+        edges=root["edges"],
+        # steiner_points_x=xs,
+        # steiner_points_y=ys,
+        # edges=_edges,
+    )
+
+#
 if __name__=="__main__":
 
+    '''
     # Load the instances from the example_instances folder. Instead of referring to the folder,
     # you can also give a path to a zip file.
 
     # idb = InstanceDatabase("example_instances/")
-    idb = InstanceDatabase("challenge_instances_cgshop25/")
+    # idb = InstanceDatabase("challenge_instances_cgshop25/")
+    # idb = InstanceDatabase("challenge_instances_cgshop25_hwi_temp/")
+    idb = InstanceDatabase("test_dir/")
 
     # If the solution zip file already exists, delete it
     if Path("example_solutions.zip").exists():
         Path("example_solutions.zip").unlink()
 
+    numIters = 0
     # Compute solutions for all instances using the provided (naive) solver
     solutions = []
     for instance in idb:
-        solver = DelaunayBasedSolver(instance)
-        solution = solver.solve()
-        solutions.append(solution)
+        # numIters += 1
+        # print(numIters, instance.instance_uid)
+
+        solutionPath = macro.folder + '/' + instance.instance_uid + '/' + instance.instance_uid + '.solution.json'
+        print(solutionPath)
+
+        verifySol = sol2verifySol(solutionPath)
+
+        # 실제 json 형식이랑 같은지 아닌지 확인하자.
+        # solver = DelaunayBasedSolver(instance)
+        # solution = solver.solve()
+        solutions.append(verifySol)
 
     # Write the solutions to a new zip file
     with ZipWriter("example_solutions.zip") as zw:
@@ -630,6 +698,9 @@ if __name__=="__main__":
         result = verify(instance, solution)
         print(f"{solution.instance_uid}: {result}")
         assert not result.errors, "Expect no errors."
+
+    exit()
+    '''
 
     '''
     B = bool(input('give me a bool:'))
@@ -695,7 +766,7 @@ if __name__=="__main__":
     if startFromSolution:
         dt = Data(solutionJson)
     else:
-        dt = Data(instanceJson) # data 받아 오기
+        dt = Data(instanceJson, RDflag = True) # data 받아 오기
 
     # findPathToBoundary로 생성된 step 파일 모두 지우기
     for i in range(1, macro.maxIter):

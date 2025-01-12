@@ -185,7 +185,7 @@ class Triangle:
 # 짧은 여행
 
 class Data:
-    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None):
+    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None, RDflag = False):
 
         self.ban = set() # ban이 무엇인가
 
@@ -196,7 +196,7 @@ class Data:
         if input:
             self.input = input #
             self.triangles = set() # triangle의 집합
-            self.ReadData() # json 파일 받아오기
+            self.ReadData(RDflag) # json 파일 받아오기
             self.done = False # 알고리즘이 완료돼서 올바른 결과를 얻었는지에 해당하는 flag인 듯 ?
 
         else: # input parameter 0개와 함께 호출된 경우
@@ -299,11 +299,11 @@ class Data:
 
             return score
 
-    def ReadData(self):
+    def ReadData(self, B = False):
         # print("--------------------ReadData--------------------")
 
         # challenge instances 안에 있으므로.
-        if "challenge_instances_cgshop25" in self.input or "extract_instances" in self.input:
+        if "challenge_instances_cgshop25" in self.input or "extract_instances" in self.input or B:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 
@@ -363,7 +363,7 @@ class Data:
                 if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
                     self.resolve_cross(e)
 
-            self.DrawResult("old_data")    
+            # self.DrawResult("old_data")
 
     # ReadData와 중복되지 않기 위해 따로 정의
     def ReadSolution(self):
