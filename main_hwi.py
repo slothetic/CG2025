@@ -7,6 +7,16 @@ import faulthandler; faulthandler.enable()
 import shapely
 import macro
 
+from pathlib import Path
+
+from cgshop2025_pyutils import (
+    DelaunayBasedSolver,
+    InstanceDatabase,
+    ZipSolutionIterator,
+    ZipWriter,
+    verify,
+)
+
 sys.setrecursionlimit(100000)
 
 def computeEdges(dt : Data):
@@ -107,10 +117,10 @@ def printCurrentTriangles(dt : Data):
         print(sorted(t.pts), end = ' ')
 
 def removeTriangle(dt : Data, t : Triangle):
-    print('remove triangle with points', sorted(t.pts))
-    printCurrentTriangles(dt)
+    # print('remove triangle with points', sorted(t.pts))
+    # printCurrentTriangles(dt)
     dt.triangles.remove(t)
-    print('current number of triangles:', len(dt.triangles))
+    # print('current number of triangles:', len(dt.triangles))
 
 def isAllNeisValid(dt : Data):
 
@@ -130,12 +140,12 @@ def isAllNeisValid(dt : Data):
 
 def addTriangle(dt : Data, t : Triangle):
     dt.triangles.add(t)
-    print('added triangle with points', t.pts)
+    # print('added triangle with points', t.pts)
 
-    print('neis:', end = ' ')
-    t.printNeis(dt.pts)
+    # print('neis:', end = ' ')
+    # t.printNeis(dt.pts)
 
-    print('isObtuse:', dt.is_obtuse(t))
+    # print('isObtuse:', dt.is_obtuse(t))
 
     # print('and with neis:', t.printNeis(dt.pts))
     '''
@@ -146,8 +156,8 @@ def addTriangle(dt : Data, t : Triangle):
         else:
             print(sorted(nei.pts), sep=' ')
     '''
-    printCurrentTriangles(dt)
-    print('current number of triangles:', len(dt.triangles))
+    # printCurrentTriangles(dt)
+    # print('current number of triangles:', len(dt.triangles))
 
 
 def findPathToBoundary(dt : Data):
@@ -169,22 +179,11 @@ def findPathToBoundary(dt : Data):
     # 하나의 Steiner chain이 boundary에 도달해서, 새로운 obtuse triangle을 잡는 경우뿐만 아니라
     # Steiner chain 매 step 끝날 때도 iterNum을 1씩 증가시킴 (WriteData 시 삼각형 위에 iterNum을 표시하기 위해)
     iterNum = 0
-    maxIter = 10
+    # maxIter =
 
     while True:
 
-        isAllNeisValid(dt)
-
-        if iterNum > maxIter:
-            print('iterNum exceeded', maxIter, ', we stop here.')
-
-            numObtuseTriangles = 0
-            for t in dt.triangles:
-                if dt.is_obtuse(t):
-                    numObtuseTriangles += 1
-            print('Number of obtuse triangles:', numObtuseTriangles)
-
-            return
+        # isAllNeisValid(dt)
 
         t = getAnyObtuseTriangle(dt)
         if t is None:
@@ -195,6 +194,17 @@ def findPathToBoundary(dt : Data):
             print('triangle selected, pts:', t.pts)
 
         while True:
+
+            if iterNum > macro.maxIter:
+                print('iterNum exceeded', macro.maxIter, ', we stop here.')
+
+                numObtuseTriangles = 0
+                for t in dt.triangles:
+                    if dt.is_obtuse(t):
+                        numObtuseTriangles += 1
+                print('Number of obtuse triangles:', numObtuseTriangles)
+
+                return
 
             # initialize SteinerChainMark
             dt.emptySteinerChainMark()
@@ -285,14 +295,14 @@ def findPathToBoundary(dt : Data):
                 if aHV_hV1_t is not None:
                     for k in range(len(aHV_hV1_t.neis)):
                         if aHV_hV1_t.neis[k] == t:
-                            print('nei of aHV_hV1_t changed from t:', t.pts, 'to newT1', newT1.pts)
+                            # print('nei of aHV_hV1_t changed from t:', t.pts, 'to newT1', newT1.pts)
                             aHV_hV1_t.neis[k] = newT1
 
                 aHV_hV2_t = t.neis[t.getOppositeNeiID(hV1tID)] # aHV와 hV2를 잇는 직선을 t와 공유 (했던) triangle
                 if aHV_hV2_t is not None:
                     for k in range(len(aHV_hV2_t.neis)):
                         if aHV_hV2_t.neis[k] == t:
-                            print('nei of aHV_hV2_t changed from t:', t.pts, 'to newT2', newT2.pts)
+                            # print('nei of aHV_hV2_t changed from t:', t.pts, 'to newT2', newT2.pts)
                             aHV_hV2_t.neis[k] = newT2
 
                 '''
@@ -330,7 +340,7 @@ def findPathToBoundary(dt : Data):
 
                 # iterNum 올리고 결과 출력
                 iterNum += 1
-                dt.DrawResult('step' + str(iterNum), './challenge_instances_cgshop25_hwi')
+                dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
 
                 '''
                 print('printObtuse hV1-projID-aHV'); printObtuse(dt.pts[hV1], dt.pts[projID], dt.pts[aHV])
@@ -413,35 +423,35 @@ def findPathToBoundary(dt : Data):
                 if aHV_hV1_t is not None:
                     for k in range(len(aHV_hV1_t.neis)):
                         if aHV_hV1_t.neis[k] == t:
-                            print('nei of aHV_hV1_t changed from t:', t.pts, 'to newT1', newT1.pts)
+                            # print('nei of aHV_hV1_t changed from t:', t.pts, 'to newT1', newT1.pts)
                             aHV_hV1_t.neis[k] = newT1
 
                 aHV_hV2_t = t.neis[t.getOppositeNeiID(hV1tID)] # aHV와 hV2를 잇는 직선을 t와 공유 (했던) triangle
                 if aHV_hV2_t is not None:
                     for k in range(len(aHV_hV2_t.neis)):
                         if aHV_hV2_t.neis[k] == t:
-                            print('nei of aHV_hV2_t changed from t:', t.pts, 'to newT2', newT2.pts)
+                            # print('nei of aHV_hV2_t changed from t:', t.pts, 'to newT2', newT2.pts)
                             aHV_hV2_t.neis[k] = newT2
 
-                print('newT1.pts:', newT1.pts)
-                newT1.printNeis(dt.pts, 'newT1, before change')
+                # print('newT1.pts:', newT1.pts)
+                # newT1.printNeis(dt.pts, 'newT1, before change')
                 newT1.neis[newT1.getNeiID(hV1, projID)] = newOT1
-                newT1.printNeis(dt.pts, 'newT1, after change')
+                # newT1.printNeis(dt.pts, 'newT1, after change')
 
-                print('newOT1.pts:', newOT1.pts)
-                newOT1.printNeis(dt.pts, 'newOT1, before change')
+                # print('newOT1.pts:', newOT1.pts)
+                # newOT1.printNeis(dt.pts, 'newOT1, before change')
                 newOT1.neis[newOT1.getNeiID(hV1, projID)] = newT1
-                newOT1.printNeis(dt.pts, 'newOT1, after change')
+                # newOT1.printNeis(dt.pts, 'newOT1, after change')
 
-                print('newT2.pts:', newT2.pts)
-                newT2.printNeis(dt.pts, 'newT2, before change')
+                # print('newT2.pts:', newT2.pts)
+                # newT2.printNeis(dt.pts, 'newT2, before change')
                 newT2.neis[newT2.getNeiID(hV2, projID)] = newOT2
-                newT2.printNeis(dt.pts, 'newT2, after change')
+                # newT2.printNeis(dt.pts, 'newT2, after change')
 
-                print('newOT2.pts:', newOT2.pts)
-                newOT2.printNeis(dt.pts, 'newOT2, before change')
+                # print('newOT2.pts:', newOT2.pts)
+                # newOT2.printNeis(dt.pts, 'newOT2, before change')
                 newOT2.neis[newOT2.getNeiID(hV2, projID)] = newT2
-                newOT2.printNeis(dt.pts, 'newOT2, after change')
+                # newOT2.printNeis(dt.pts, 'newOT2, after change')
 
                 # newT1.neis[newT1.getNeiID(dt.pts[hV1], dt.pts[projID])] = newOT1
                 # newOT1.neis[newOT1.getNeiID(dt.pts[hV1], dt.pts[projID])] = newT1
@@ -452,7 +462,7 @@ def findPathToBoundary(dt : Data):
                 if hV1_third_oT is not None:
                     for k in range(len(hV1_third_oT.neis)):
                         if hV1_third_oT.neis[k] == oT:
-                            print('nei of hV1_third_oT changed from oT:', oT.pts, 'to newOT1', newOT1.pts)
+                            # print('nei of hV1_third_oT changed from oT:', oT.pts, 'to newOT1', newOT1.pts)
                             # print('nei of hV1_third_oT changed from oT to newOT1')
                             hV1_third_oT.neis[k] = newOT1
 
@@ -460,7 +470,7 @@ def findPathToBoundary(dt : Data):
                 if hV2_third_oT is not None:
                     for k in range(len(hV2_third_oT.neis)):
                         if hV2_third_oT.neis[k] == oT:
-                            print('nei of hV2_third_oT changed from oT:', oT.pts, 'to newOT2', newOT2.pts)
+                            # print('nei of hV2_third_oT changed from oT:', oT.pts, 'to newOT2', newOT2.pts)
                             # print('nei of hV2_third_oT changed from oT to newOT2')
                             hV2_third_oT.neis[k] = newOT2
 
@@ -547,7 +557,7 @@ def findPathToBoundary(dt : Data):
 
                 # iterNum 올리고 결과 출력
                 iterNum += 1
-                dt.DrawResult('step' + str(iterNum), './challenge_instances_cgshop25_hwi')
+                dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
 
                 '''
                 if dt.is_obtuse(newOT1):
@@ -592,50 +602,111 @@ def moveSteinerPoint(dt : Data, instanceName : str):
 # 
 if __name__=="__main__":
 
+    # Load the instances from the example_instances folder. Instead of referring to the folder,
+    # you can also give a path to a zip file.
+
+    # idb = InstanceDatabase("example_instances/")
+    idb = InstanceDatabase("challenge_instances_cgshop25/")
+
+    # If the solution zip file already exists, delete it
+    if Path("example_solutions.zip").exists():
+        Path("example_solutions.zip").unlink()
+
+    # Compute solutions for all instances using the provided (naive) solver
+    solutions = []
+    for instance in idb:
+        solver = DelaunayBasedSolver(instance)
+        solution = solver.solve()
+        solutions.append(solution)
+
+    # Write the solutions to a new zip file
+    with ZipWriter("example_solutions.zip") as zw:
+        for solution in solutions:
+            zw.add_solution(solution)
+
+    # Verify the solutions
+    for solution in ZipSolutionIterator("example_solutions.zip"):
+        instance = idb[solution.instance_uid]
+        result = verify(instance, solution)
+        print(f"{solution.instance_uid}: {result}")
+        assert not result.errors, "Expect no errors."
+
+    '''
+    B = bool(input('give me a bool:'))
+    print(B)
+    B = bool(input('give me a bool:'))
+    print(B)
+    exit()
+    '''
+
+    '''
+    L = 'abc.solution.json'
+    print(L[len(L)-13:])
+    print(L[:len(L)-13])
+    exit()
+    '''
+
     argument = sys.argv
 
-    if len(argument) >= 2:
+    if len(argument) == 3:
 
-        inp = argument[1]
+        # ex) ortho_10_d2723dcc, ortho_20_5a9e8244
+        nick = argument[1]
 
+        if argument[2] == 'T':
+            startFromSolution = True
+        else:
+            startFromSolution = False
+
+        # ex) hwi_instances/ortho_10_d2723dcc
+        realFolder = macro.folder + '/' + nick
+
+        # ex) hwi_instances/ortho_10_d2723dcc/ortho_10_d2723dcc.instance.json
+        instanceJson = realFolder + '/' + nick + '.instance.json'
+        solutionJson = realFolder + '/' + nick + '.solution.json'
+        solution = realFolder + '/' + nick + '.solution'
+
+        '''
         # json으로 끝나면 그대로 두기
-        if inp[:9] == 'challenge':
+        if nick[:9] == 'challenge':
             pass
         else:
-            inp = "challenge_instances_cgshop25_hwi/" + inp
+            inp = macro.folder + nick
 
-        if inp[len(inp)-4:] == 'json':
-            inpInstanceJson = inp
+        if inp[len(inp)-13:] == 'instance.json':
+            inpInstanceJson = nick
+        elif inp[len(inp)-13:] == 'solution.json':
+            inpSolutionJson = nick
+            inp = inp[:len(inp)-13]
+            startFromSolution = True
         else:
             # ex) ends with 'd2723dcc'
-            inpInstanceJson = inp + ".instance.json"
-
-        # json으로 끝나면 그대로 두기
-        if inp[:9] == ' ' and inp[len(inp)-4:] == 'json':
-            pass
-
-        # 그렇지 않으면
-        elif True:
-            if len(argument)>=2:
-                inp = argument[1]
+            inpInstanceJson = nick + ".instance.json"
+        '''
 
     else:
-        inp = "challenge_instances_cgshop25_hwi/ortho_10_d2723dcc"
-        inpInstanceJson = "challenge_instances_cgshop25_hwi/ortho_10_d2723dcc.instance.json"
+        # nick = "hwi_instances/ortho_10_d2723dcc"
+        # inpInstanceJson = "hwi_instances/ortho_10_d2723dcc.instance.json"
+
+        raise "error, instance nickname is invalid."
 
     # print(inp) # instance 이름 출력
 
-    dt = Data(inpInstanceJson) # data 받아 오기
+    if startFromSolution:
+        dt = Data(solutionJson)
+    else:
+        dt = Data(instanceJson) # data 받아 오기
 
     # findPathToBoundary로 생성된 step 파일 모두 지우기
     for i in range(1, macro.maxIter):
-        filePath = inp + '.solution_step' + str(i) + '.png'
+        #
+        filePath = solution + '_step' + str(i) + '.png'
         if os.path.exists(filePath):
             os.remove(filePath)
 
-    dt.triangulate()
-
-    dt.delaunay_triangulate()
+    if not startFromSolution:
+        dt.triangulate()
+        dt.delaunay_triangulate()
 
     findPathToBoundary(dt)
 

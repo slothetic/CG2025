@@ -339,6 +339,7 @@ class Data:
                     st_pt.append(Point(st_x[i], st_y[i]))
                 edges = root["edges"]
 
+            # 동명의 instance로부터 가져올 수 있는 정보도 있으므로.
             with open(inp, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 self.fp_ind = int(root["num_points"])
@@ -363,7 +364,48 @@ class Data:
                     self.resolve_cross(e)
 
             self.DrawResult("old_data")    
-    
+
+    # ReadData와 중복되지 않기 위해 따로 정의
+    def ReadSolution(self):
+
+        with open(self.input, "r", encoding="utf-8") as f:
+            root = json.load(f)
+            self.instance_name = root["instance_uid"]
+            # print(self.instance_name)
+            inp = "./challenge_instances_cgshop25/" + self.instance_name + ".instance.json"
+            st_x = root["steiner_points_x"]
+            st_y = root["steiner_points_y"]
+            st_pt = []
+            for i in range(len(st_x)):
+                st_pt.append(Point(st_x[i], st_y[i]))
+            edges = root["edges"]
+
+        # 동명의 instance로부터 가져올 수 있는 정보도 있으므로.
+        with open(inp, "r", encoding="utf-8") as f:
+            root = json.load(f)
+            self.fp_ind = int(root["num_points"])
+            pts_x = root["points_x"]
+            pts_y = root["points_y"]
+            self.pts = []
+            for i in range(len(pts_y)):
+                self.pts.append(Point(pts_x[i], pts_y[i]))
+            self.region_boundary = deque(root["region_boundary"])
+            self.num_constraints = root["num_constraints"]
+            self.constraints = set()
+            self.const_dict = dict()
+            for con in root["additional_constraints"]:
+                self.constraints.add((con[0], con[1]))
+                self.const_dict[(con[0], con[1])] = (con[0], con[1])
+
+        self.triangulate()
+        self.delaunay_triangulate()
+        self.add_steiners(st_pt)
+        for e in edges:
+            if self.find_triangle(e[0], e[1]) == -1 and self.find_triangle(e[1], e[0]) != -1:
+                self.resolve_cross(e)
+
+        self.DrawResult("old_data")
+
     def MakeInstance(self):
         inst = dict()
         inst["instance_uid"] = self.instance_name
@@ -470,6 +512,7 @@ class Data:
                     #     json.dump(inst, f, indent='\t')
                     self.DrawResult(folder="opt_solutions")
 
+                '''
                 else:
                     print("Not the best score, but we have done it")
 
@@ -479,6 +522,7 @@ class Data:
                     # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
                     #     json.dump(inst, f, indent='\t')
                     self.DrawResult(folder="opt_solutions")
+                '''
 
                 break
 
