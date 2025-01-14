@@ -19,6 +19,56 @@ from cgshop2025_pyutils import (
 
 sys.setrecursionlimit(100000)
 
+
+# free_point index?
+# input이 있는 상황이니까 지금은
+# input을 넣어주고.
+# triangle을 넣어주고.
+
+# 그럼 해야 하는 게 디버그에서 self 안에 뭐 들어있는지? 아니 그건 당연하잖아.
+# read data에서 뭘 하는지 보고 오기.
+# 짧은 여행
+
+# 그래프로 반환?
+# adjacency list를 써서.
+
+# 이런거 다 필요없이 그냥 const_edge 어떻게 되는지만 봐도 될듯?
+
+class Graph:
+    def __init__(self, vers = None, aList = None, aMat = None):
+        # vertices, type: list of Points
+        self.vers = vers
+        # adjacency list, type: list of list of integers
+        self.aList = aList
+        # adjacency matrix, type: matrix of 0/1s, or technically again, list of list of integers
+        self.aMat = aMat
+
+    # matmul
+
+    # find all 3-cycles (triangles) in the graph
+    def findTriangles(self):
+        # 인터넷 코드 참고하기 (검색 예시: how to find 3-cycles triangles matrix)
+        # aMat 사용
+        pass
+
+# G = (V, E)
+def data2Graph(dt: Data):
+    # list deepcopy 하기?
+    _vers = dt.pts
+
+    # need to implement
+    _aList = []
+
+    return Graph(vers=_vers, aList=_aList)
+
+# edge로부터 triangle들을 reconstruct
+# cubic time algorithm
+def reconstructTriangles(edges: list([int, int])): # -> set(Triangle):
+
+    for e in edges:
+        pass
+    return
+
 def computeEdges(dt : Data):
 
     for t in dt.triangles:
@@ -33,9 +83,6 @@ def computeEdges(dt : Data):
 
         v1.incidentPoints.append([v2, isConstrained])
         v2.incidentPoints.append([v1, isConstrained])
-
-def data2Graph():
-    pass
 
 # checks if all edges of the given point are non-constrained
 def isAllEdgesNonConstrained(p : Point) -> bool:
@@ -179,6 +226,53 @@ def addTriangle(dt : Data, t : Triangle):
     # printCurrentTriangles(dt)
     # print('current number of triangles:', len(dt.triangles))
 
+# edge 하나를 공유하는 triangle pair가,
+# edge가 constrained 더라도 neis 정보를 None이 아니도록 업데이트
+# 모든 triangle pair에 대해서 테스트할 것인지?
+# 아님 뭐 edge들? 근데 edge set은 마지막에 solution에서나 계산되는 거잖아.
+# 그러므로 triangle pair에 대해서 하는 것이 맞음
+def recoverConstrainedNeis(dt:Data):
+    for t1 in dt.triangles:
+        for t2 in dt.triangles:
+            inter = set(t1.pts).intersection(set(t2.pts))
+            
+            # 3개면 정확히 같은 triangle
+            # 1개인 경우도 존재 가능. degree가 큰 vertex를, 여러 개의 triangle이 각각 vertex로 가지고 있는 경우
+            if len(inter) == 2:
+                interL = list(inter)
+
+                t1IDs = [t1.get_ind(interL[0]), t1.get_ind(interL[1])]
+
+                if t1IDs == [0, 1] or t1IDs == [1, 0]:
+                    t1NeiID = 0
+                elif t1IDs == [1, 2] or t1IDs == [2, 1]:
+                    t1NeiID = 1
+                elif t1IDs == [2, 0] or t1IDs == [0, 2]:
+                    t1NeiID = 2
+                else:
+                    raise "error"
+
+                t2IDs = [t2.get_ind(interL[0]), t2.get_ind(interL[1])]
+
+                if t2IDs == [0, 1] or t2IDs == [1, 0]:
+                    t2NeiID = 0
+                elif t2IDs == [1, 2] or t2IDs == [2, 1]:
+                    t2NeiID = 1
+                elif t2IDs == [2, 0] or t2IDs == [0, 2]:
+                    t2NeiID = 2
+                else:
+                    raise "error"
+
+                if t1.neis[t1NeiID] is None and t2.neis[t2NeiID] is None:
+                    t1.neis[t1NeiID] = t2
+                    t2.neis[t2NeiID] = t1
+
+                # 둘다 None이 아니면 이상하므로 오류 raise
+                elif t1.neis[t1NeiID] is not None and t2.neis[t2NeiID] is None:
+                    raise "error"
+
+                elif t1.neis[t1NeiID] is None and t2.neis[t2NeiID] is not None:
+                    raise "error"
 
 def findPathToBoundary(dt : Data):
 
@@ -209,11 +303,11 @@ def findPathToBoundary(dt : Data):
             return
         else:
             # print('triangle #', _, 'selected')
-            print('triangle selected, pts:', t.pts)
+            print('triangle selected, pts:', t.pts, 'iterNum:', iterNum)
 
         while True:
 
-            isAllNeisValid(dt)
+            # isAllNeisValid(dt)
 
             if iterNum > macro.maxIter:
                 print('iterNum exceeded', macro.maxIter, ', we stop here.')
@@ -223,6 +317,8 @@ def findPathToBoundary(dt : Data):
                     if dt.is_obtuse(t):
                         numObtuseTriangles += 1
                 print('Number of obtuse triangles:', numObtuseTriangles)
+
+                dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
 
                 return
 
@@ -279,6 +375,18 @@ def findPathToBoundary(dt : Data):
             proj = projection(dt.pts[aHV], dt.pts[hV1], dt.pts[hV2])
             projID = dt.addSteinerNoTriangulation(proj)
 
+            '''
+            for e in dt.constraints:
+                if dt.is_on(e[0], e[1], proj):
+                    dt.constraints.add((e[0], i))
+                    dt.constraints.add((e[1], i))
+                    dt.const_dict[(e[0], i)] = dt.const_dict[e]
+                    dt.const_dict[(e[1], i)] = dt.const_dict[e]
+                    del dt.const_dict[e]
+                    dt.constraints.remove(e)
+                    break
+            '''
+
             # print('hV1:', hV1, 'hV2:', hV2)
 
             # 새로 추가한 Steiner point가 boundary 위에 있다면,
@@ -286,7 +394,7 @@ def findPathToBoundary(dt : Data):
             # (2) 새로운 두 triangle (newT1, newT2) 을 더하고, pts 및 neis 정보를 업데이트한 뒤 함수 종료
             if oT is None:
 
-                print('oT is None, iterNum:', iterNum)
+                # print('oT is None, iterNum:', iterNum)
 
                 # triangle 정보 복사
 
@@ -360,7 +468,7 @@ def findPathToBoundary(dt : Data):
 
                 # iterNum 올리고 결과 출력
                 iterNum += 1
-                dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
+                # dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
 
                 '''
                 print('printObtuse hV1-projID-aHV'); printObtuse(dt.pts[hV1], dt.pts[projID], dt.pts[aHV])
@@ -383,7 +491,7 @@ def findPathToBoundary(dt : Data):
                 print('t == oT ?', t == oT)
                 '''
 
-                print('oT is not None, iterNum:', iterNum)
+                # print('oT is not None, iterNum:', iterNum)
 
                 # triangle 정보 복사
 
@@ -577,7 +685,7 @@ def findPathToBoundary(dt : Data):
 
                 # iterNum 올리고 결과 출력
                 iterNum += 1
-                dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
+                # dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
 
                 '''
                 if dt.is_obtuse(newOT1):
@@ -619,11 +727,24 @@ def moveSteinerPoint(dt : Data, instanceName : str):
     # find a good direction
     pass
 
+def sol2Data(filePath):
+    dt = Data()
+
+    json.load(filePath)
+
+    dt = Data(filePath)
+
+    return dt
+
 # filePath ex) test_dir/ortho_10_d2723dcc.solution.json
 def sol2verifySol(filePath):
+
+    print('sol2verifySol start')
     # json.load()
     # print(filePath)
 
+    print('read from', filePath)
+    # dt = Data(filePath, _triangulateAfterReadSolution=True)
     dt = Data(filePath)
 
     # 원래 점이 7개고, Steiner point가 3개 있으면,
@@ -654,53 +775,82 @@ def sol2verifySol(filePath):
         # edges=_edges,
     )
 
+def onOneSide(p1:Point, p2:Point, p3:Point) -> bool:
+    x1 = p1.x; x2 = p2.x; x3 = p3.x
+    y1 = p1.y; y2 = p2.y; y3 = p3.y
+
+    if ((x2-x1) * (y3-y1)) - ((y2-y1) * (x3-x1)) > 0:
+        return True
+    else:
+        return False
+
+def printTriangleSides(dt:Data):
+    for t in dt.triangles:
+        p0 = dt.pts[t.pts[0]]; p1 = dt.pts[t.pts[1]]; p2 = dt.pts[t.pts[2]]
+
+        q = Point((p0.x + p1.x + p2.x) / 3, (p0.y + p1.y + p2.y) / 3)
+        # midX = (p0.x + p1.x + p2.x) / 3
+        # midY = (p0.y + p1.y + p2.y) / 3
+
+        print(onOneSide(q, p0, p1), onOneSide(q, p1, p2), onOneSide(q, p2, p0))
+
+# def dt2:
+
 #
 if __name__=="__main__":
 
-    '''
-    # Load the instances from the example_instances folder. Instead of referring to the folder,
-    # you can also give a path to a zip file.
 
-    # idb = InstanceDatabase("example_instances/")
-    # idb = InstanceDatabase("challenge_instances_cgshop25/")
-    # idb = InstanceDatabase("challenge_instances_cgshop25_hwi_temp/")
-    idb = InstanceDatabase("test_dir/")
+    argument = sys.argv
 
-    # If the solution zip file already exists, delete it
-    if Path("example_solutions.zip").exists():
-        Path("example_solutions.zip").unlink()
+    if argument[3] == 'T':
+        # Load the instances from the example_instances folder. Instead of referring to the folder,
+        # you can also give a path to a zip file.
 
-    numIters = 0
-    # Compute solutions for all instances using the provided (naive) solver
-    solutions = []
-    for instance in idb:
-        # numIters += 1
-        # print(numIters, instance.instance_uid)
+        # idb = InstanceDatabase("example_instances/")
+        # idb = InstanceDatabase("challenge_instances_cgshop25/")
+        # idb = InstanceDatabase("challenge_instances_cgshop25_hwi_temp/")
+        idb = InstanceDatabase("test_dir/")
 
-        solutionPath = macro.folder + '/' + instance.instance_uid + '/' + instance.instance_uid + '.solution.json'
-        print(solutionPath)
+        # If the solution zip file already exists, delete it
+        if Path("example_solutions.zip").exists():
+            Path("example_solutions.zip").unlink()
 
-        verifySol = sol2verifySol(solutionPath)
+        numIters = 0
+        # Compute solutions for all instances using the provided (naive) solver
+        solutions = []
+        for instance in idb:
+            # numIters += 1
+            # print(numIters, instance.instance_uid)
 
-        # 실제 json 형식이랑 같은지 아닌지 확인하자.
-        # solver = DelaunayBasedSolver(instance)
-        # solution = solver.solve()
-        solutions.append(verifySol)
+            solutionPath = 'solutions' + '/' + instance.instance_uid + '.solution.json'
+            # solutionPath = macro.folder + '/' + instance.instance_uid + '/' + instance.instance_uid + '.solution.json'
+            print(solutionPath)
 
-    # Write the solutions to a new zip file
-    with ZipWriter("example_solutions.zip") as zw:
-        for solution in solutions:
-            zw.add_solution(solution)
+            verifySol = sol2verifySol(solutionPath)
 
-    # Verify the solutions
-    for solution in ZipSolutionIterator("example_solutions.zip"):
-        instance = idb[solution.instance_uid]
-        result = verify(instance, solution)
-        print(f"{solution.instance_uid}: {result}")
-        assert not result.errors, "Expect no errors."
+            # 실제 json 형식이랑 같은지 아닌지 확인하자.
+            # solver = DelaunayBasedSolver(instance)
+            # solution = solver.solve()
+            solutions.append(verifySol)
 
-    exit()
-    '''
+        # Write the solutions to a new zip file
+        with ZipWriter("example_solutions.zip") as zw:
+            for solution in solutions:
+                zw.add_solution(solution)
+
+        # Verify the solutions
+        for solution in ZipSolutionIterator("example_solutions.zip"):
+            instance = idb[solution.instance_uid]
+            result = verify(instance, solution)
+            print(f"{solution.instance_uid}: {result}")
+            assert not result.errors, "Expect no errors."
+
+        exit()
+
+    # result = verify(instance, solution)
+    # print(f"{solution.instance_uid}: {result}")
+    # assert not result.errors, "Expect no errors."
+
 
     '''
     B = bool(input('give me a bool:'))
@@ -717,9 +867,9 @@ if __name__=="__main__":
     exit()
     '''
 
-    argument = sys.argv
 
-    if len(argument) == 3:
+
+    if len(argument) >= 3:
 
         # ex) ortho_10_d2723dcc, ortho_20_5a9e8244
         nick = argument[1]
@@ -764,9 +914,18 @@ if __name__=="__main__":
     # print(inp) # instance 이름 출력
 
     if startFromSolution:
-        dt = Data(solutionJson)
+
+        # (1)
+        # dt = Data(solutionJson)
+
+        # (2)
+        dt = Data(solutionJson, _triangulateAfterReadSolution=True)
+
+        # (3)
+        # dt = Data(solutionJson, ...)
+
     else:
-        dt = Data(instanceJson, RDflag = True) # data 받아 오기
+        dt = Data(instanceJson, _readAsInstance=True)
 
     # findPathToBoundary로 생성된 step 파일 모두 지우기
     for i in range(1, macro.maxIter):
@@ -779,7 +938,14 @@ if __name__=="__main__":
         dt.triangulate()
         dt.delaunay_triangulate()
 
+    # printTriangleSides(dt)
+
+    recoverConstrainedNeis(dt)
+
     findPathToBoundary(dt)
+
+    # printTriangleSides(dt)
+    # exit()
 
     dt.WriteData()
 

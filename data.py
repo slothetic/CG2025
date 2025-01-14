@@ -175,17 +175,8 @@ class Triangle:
             print('i1:', i1, 'i2:', i2)
             raise "error occurred during getNeiID."
 
-# free_point index?
-# input이 있는 상황이니까 지금은 
-# input을 넣어주고.
-# triangle을 넣어주고.
-
-# 그럼 해야 하는 게 디버그에서 self 안에 뭐 들어있는지? 아니 그건 당연하잖아.
-# read data에서 뭘 하는지 보고 오기.
-# 짧은 여행
-
 class Data:
-    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None, RDflag = False):
+    def __init__(self, input, pts=None, constraints=None, bds=None, fp_ind=None, triangles = None, _readAsInstance = False, _triangulateAfterReadSolution = False):
 
         self.ban = set() # ban이 무엇인가
 
@@ -196,7 +187,7 @@ class Data:
         if input:
             self.input = input #
             self.triangles = set() # triangle의 집합
-            self.ReadData(RDflag) # json 파일 받아오기
+            self.ReadData(readAsInstance=_readAsInstance, triangulateAfterReadSolution = _triangulateAfterReadSolution) # json 파일 받아오기
             self.done = False # 알고리즘이 완료돼서 올바른 결과를 얻었는지에 해당하는 flag인 듯 ?
 
         else: # input parameter 0개와 함께 호출된 경우
@@ -299,11 +290,11 @@ class Data:
 
             return score
 
-    def ReadData(self, B = False):
+    def ReadData(self, readAsInstance = False, triangulateAfterReadSolution = False):
         # print("--------------------ReadData--------------------")
 
         # challenge instances 안에 있으므로.
-        if "challenge_instances_cgshop25" in self.input or "extract_instances" in self.input or B:
+        if "challenge_instances_cgshop25" in self.input or "extract_instances" in self.input or readAsInstance:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 
@@ -356,13 +347,20 @@ class Data:
                     self.constraints.add((con[0], con[1]))
                     self.const_dict[(con[0], con[1])] = (con[0], con[1])
 
-            self.triangulate()
-            self.delaunay_triangulate()
-            self.add_steiners(st_pt)
-            for e in edges:
-                if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
-                    self.resolve_cross(e)
+            if triangulateAfterReadSolution:
+                self.triangulate()
+                self.delaunay_triangulate()
+                self.add_steiners(st_pt)
+                for e in edges:
+                    if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
+                        self.resolve_cross(e)
 
+            else:
+                pass
+                # reconstructTriangles(edges)
+                # reconstructNeis()
+                # find
+                # s
             # self.DrawResult("old_data")
 
     # ReadData와 중복되지 않기 위해 따로 정의
@@ -430,17 +428,25 @@ class Data:
         inst["instance_uid"]=self.instance_name
         inst["steiner_points_x"] =  list(p.x.toString() for p in self.pts[self.fp_ind:])
         inst["steiner_points_y"] =  list(p.y.toString() for p in self.pts[self.fp_ind:])
+        
+        ## constrained edges
         const_edges = []
 
+        # e: vertex index 2개로 구성
         for e in self.constraints:
             const_edges.append(sorted(list(e)))
 
+        # region boundary도 const_edges에 포함
         for i in range(1,len(self.region_boundary)):
             const_edges.append(sorted([self.region_boundary[i-1],self.region_boundary[i]]))
 
+        # 마지막 region boundary edge도 추가
         const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
+
+        ## interior edges
         int_edges = []
 
+        # triangle edge들을 모두 더함
         for t in self.triangles:
             if t.used == False:
                 continue
@@ -461,6 +467,8 @@ class Data:
             if e3 not in int_edges:
                 int_edges.append(e3)
 
+
+        ## obtuse triangle 개수 세기
         obt = 0
 
         for t in self.triangles:
@@ -684,13 +692,21 @@ class Data:
             else:
                 cv2.circle(img, (minw+int(rad*p.x),minh-int(rad*p.y)), 5,(255,0,0),-1)
 
+        # debug
+        # cv2.putText(img, 'F', (minw + int(rad * int(73)), minh - int(rad * int(91))), 1, 1.5, (0, 0, 0), 5)
+        # cv2.putText(img, 'F', (minw + int(rad * int(84)), minh - int(rad * int(59))), 1, 1.5, (0, 0, 0), 5)
+
+        '''
         for i,p in enumerate(self.pts):
             cv2.putText(img, str(i), (minw + int(rad * p.x), minh - int(rad * p.y)), 1, 1.5, (0, 0, 0), 2)
+        '''
 
+        '''
         # T1, T2, OT1, OT2 등 표시
         for scm in self.SteinerChainMark:
             x, y, s = scm
             cv2.putText(img, s, (minw + int(rad * x), minh - int(rad * y)), 1, 1, (0, 0, 0))
+        '''
 
         '''
         scm = self.SteinerChainMark[-1]
