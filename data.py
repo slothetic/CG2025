@@ -349,8 +349,11 @@ class Data:
 
             if triangulateAfterReadSolution:
                 self.triangulate()
+                print('triangulation done')
                 self.delaunay_triangulate()
+                print('Delaunay triangulation done')
                 self.add_steiners(st_pt)
+                print('add_steiners( ) done')
                 for e in edges:
                     if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
                         self.resolve_cross(e)
@@ -613,7 +616,33 @@ class Data:
     #         # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
     #         #     json.dump(inst, f, indent='\t')
     #         self.DrawResult(folder="opt_solutions")
-                    
+
+    # 전제 조건: t는 obtuse triangle.
+    # 그래야 가장 긴 변이, proj가 올라간 변이 됨.
+    def isOTnone(self, t: Triangle):
+
+        len01 = sqdist(self.pts[t.pts[0]], self.pts[t.pts[1]])
+        len12 = sqdist(self.pts[t.pts[1]], self.pts[t.pts[2]])
+        len20 = sqdist(self.pts[t.pts[2]], self.pts[t.pts[0]])
+
+        if len01 > len12 and len01 > len20:
+            oT = t.neis[0]
+
+        # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
+        elif len12 > len01 and len12 > len20:
+            oT = t.neis[1]
+
+        # dt.pts[hV1]dt.pts[hV2] is the hypotenuse
+        elif len20 > len01 and len20 > len12:
+            oT = t.neis[2]
+        else:
+            raise "In an obtuse triangle, there must exist an edge (hypotenuse) whose length is larger than the two other edges."
+
+        if oT is None:
+            return True
+        else:
+            return False
+
     def DrawResult(self, name="", folder = ""):
         print("--------------------DrawResult START--------------------")
         if name:

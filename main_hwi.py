@@ -93,12 +93,23 @@ def isAllEdgesNonConstrained(p : Point) -> bool:
 
     return True
 
-def getAnyObtuseTriangle(dt : Data):
+def getAnyObtuseTriangle(dt : Data, searchT : Triangle):
+
+    # if len(TriangleList) <= curIndex:
+
+    # TriangleList, curIndex
+
+    # if searchT in dt.triangles:
+    #     if searchT.used == True:
+    #         if dt.is_obtuse(searchT):
+    #             return T
+
 
     for t in dt.triangles:
-        if t.used == True:
-            if dt.is_obtuse(t):
-                return t
+        if sorted(t.pts) == sorted(searchT.pts):
+            if t.used == True:
+                if dt.is_obtuse(t):
+                    return t
     '''
     for n, t in enumerate(dt.triangles):
         if t.used == True:
@@ -274,6 +285,25 @@ def recoverConstrainedNeis(dt:Data):
                 elif t1.neis[t1NeiID] is None and t2.neis[t2NeiID] is not None:
                     raise "error"
 
+def getObtuseTriangleWithNone(dt:Data):
+
+    for t in dt.triangles:
+        if t.used == True:
+
+            if dt.is_obtuse(t) and dt.isOTnone(t):
+                return t
+    '''
+    for n, t in enumerate(dt.triangles):
+        if t.used == True:
+            if dt.is_obtuse(t):
+                return n, t
+    '''
+
+    print('There is no obtuse triangle in the triangulation, with OT=none.')
+    return None
+
+    pass
+
 def findPathToBoundary(dt : Data):
 
     '''
@@ -292,26 +322,51 @@ def findPathToBoundary(dt : Data):
     # indicates the current iteration number
     # 하나의 Steiner chain이 boundary에 도달해서, 새로운 obtuse triangle을 잡는 경우뿐만 아니라
     # Steiner chain 매 step 끝날 때도 iterNum을 1씩 증가시킴 (WriteData 시 삼각형 위에 iterNum을 표시하기 위해)
-    iterNum = 0
+
     # maxIter =
+
+    # 어차피 그 부산물로 생기는 triangle들은 중요하지 않으므로
+    # vertex의 index 만 해서 체크하자고. nei는 바뀔 수 있으니까
+    # 근데 nei가 바뀐다는 말은 지금 얘도 바뀌어야 한다는 것 아닌가?
+    TriangleList = list(dt.triangles)
+
+    curIndex = 0
 
     while True:
 
-        t = getAnyObtuseTriangle(dt)
-        if t is None:
-            print('No triangle selected, end with iterNum', iterNum)
+        # (1) triangle 고르는 부분
+
+        iterNum = 0
+
+        # t = getObtuseTriangleWithNone(dt)
+        t = getAnyObtuseTriangle(dt, TriangleList[curIndex])
+
+        # 리스트로 바꾼 다음 set 안에서 계속 search 해야겠구만
+
+        curIndex += 1
+
+        if curIndex >= len(TriangleList):
+            print('index over')
             return
+        elif t is None:
+            print('t is None, we again increment curIndex')
+            continue
         else:
             # print('triangle #', _, 'selected')
-            print('triangle selected, pts:', t.pts, 'iterNum:', iterNum)
+            print('Triangle selected, pts:', t.pts, 'curIndex:', curIndex)
 
         while True:
 
             # isAllNeisValid(dt)
 
-            if iterNum > macro.maxIter:
-                print('iterNum exceeded', macro.maxIter, ', we stop here.')
+            if iterNum % 10 == 0:
+                print('iterNum:', iterNum)
 
+            if iterNum > macro.maxIterPerTriangle:
+                # print('iterNum exceeded', macro.maxIter, ', we stop here.')
+                print('iterNumPerTriangle exceeded, we stop here')
+
+                '''
                 numObtuseTriangles = 0
                 for t in dt.triangles:
                     if dt.is_obtuse(t):
@@ -321,6 +376,10 @@ def findPathToBoundary(dt : Data):
                 dt.DrawResult('step' + str(iterNum), macro.folder + '/' + nick)
 
                 return
+                '''
+                break
+
+            iterNum += 1
 
             # initialize SteinerChainMark
             dt.emptySteinerChainMark()
@@ -795,6 +854,8 @@ def printTriangleSides(dt:Data):
         print(onOneSide(q, p0, p1), onOneSide(q, p1, p2), onOneSide(q, p2, p0))
 
 # def dt2:
+
+
 
 #
 if __name__=="__main__":
