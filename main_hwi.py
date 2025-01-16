@@ -329,8 +329,19 @@ def findPathToBoundary(dt : Data):
     # vertex의 index 만 해서 체크하자고. nei는 바뀔 수 있으니까
     # 근데 nei가 바뀐다는 말은 지금 얘도 바뀌어야 한다는 것 아닌가?
     TriangleList = list(dt.triangles)
+    TriangleList.sort(key = getDistToBoundary)
+
+    # 디버그 (확인 완료)
+    # for t in TriangleList:
+    #     print(getDistToBoundary(t), end = ' ')
 
     curIndex = 0
+
+    copyForRollback = dt.copy()
+
+    # 클래스 복사
+    # copyForRollback = copy.deepcopy(dt)
+    # .copy())
 
     while True:
 
@@ -355,6 +366,8 @@ def findPathToBoundary(dt : Data):
             # print('triangle #', _, 'selected')
             print('Triangle selected, pts:', t.pts, 'curIndex:', curIndex)
 
+        successForThisTriangle = False
+
         while True:
 
             # isAllNeisValid(dt)
@@ -365,6 +378,16 @@ def findPathToBoundary(dt : Data):
             if iterNum > macro.maxIterPerTriangle:
                 # print('iterNum exceeded', macro.maxIter, ', we stop here.')
                 print('iterNumPerTriangle exceeded, we stop here')
+
+                if successForThisTriangle:
+
+                    print('succeeded!')
+                    copyForRollback = copy.deepcopy(dt)
+
+                else:
+
+                    print('not succeeded. rollback')
+                    dt = copyForRollback
 
                 '''
                 numObtuseTriangles = 0
@@ -433,6 +456,9 @@ def findPathToBoundary(dt : Data):
 
             proj = projection(dt.pts[aHV], dt.pts[hV1], dt.pts[hV2])
             projID = dt.addSteinerNoTriangulation(proj)
+
+            print('digit of num(proj.x):', len(list(proj.x.num)), 'den(proj.x):', len(list(proj.x.den)))
+            print('digit of num(proj.y):', len(list(proj.y.num)), 'den(proj.y):', len(list(proj.y.den)))
 
             '''
             for e in dt.constraints:
@@ -540,6 +566,8 @@ def findPathToBoundary(dt : Data):
                 print(newT2.pts, hV2, projID, aHV)
                 print()
                 '''
+
+                successForThisTriangle = True
 
                 break
 
@@ -855,8 +883,33 @@ def printTriangleSides(dt:Data):
 
 # def dt2:
 
+# def
 
+# triangle이 주어졌을 때, boundary까지 거리를 계산
+# constrained edge 무시하고 None 이후에 계산해야 함.
+# polygon이 유한 개의 겹으로 partition된 것이므로, 무한히 반복되지 않고, 언젠가는 끝나게 되어 있음
+def getDistToBoundary(t:Triangle):
+    nowLayerNum = 0
+    nowLayer = [t]
 
+    while True:
+
+        if nowLayerNum >= 5:
+            return nowLayerNum
+
+        # 현재 layer에 있는지 체크
+        for t in nowLayer:
+            for nei in t.neis:
+                if nei == None:
+                    return nowLayerNum
+
+        # 업데이트
+        prevLayer = nowLayer
+        nowLayer = []
+        for t in prevLayer:
+            for nei in t.neis:
+                nowLayer.append(nei)
+        nowLayerNum += 1
 #
 if __name__=="__main__":
 

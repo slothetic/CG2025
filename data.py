@@ -259,6 +259,7 @@ class Data:
         new_d.instance_name = self.instance_name
         new_d.const_dict = self.const_dict.copy()
         new_d.done = self.done
+        new_d.SteinerChainMark = self.SteinerChainMark
 
         return new_d
 
