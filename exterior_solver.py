@@ -42,16 +42,18 @@ def none_obtuse_iter(dt:Data, lim=50, stn = 0):
             n_obs += 1
     score = best_dt.score()
     maxcnt = 30
+    fail = 0
     # dt.DrawResult("best")
     # dt.WriteData("best")
     # dt.fp_ind+=stn
     while True:  
+        lennum = len(dt.pts)
         if cnt>=maxcnt:
             break
         if len(dt.pts) - dt.fp_ind >= lim:
             print(f"{dt.instance_name} Iteration: ({cnt}/{maxcnt}) score: {dt.score()} (best: {best_dt.score()})")
             best_dt.merge_result(dt)
-            print(f"Result sol: {best_dt.score(True)}")
+            print(f"Result sol: {best_dt.score()}")
             best_dt.WriteData()
             del_num = min(30, len(dt.pts) - int(len(best_dt.pts)*0.6))
             random_del_num = random.randint(0, del_num)
@@ -85,9 +87,11 @@ def none_obtuse_iter(dt:Data, lim=50, stn = 0):
             best_dt = dt.copy()
         # dt.fp_ind+=stn
 
-        dt.step(False)
+        dt.step()
+        if lennum==len(dt.pts): fail+=1
+        if fail>30: increase_IMP()
         dt.DrawResult("step")
-        if dt.done:
+        if dt.score()>0.5:
             # dt.fp_ind-=stn
             # print(f"Base sol: {best_dt.score(True)}")
             # print(f"Adding sol: {dt.score(True)}")
@@ -98,7 +102,7 @@ def none_obtuse_iter(dt:Data, lim=50, stn = 0):
             # maxcnt = maxcnt//2
             del best_dt
             best_dt = dt.copy()
-            return True
+            break
     if dt.done:
         del best_dt
         best_dt = dt.copy()
@@ -136,8 +140,9 @@ if __name__=="__main__":
         dt.triangulate()
         dt.add_steiners(st_pt)
         dts = dt.partial_datas()
-        st_pt = []
+        
         for d in dts:
+            st_pt = []
             d.triangulate()
             d.DrawResult()
             # pdb.set_trace()

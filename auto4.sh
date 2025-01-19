@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ls challenge_instances_cgshop25/simple-polygon-exterior_*.json | while read line
+ls best_zip/*.json | while read line
 do
-    python3 exterior.py $line
+    python3 autodelete.py $line
 done

@@ -51,7 +51,7 @@ def none_obtuse_iter(dt:Data, lim=50):
         if len(dt.pts) - dt.fp_ind >= lim:
             print(f"{dt.instance_name} Iteration: ({cnt}/{maxcnt})[{__}/{total_num}] score: {dt.score()} (best: {best_dt.score()})")
             best_dt.merge_result(dt)
-            print(f"Result sol: {best_dt.score(True)}")
+            print(f"Result sol: {best_dt.score()}")
             best_dt.WriteData()
             del_num = min(30, len(dt.pts) - int(len(best_dt.pts)*0.6))
             random_del_num = random.randint(0, del_num)

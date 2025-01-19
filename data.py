@@ -9,6 +9,7 @@ import pdb
 import copy
 import math
 import shutil
+import collections
 # import feather
 
 
@@ -84,6 +85,9 @@ class Data:
             self.constraints = constraints.copy()
             self.triangles = triangles.copy()
             self.done = False
+            self.const_dict = dict()
+            for con in self.constraints:
+                self.const_dict[(con[0], con[1])] = (con[0], con[1])
         
         
     def copy(self):
@@ -417,7 +421,7 @@ class Data:
         maxy = max(list(p.y for p in self.pts))
         width = int(maxx-minx)
         height = int(maxy-miny)
-        rad = 1000/width
+        rad = 10000/width
         width = int(width*rad)+40
         height = int(height*rad)+40
         minw = 20-int(minx*rad)
@@ -2204,6 +2208,475 @@ class Data:
                 check = False
                 break
         return check
+
+    def delete_steiner(self, i:int):
+        if i > len(self.pts):
+            raise Exception("There is no such point to delete")
+        if i < self.fp_ind:
+            pass
+        if i in self.region_boundary:
+            self.region_boundary.remove(i)
+        i_connect = []
+        e_list = []
+        for e in self.constraints:
+            if e[0]==i:
+                i_connect.append(e[1])
+                e_list.append(e)
+            if e[1]==i:
+                i_connect.append(e[0])
+                e_list.append(e)
+        if i_connect:
+            self.constraints.add(tuple(i_connect))
+        for e in e_list:
+            self.const_dict[tuple(i_connect)] = self.const_dict[e]
+            self.constraints.remove(e)
+            del self.const_dict[e]
+        if i!=len(self.pts) - 1:
+            self.pts[i] = self.pts[-1]
+            # for t in self.triangles:
+            #     if t.get_ind(len(self.pts) - 1) != -1:
+            #         t.pts[t.get_ind(len(self.pts)-1)] = i
+            for j in range(len(self.region_boundary)):
+                if self.region_boundary[j] == len(self.pts) - 1:
+                    self.region_boundary[j] = i
+            delcon = set()
+            newcon = set()
+            for con in self.constraints:
+                if con[0] == len(self.pts) - 1:
+                    delcon.add(con)
+                    newcon.add((i, con[1]))
+                    self.const_dict[(i, con[1])] = self.const_dict[con]
+                    del self.const_dict[con]
+                elif con[1] == len(self.pts) - 1:
+                    delcon.add(con)
+                    newcon.add((con[0], i))
+                    self.const_dict[(con[0], i)] = self.const_dict[con]
+                    del self.const_dict[con]
+            for con in delcon:
+                self.constraints.remove(con)
+            for con in newcon:
+                self.constraints.add(con)
+        self.pts.pop()
+        for t in self.triangles:
+           del t
+        self.triangles = set()
+        self.triangulate()
+        self.delaunay_triangulate()
+
+    def delete_steiners(self, l:list):
+        l.sort(reverse=True)
+        for i in l:
+            if i > len(self.pts):
+                raise Exception("There is no such point to delete")
+        for i in l:
+            if i < self.fp_ind:
+                pass
+            if i in self.region_boundary:
+                self.region_boundary.remove(i)
+            i_connect = []
+            e_list = []
+            for e in self.constraints:
+                if e[0]==i:
+                    i_connect.append(e[1])
+                    e_list.append(e)
+                if e[1]==i:
+                    i_connect.append(e[0])
+                    e_list.append(e)
+            if i_connect:
+                self.constraints.add(tuple(i_connect))
+            for e in e_list:
+                self.const_dict[tuple(i_connect)] = self.const_dict[e]
+                self.constraints.remove(e)
+                del self.const_dict[e]
+            if i!=len(self.pts) - 1:
+                self.pts[i] = self.pts[-1]
+                # for t in self.triangles:
+                #     if t.get_ind(len(self.pts) - 1) != -1:
+                #         t.pts[t.get_ind(len(self.pts)-1)] = i
+                for j in range(len(self.region_boundary)):
+                    if self.region_boundary[j] == len(self.pts) - 1:
+                        self.region_boundary[j] = i
+                delcon = set()
+                newcon = set()
+                for con in self.constraints:
+                    if con[0] == len(self.pts) - 1:
+                        delcon.add(con)
+                        newcon.add((i, con[1]))
+                        self.const_dict[(i, con[1])] = self.const_dict[con]
+                        del self.const_dict[con]
+                    elif con[1] == len(self.pts) - 1:
+                        delcon.add(con)
+                        newcon.add((con[0], i))
+                        self.const_dict[(con[0], i)] = self.const_dict[con]
+                        del self.const_dict[con]
+                for con in delcon:
+                    self.constraints.remove(con)
+                for con in newcon:
+                    self.constraints.add(con)
+            self.pts.pop()
+        for t in self.triangles:
+            del t
+        self.triangles = set()
+        self.triangulate()
+        self.delaunay_triangulate()
+
+    def dfs(self, merged_e):
+        checked = dict()
+        for t in self.triangles:
+            checked[t] = False
+        score = dict()
+        for i in range(len(merged_e)):
+            for _e1 in merged_e[i]:
+                score[(i,_e1)] = (False, (-1,-1),[],set())
+        for i in range(len(merged_e)):
+            for _e1 in merged_e[i]:
+                if score[(i,_e1)][0]:
+                    continue
+                st:Triangle = self.find_triangle(i, _e1)
+                if st==None:
+                    score[(i,_e1)] = (True, (float("INF"),float("INF")),[],set())
+                    continue
+                p_score = 0
+                p_obt = 0
+                p_stei = set()
+                p_tri = set()
+                stack = [(st, st.get_ind(i))]
+                bound = [(i,_e1)]
+                while stack:
+                    t, ind = stack.pop()
+                    if checked[t]:
+                        continue
+                    p_score += 1
+                    p_tri.add(t)
+                    if self.is_obtuse(t):
+                        p_obt += 1
+                    checked[t] = True
+                    for ii in range(3):
+                        if t.pt(ii)>=self.fp_ind:
+                            p_stei.add(t.pt(ii))
+                    if (t.pt(ind+1), t.pt(ind+2)) not in score:
+                        tt = self.find_triangle(t.pt(ind+2), t.pt(ind+1))
+                        if tt!=None and checked[tt]!=True:
+                            stack.append((tt, tt.get_ind(t.pt(ind+2))))
+                    else:
+                        bound.append((t.pt(ind+1), t.pt(ind+2)))
+                    if (t.pt(ind+2), t.pt(ind)) not in score:
+                        tt = self.find_triangle(t.pt(ind), t.pt(ind+2))
+                        if tt!=None and checked[tt]!=True:
+                            stack.append((tt, tt.get_ind(t.pt(ind))))
+                    else:
+                        bound.append((t.pt(ind+2), t.pt(ind)))
+                for b in bound:
+                    score[b] = (True, (p_obt, p_score), list(p_stei), p_tri)
+        return score
+
+    def partial_datas(self):
+        bds = self.dfs_constraint()
+        bds.sort(key=len, reverse=True)
+        bds.pop(0)
+        dts = []
+        for lb in bds:
+            cs = []
+            for i in range(len(lb)):
+                if (lb[i-1], lb[i]) in self.constraints:
+                    cs.append(((len(lb)+i-1)%len(lb), i))
+                if (lb[i], lb[i-1]) in self.constraints:
+                    cs.append((i,(len(lb)+i-1)%len(lb)))
+            dt = Data(input="", pts = [self.pts[i] for i in lb], constraints = set(), bds = list(range(len(lb))), fp_ind=len(lb), triangles=set())
+            dt.ban = set(cs)
+            dts.append(dt)
+            del dt
+        return dts
+    def dfs_constraint(self):
+        total_bound = []
+        checked = dict()
+        for t in self.triangles:
+            checked[t] = False
+        for _ in range(len(self.region_boundary)):
+            st = self.find_triangle(self.region_boundary[_-1], self.region_boundary[_])
+            if checked[st]:
+                continue
+            # bd = [self.region_boundary[_]]
+            bd = [self.region_boundary[_]]
+            stack = [(st, st.get_ind(self.region_boundary[_]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                # print(t.pts, ind)
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        # bd.append(t.pt(ind+i+1))
+                        # print(bd)
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        for e in self.constraints:
+            st = self.find_triangle(e[0], e[1])
+            if checked[st]:
+                continue
+            bd = [e[1]]
+            stack = [(st, st.get_ind(e[1]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        for e in self.constraints:
+            st = self.find_triangle(e[1], e[0])
+            if checked[st]:
+                continue
+            bd = [e[0]]
+            stack = [(st, st.get_ind(e[0]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        return total_bound
+
+    def exterior_mandatory_st(self):
+        apt = 0
+        next = True
+        while next:
+            next = False
+            obtuse = False
+            for t in self.triangles:
+                obt = -1
+                q1 = self.pts[t.pts[0]]
+                q2 = self.pts[t.pts[1]]
+                q3 = self.pts[t.pts[2]]
+                if (angle(q1,q2,q3) > MyNum(0)): obt = 1
+                if (angle(q2,q3,q1) > MyNum(0)): obt = 2
+                if (angle(q3,q1,q2) > MyNum(0)): obt = 0
+                if obt==-1:
+                    obtuse = True
+                    continue
+                e1 = (t.pt(obt+1),t.pt(obt+2))
+                e2 = (t.pt(obt+2),t.pt(obt+1))
+                if e1 in self.constraints or e2 in self.constraints:
+                    # e11 = (t.pt(obt),t.pt(obt+1))
+                    # e12 = (t.pt(obt+1),t.pt(obt))
+                    # e21 = (t.pt(obt+2),t.pt(obt))
+                    # e22 = (t.pt(obt),t.pt(obt+2))
+                    # if e11 in self.constraints or e12 in self.constraints or e21 in self.constraints or e22 in self.constraints:
+                    p = projection(self.pts[t.pt(obt)], self.pts[t.pt(obt+1)], self.pts[t.pt(obt+2)])
+                    # print(p.x.toString(), p.y.toString())
+                    self.add_steiner(p)
+                    apt+=1
+                    self.DrawResult(f"step_{apt}")
+                    next = True
+                    break
+                    
+
+
+
+            if not obtuse:
+                return
+    def delete_random_steiner(self, del_num):
+        while del_num>0:
+            bp = False
+            dn = random.randint(1,del_num)
+            del_num -= dn
+            ind = 0
+            del_pts = set()
+            checked = dict()
+            qt = None
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    qt = t
+                checked[t] = False
+            if qt==None:
+                break
+            q = collections.deque([qt])
+            while q:
+                if bp:
+                    break
+                newt = q.popleft()
+                if checked[newt]:
+                    continue
+                checked[newt] = True
+                for p in newt.pts:
+                    if p>=self.fp_ind:
+                        del_pts.add(p)
+                        if len(del_pts)==dn:
+                            bp = True
+                            break
+                if bp:
+                    break
+                for t in newt.neis:
+                    if t!=None and checked[t]==False:
+                        q.append(t)
+            
+            self.delete_steiners(list(del_pts))
+
+    def delete_random_steiner_query(self, _i, dn):
+        bp = False
+        ind = 0
+        del_pts = set()
+        checked = dict()
+        qt = None
+        for t in self.triangles:
+            checked[t] = False
+        for t in self.triangles:
+            if _i in t.pts:
+                qt = t
+                if self.is_obtuse(t):
+                    break
+        if qt==None:
+            return
+        q = collections.deque([qt])
+        while q:
+            if bp:
+                break
+            newt = q.popleft()
+            if checked[newt]:
+                continue
+            checked[newt] = True
+            for p in newt.pts:
+                if p>=self.fp_ind:
+                    del_pts.add(p)
+                    if len(del_pts)==dn:
+                        bp = True
+                        break
+                        
+            if bp:
+                break
+            for t in newt.neis:
+                if t!=None and checked[t]==False:
+                    q.append(t)
+        # for p in del_pts:
+        self.delete_steiners(list(del_pts))
+
+    def merge_result(self, dt):
+        e1 = [set() for _ in range(self.fp_ind)]
+        e2 = [set() for _ in range(self.fp_ind)]
+        for t in self.triangles:
+            for i in range(3):
+                if t.pts[i]<self.fp_ind and t.pts[i-1]<self.fp_ind:
+                    e1[t.pts[i]].add(t.pts[i-1])
+                    e1[t.pts[i-1]].add(t.pts[i])
+        for t in dt.triangles:
+            for i in range(3):
+                if t.pts[i]<self.fp_ind and t.pts[i-1]<self.fp_ind:
+                    e2[t.pts[i]].add(t.pts[i-1])
+                    e2[t.pts[i-1]].add(t.pts[i])
+        merged_e = [set() for _ in range(self.fp_ind)]
+        for i in range(self.fp_ind):
+            merged_e[i] = e1[i].intersection(e2[i])
+        score_1 = self.dfs(merged_e)
+        score_2 = dt.dfs(merged_e)
+        new_ind1 = [-1]*len(self.pts)
+        new_ind2 = [-1]*len(dt.pts)
+        add_pts = []
+        add_e = []
+        for key in score_1.keys():
+            if score_1[key][1]>score_2[key][1]:
+                for t in score_2[key][3]:
+                    ind0, ind1, ind2 = t.pts[0], t.pts[1], t.pts[2]
+                    if ind0>=self.fp_ind:
+                        if new_ind2[ind0]==-1:
+                            new_ind2[ind0] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind0])
+                        ind0 = new_ind2[ind0]
+                    if ind1>=self.fp_ind:
+                        if new_ind2[ind1]==-1:
+                            new_ind2[ind1] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind1])
+                        ind1 = new_ind2[ind1]
+                    if ind2>=self.fp_ind:
+                        if new_ind2[ind2]==-1:
+                            new_ind2[ind2] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind2])
+                        ind2 = new_ind2[ind2]
+                    add_e.append((ind0,ind1))
+                    add_e.append((ind1,ind2))
+                    add_e.append((ind2,ind0))
+            else:
+                for t in score_1[key][3]:
+                    ind0, ind1, ind2 = t.pts[0], t.pts[1], t.pts[2]
+                    if ind0>=self.fp_ind:
+                        if new_ind1[ind0]==-1:
+                            new_ind1[ind0] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind0])
+                        ind0 = new_ind1[ind0]
+                    if ind1>=self.fp_ind:
+                        if new_ind1[ind1]==-1:
+                            new_ind1[ind1] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind1])
+                        ind1 = new_ind1[ind1]
+                    if ind2>=self.fp_ind:
+                        if new_ind1[ind2]==-1:
+                            new_ind1[ind2] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind2])
+                        ind2 = new_ind1[ind2]
+                    add_e.append((ind0,ind1))
+                    add_e.append((ind1,ind2))
+                    add_e.append((ind2,ind0))
+                    
+        print("Find new Sol! merging....")
+        
+        self.delete_steiners(list(range(self.fp_ind, len(self.pts))))
+        for t in self.triangles:
+            del t
+        self.triangles = set()
+        # new_ind = [-1]*len(self.pts)
+        # add_pts = []
+        # i = 0
+        # for key in score_1.keys():
+        #     for t in score_1[key][3]:
+        #         for _i in range(3):
+        #             print(t.pts[_i])
+        #             if new_ind[t.pts[_i]]==-1:
+        #                 new_ind[t.pts[_i]] = i
+        #                 if t.pts[_i]>=self.fp_ind:
+        #                     add_pts.append(self.pts(t.pts[_i]))
+        #                 i+=1
+        # while len(self.pts)>self.fp_ind:
+        #     self.delete_steiner(len(self.pts)-1)
+        self.triangulate()
+        self.DrawResult("step")
+        self.add_steiners(add_pts)
+        self.DrawResult("step")
+        for e in add_e:
+            if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
+                self.resolve_cross(e)
+                self.DrawResult("step")
 
 
     def make_non_obtuse_boundary(self):
