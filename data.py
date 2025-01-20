@@ -222,7 +222,9 @@ class Data:
         score = self.score()
         inst["score"] = score
         # print("Score: ", score)
-
+        obt, nbt = self.score_imp()
+        inst["obtuse num"] = obt
+        inst["steiner num"] = nbt
         # print(inst)
         folder = "solutions"
         if self_update:
