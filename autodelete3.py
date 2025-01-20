@@ -32,7 +32,7 @@ if __name__=="__main__":
         #     lim = len(dt.pts) - dt.fp_ind + 20
         #dt.DrawPoint()
         while True:
-            Narg = 3*random.random()*cnt/(len(dt.pts)-dt.fp_ind)
+            Narg = 10*random.random()*cnt/(len(dt.pts)-dt.fp_ind)
             cnt+=1
             pt_num = random.randint(dt.fp_ind, len(dt.pts)-1)
             dlist = [(sqdist(dt.pts[pt_num], dt.pts[i]), i) for i in range(dt.fp_ind, len(dt.pts))]
