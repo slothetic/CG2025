@@ -5,6 +5,8 @@ import sys
 import pdb 
 import faulthandler; faulthandler.enable()
 import random
+import datetime
+import numpy
 
 sys.setrecursionlimit(100000)
 # parser = argparse.ArgumentParser()
@@ -32,8 +34,10 @@ if __name__=="__main__":
         #     lim = len(dt.pts) - dt.fp_ind + 20
         #dt.DrawPoint()
         while True:
-            Narg = 10*random.random()*cnt/(len(dt.pts)-dt.fp_ind)
+            # Narg = 10*random.random()*cnt/(len(dt.pts)-dt.fp_ind)
             cnt+=1
+            Narg = np.random.gamma(cnt, 1.5/cnt)
+            
             pt_num = random.randint(dt.fp_ind, len(dt.pts)-1)
             dlist = [(sqdist(dt.pts[pt_num], dt.pts[i]), i) for i in range(dt.fp_ind, len(dt.pts))]
             dlist.sort()
@@ -60,7 +64,8 @@ if __name__=="__main__":
                 if solved:
                     dt.WriteData()
                     obt = nobt
-                    print(f"[{dt.instance_name}] {cnt}")
+                    now = datetime.datetime.now()
+                    print(f"[{dt.instance_name}] "+now.strftime("%H:%M"))
                     print(f"number of obtuse: {pobt} -> {obt}")  
                     print(f"number of steiner pts: {spt - dt.fp_ind} -> {nspt-dt.fp_ind}")  
                     spt = nspt
@@ -76,7 +81,8 @@ if __name__=="__main__":
             else:
                 dt.WriteData()
                 obt = nobt
-                print(f"[{dt.instance_name}] {cnt}")
+                now = datetime.datetime.now()
+                print(f"[{dt.instance_name}] "+now.strftime("%H:%M"))
                 print(f"number of obtuse: {pobt} -> {obt}")  
                 print(f"number of steiner pts: {spt - dt.fp_ind} -> {nspt-dt.fp_ind}")  
                 spt = nspt
