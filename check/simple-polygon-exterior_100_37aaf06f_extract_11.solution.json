@@ -1,0 +1,21 @@
+{
+	"content_type": "CG_SHOP_2025_Solution",
+	"instance_uid": "simple-polygon-exterior_100_37aaf06f_extract_11",
+	"steiner_points_x": [
+		"722900/1453"
+	],
+	"steiner_points_y": [
+		"3111430/1453"
+	],
+	"edges": [
+		[
+			1,
+			3
+		],
+		[
+			1,
+			4
+		]
+	],
+	"score": 0.75
+}

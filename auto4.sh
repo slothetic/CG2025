@@ -1,6 +1,10 @@
 #!/bin/sh
 
-while :
+ls opt_solutions/simple-polygon-exterior_250_*.json | while read line
 do
-    /bin/python3 main.py opt_solutions/cgshop2025_examples_simple-polygon-exterior_250_e264ffed_simple.solution.json
+    python3 autodelete.py $line
+done
+ls opt_solutions/simple-polygon-exterior-20_*.json | while read line
+do
+    python3 autodelete.py $line
 done

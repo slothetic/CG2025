@@ -1,6 +1,9 @@
 #!/bin/sh
 
-ls example_instances/cgshop2025_examples_simple-polygon-exterior*.json | while read line
+ls challenge_instances_cgshop25/point-set*.json | while read line
 do
-    /bin/python3 exterior.py $line
+
+    /bin/python3 main2.py $line
+
 done
+

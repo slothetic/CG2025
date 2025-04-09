@@ -9,11 +9,13 @@ import pdb
 import copy
 import math
 import shutil
+import collections
 # import feather
+
 
 IMP = 1
 GRID = 3
-MINDIST = MyNum((GRID - (GRID // 2) + 1) * (GRID - (GRID // 2) + 1), IMP * IMP)
+MINDIST = MyNum((GRID - (GRID // 2)) * (GRID - (GRID // 2)), IMP * IMP)
 from typing import List
 import sys
 sys.setrecursionlimit(1000000)
@@ -83,6 +85,9 @@ class Data:
             self.constraints = constraints.copy()
             self.triangles = triangles.copy()
             self.done = False
+            self.const_dict = dict()
+            for con in self.constraints:
+                self.const_dict[(con[0], con[1])] = (con[0], con[1])
         
         
     def copy(self):
@@ -108,10 +113,17 @@ class Data:
             score = 0.5+0.5/spt
             return score
         
+    def score_imp(self):
+        obt = 0
+        for t in self.triangles:
+            if self.is_obtuse(t):
+                obt+=1
+        return obt, len(self.pts)
+
 
     def ReadData(self):
         # print("--------------------ReadData--------------------")
-        if "example_instances" in self.input:
+        if "challenge_instances_cgshop25" in self.input:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 # print(root)
@@ -133,7 +145,7 @@ class Data:
             with open(self.input, "r", encoding="utf-8") as f:
                 root = json.load(f)
                 self.instance_name = root["instance_uid"]
-                inp = "./example_instances/"+self.instance_name+".instance.json"
+                inp = "./challenge_instances_cgshop25/"+self.instance_name+".instance.json"
                 st_x = root["steiner_points_x"]
                 st_y = root["steiner_points_y"]
                 st_pt = []
@@ -157,18 +169,16 @@ class Data:
                     self.const_dict[(con[0], con[1])] = (con[0], con[1])
             # pdb.set_trace()
 
-            self.triangulate()
-            self.delaunay_triangulate()
+            # self.triangulate()
+            # self.delaunay_triangulate()
             self.add_steiners(st_pt)
             # pdb.set_trace()
-            for e in edges:
-                if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
-                    self.resolve_cross(e)
-
+            # for e in edges:
+            #     self.resolve_cross(e)
             self.DrawResult("old_data")    
             # pdb.set_trace()
 
-    def WriteData(self, name = ""):
+    def WriteData(self, name = "",self_update = False, prev_score = -1):
         if name:
             name = "_" + name
         # print("--------------------WriteData--------------------")
@@ -188,11 +198,17 @@ class Data:
             e1 = sorted([t.pts[0],t.pts[1]])
             e2 = sorted([t.pts[0],t.pts[2]])
             e3 = sorted([t.pts[1],t.pts[2]])
-            if e1 not in const_edges and e1 not in int_edges:
+            # if e1 not in const_edges and e1 not in int_edges:
+            #     int_edges.append(e1)
+            # if e2 not in const_edges and e2 not in int_edges:
+            #     int_edges.append(e2)
+            # if e3 not in const_edges and e3 not in int_edges:
+            #     int_edges.append(e3)
+            if e1 not in int_edges:
                 int_edges.append(e1)
-            if e2 not in const_edges and e2 not in int_edges:
+            if e2 not in int_edges:
                 int_edges.append(e2)
-            if e3 not in const_edges and e3 not in int_edges:
+            if e3 not in int_edges:
                 int_edges.append(e3)
         obt = 0
         for t in self.triangles:
@@ -206,29 +222,42 @@ class Data:
         score = self.score()
         inst["score"] = score
         # print("Score: ", score)
-
+        obt, nbt = self.score_imp()
+        inst["obtuse num"] = obt
+        inst["steiner num"] = nbt
         # print(inst)
-        with open("solutions/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
+        folder = "solutions"
+        if self_update:
+            with open(self.input, "w", encoding="utf-8") as f:
+                json.dump(inst, f, indent='\t')
+        with open(folder+"/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
             json.dump(inst, f, indent='\t')
         path = "./opt_solutions"
         opt_list = os.listdir(path)
         already_exist = False
         for sol in opt_list:
-            if self.instance_name in sol and "json" in sol:
+            if self.instance_name + ".solution.json" in sol:
+            # if self.instance_name in sol and "json" in sol:
                 already_exist = True
-                with open(self.input, "r", encoding="utf-8") as ff:
+                with open(path+"/"+sol, "r", encoding="utf-8") as ff:
                     root = json.load(ff)
-                    try:
+                    if prev_score!=-1:
+                        old_score=prev_score
+                    elif "score" in root:
                         old_score = root["score"]
-                    except:
+                    else:
                         dt = Data(path+"/"+sol)
                         old_score = dt.score()
-                # pdb.set_trace()
-                # print(dt.score)
                 if old_score<score:
-                    # pdb.set_trace()
                     print(f"New High Score!!! {old_score}->{score}")
-                    # pdb.set_trace()
+                    os.remove(path+"/"+sol)
+                    shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+                    # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+                    #     json.dump(inst, f, indent='\t')
+                    self.DrawResult(folder="opt_solutions")
+                elif abs(old_score-score)<0.000001 and score<=0.5 and len(self.pts)-self.fp_ind<len(root["steiner_points_x"]):
+                    old_num = len(root["steiner_points_x"])
+                    print(f"New Steiner Num!!! {old_num}->{len(self.pts)-self.fp_ind}")
                     os.remove(path+"/"+sol)
                     shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
                     # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
@@ -240,7 +269,80 @@ class Data:
             # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
             #     json.dump(inst, f, indent='\t')
             self.DrawResult(folder="opt_solutions")
-        # pdb.set_trace()
+
+    # def WriteData(self, name = ""):
+    #     if name:
+    #         name = "_" + name
+    #     # print("--------------------WriteData--------------------")
+    #     inst = dict()
+    #     inst["content_type"]="CG_SHOP_2025_Solution"
+    #     inst["instance_uid"]=self.instance_name
+    #     inst["steiner_points_x"] =  list(p.x.toString() for p in self.pts[self.fp_ind:])
+    #     inst["steiner_points_y"] =  list(p.y.toString() for p in self.pts[self.fp_ind:])
+    #     const_edges = []
+    #     for e in self.constraints:
+    #         const_edges.append(sorted(list(e)))
+    #     for i in range(1,len(self.region_boundary)):
+    #         const_edges.append(sorted([self.region_boundary[i-1],self.region_boundary[i]]))
+    #     const_edges.append(sorted([self.region_boundary[-1],self.region_boundary[0]]))
+    #     int_edges = []
+    #     for t in self.triangles:
+    #         e1 = sorted([t.pts[0],t.pts[1]])
+    #         e2 = sorted([t.pts[0],t.pts[2]])
+    #         e3 = sorted([t.pts[1],t.pts[2]])
+    #         if e1 not in const_edges and e1 not in int_edges:
+    #             int_edges.append(e1)
+    #         if e2 not in const_edges and e2 not in int_edges:
+    #             int_edges.append(e2)
+    #         if e3 not in const_edges and e3 not in int_edges:
+    #             int_edges.append(e3)
+    #     obt = 0
+    #     for t in self.triangles:
+    #         if self.is_obtuse(t):
+    #             obt+=1
+    #     inst["edges"] = int_edges
+    #     # print("indstance id: ", self.instance_name)
+    #     # print("Steiner point: ", len(self.pts)-self.fp_ind)
+    #     # print("Total Triangle: ", len(self.triangles))
+    #     # print("Obtuse Triangle: ", obt)
+    #     score = self.score()
+    #     inst["score"] = score
+    #     # print("Score: ", score)
+
+    #     # print(inst)
+    #     with open("solutions/" + self.instance_name + ".solution" + name + ".json", "w", encoding="utf-8") as f:
+    #         json.dump(inst, f, indent='\t')
+    #     path = "./opt_solutions"
+    #     opt_list = os.listdir(path)
+    #     already_exist = False
+    #     for sol in opt_list:
+    #         if self.instance_name in sol and "json" in sol:
+    #             already_exist = True
+    #             with open(self.input, "r", encoding="utf-8") as ff:
+    #                 root = json.load(ff)
+    #                 try:
+    #                     old_score = root["score"]
+    #                 except:
+    #                     dt = Data(path+"/"+sol)
+    #                     old_score = dt.score()
+    #             # pdb.set_trace()
+    #             # print(dt.score)
+    #             if old_score<score:
+    #                 # pdb.set_trace()
+    #                 print(f"New High Score!!! {old_score}->{score}")
+    #                 # pdb.set_trace()
+    #                 os.remove(path+"/"+sol)
+    #                 shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+    #                 # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+    #                 #     json.dump(inst, f, indent='\t')
+    #                 self.DrawResult(folder="opt_solutions")
+    #             break
+    #     if not already_exist:
+    #         shutil.copyfile("solutions/" + self.instance_name + ".solution" + name + ".json", "opt_solutions/" + self.instance_name + ".solution.json")
+    #         # with open("opt_solutions/" + self.instance_name + ".solution.json", "w", encoding="utf-8") as f:
+    #         #     json.dump(inst, f, indent='\t')
+    #         self.DrawResult(folder="opt_solutions")
+    #     # pdb.set_trace()
 
                     
 
@@ -321,7 +423,7 @@ class Data:
         maxy = max(list(p.y for p in self.pts))
         width = int(maxx-minx)
         height = int(maxy-miny)
-        rad = 1000/width
+        rad = 10000/width
         width = int(width*rad)+40
         height = int(height*rad)+40
         minw = 20-int(minx*rad)
@@ -437,9 +539,28 @@ class Data:
 
     def triangulate(self):
         check = [False] * len(self.pts)
-        self.triangulate_polygon(deque(self.region_boundary))
+        # self.triangulate_polygon(deque(self.region_boundary))
         for d in self.region_boundary:
             check[d] = True
+        intpoints = []
+        for i in range(len(self.pts)):
+            if not check[i]:
+                p = self.pts[i]
+                for j in range(len(self.region_boundary)):
+                    if self.is_on(self.region_boundary[j - 1], self.region_boundary[j], p):
+                        self.region_boundary.insert(j, i)
+                        check[i] = True
+                        break
+                for e in self.constraints:
+                    if self.is_on(e[0], e[1], p):
+                        self.constraints.add((e[0],i))
+                        self.constraints.add((e[1],i))
+                        self.const_dict[(e[0], i)] = self.const_dict[e]
+                        self.const_dict[(e[1], i)] = self.const_dict[e]
+                        del self.const_dict[e]
+                        self.constraints.remove(e)
+                        break
+        self.triangulate_polygon(deque(self.region_boundary))
         for i in range(len(self.pts)):
             if not check[i]:
                 self.insert_point(i)
@@ -516,9 +637,11 @@ class Data:
             t.pts[(i + 1) % 3] = p
             t.neis[i] = t2
             t.neis[(i + 1) % 3] = t1
+            #t.neis[(i + 2) % 3] = t2
             tt.pts[(j + 1) % 3] = p
             tt.neis[j] = t1
             tt.neis[(j + 1) % 3] = t2
+            #tt.neis[(j + 2) % 3] = t1
             self.triangles.add(t1)
             self.triangles.add(t2)
         else:
@@ -672,6 +795,9 @@ class Data:
 
     def delaunay_triangulate(self):
         while True:
+            # print(len(self.pts), len(self.triangles))
+            # self.DrawResult('step')
+            # input()
             check = False
             for t in self.triangles:
                 for i in range(3):
@@ -886,6 +1012,51 @@ class Data:
         self.triangulate()
         self.delaunay_triangulate()
 
+    def add_steiner_del(self, p:Point):
+        self.pts.append(p)
+        done = False
+        for i in range(len(self.region_boundary)):
+            if self.is_on(self.region_boundary[i - 1], self.region_boundary[i], p):
+                t = self.find_triangle(self.region_boundary[i - 1], self.region_boundary[i])
+                self.region_boundary.insert(i, len(self.pts) - 1)
+                ind = t.get_ind(self.region_boundary[i - 1])
+                nt = Triangle(self.region_boundary[i - 1], len(self.pts) - 1, t.pt(ind + 2))
+                ti = t.nei(ind + 2)
+                if ti:
+                    ti.neis[ti.get_ind(self.region_boundary[i - 1])] = nt
+                nt.neis[2] = ti
+                nt.neis[1] = t
+                t.neis[(ind + 2) % 3] = nt
+                t.pts[ind] = len(self.pts) - 1
+                done = True
+                self.triangles.add(t)
+                break
+        for e in self.constraints:
+            if self.is_on(e[0], e[1], p):
+                self.constraints.add((e[0],len(self.pts) - 1))
+                self.constraints.add((e[1],len(self.pts) - 1))
+                self.const_dict[(e[0], len(self.pts) - 1)] = self.const_dict[e]
+                self.const_dict[(e[1], len(self.pts) - 1)] = self.const_dict[e]
+                del self.const_dict[e]
+                self.constraints.remove(e)
+                for c1, c2 in [e, (e[1], e[0])]:
+                    t = self.find_triangle(c1, c2)
+                    ind = t.get_ind(c1)
+                    nt = Triangle(c1, len(self.pts) - 1, t.pt(ind + 2))
+                    ti = t.nei(ind + 2)
+                    if ti:
+                        ti.neis[ti.get_ind(c1)] = nt
+                    nt.neis[2] = ti
+                    nt.neis[1] = t
+                    t.neis[(ind + 2) % 3] = nt
+                    t.pts[ind] = len(self.pts) - 1
+                    self.triangles.add(nt)
+                done = True
+                break
+        if not done:
+            self.insert_point(len(self.pts) - 1)
+        self.delaunay_triangulate()
+
     def add_steiners(self, l:list):
         for p in l:
             self.pts.append(p)
@@ -994,8 +1165,291 @@ class Data:
         self.triangulate()
         self.delaunay_triangulate()
         
+    def make_non_obtuse_real(self, t:Triangle):
+        # print(IMP, MINDIST)
+        #print("resolve obtuse")
+        #self.print_triangle(t)
+        polygon = list(t.pts)
+        neis = list(t.neis)
+        cnt = 0
+        while True:
+            tt = neis[-1]
+            if tt:
+                i = tt.get_ind(polygon[-1])
+                p = self.pts[tt.pt(i + 1)]
+                if turn(self.pts[polygon[-2]], self.pts[polygon[-1]], p) > 0 and turn(p, self.pts[polygon[0]], self.pts[polygon[1]]) > 0:
+                    cnt = 0
+                    neis.pop()
+                    neis.append(tt.neis[i])
+                    neis.append(tt.nei(i + 1))
+                    polygon.append(tt.pt(i + 1))
+                    ind = random.randint(0, len(polygon) - 1)
+                    neis = neis[ind:] + neis[:ind]
+                    polygon = polygon[ind:] + polygon[:ind]
+                else:
+                    cnt += 1
+                    if cnt >= len(polygon):
+                        break
+                    polygon.append(polygon.pop(0))
+                    neis.append(neis.pop(0))
+            else:    
+                cnt += 1
+                if cnt >= len(polygon):
+                    break
+                polygon.append(polygon.pop(0))
+                neis.append(neis.pop(0))
+        
+        # if angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0:
+        #     i = 0
+        # if angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]]) > 0:
+        #     i = 1
+        # if angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]]) > 0:
+        #     i = 2
+        # #print("obtuse at", i)
+        # if t.neis[i]:
+        #     tt = t.neis[i]
+        #     j = (tt.get_ind(t.pts[i]) + 1) % 3
+        #     if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0 and turn(self.pts[tt.pts[j]], self.pts[t.pts[i]], self.pts[t.pt(i + 2)]) < 0:
+        #         return self.make_non_obtuse3(tt)
+        # if t.nei(i + 2):
+        #     tt = t.nei(i + 2)
+        #     j = (tt.get_ind(t.pt(i + 2)) + 1) % 3
+        #     if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0 and turn(self.pts[tt.pts[j]], self.pts[t.pts[i]], self.pts[t.pt(i + 1)]) > 0:
+        #         return self.make_non_obtuse3(tt)
+        # # self.triangles.discard(t)
+        # q = self.pts[t.pts[i]]
+        # r = self.pts[t.pt(i + 1)]
+        # l = self.pts[t.pt(i + 2)]
+        # l_neis = []
+        # r_neis = []
+        # l_chain = []
+        # r_chain = []
+        # r_chain.append(t.pts[i])
+        # r_chain.append(t.pt(i + 1))
+        # l_chain.append(t.pts[i])
+        # l_chain.append(t.pt(i + 2))
+        # r_neis.append(t.neis[i])
+        # l_neis.append(t.nei(i + 2))
+        # tt = t.nei(i + 1)
+        # stop = [False]
+        # s = q
+        # j = i
+        # def cutright():
+        #     if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0:
+        #         stop[0] = True
+        #     else:
+        #         nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
+        #         self.triangles.add(nt)
+        #         nt.neis[2] = r_neis[-1]
+        #         r_neis.pop()
+        #         nt.neis[1] = r_neis[-1]
+        #         r_neis.pop()
+        #         r_neis.append(nt)
+        #         r_chain.pop()
+        #         #print("line 697")
+        #         #self.print_triangle(nt)
+        # def cutleft():
+        #     if turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0:
+        #         stop[0] = True
+        #     else:
+        #         nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
+        #         self.triangles.add(nt)
+        #         nt.neis[2] = l_neis[-1]
+        #         l_neis.pop()
+        #         nt.neis[0] = l_neis[-1]
+        #         l_neis.pop()
+        #         l_neis.append(nt)
+        #         l_chain.pop()
+        #         #print("line 715")
+        #         #self.print_triangle(nt)
+        # while True:
+        #     if not tt:
+        #         break
+        #     #self.print_triangle(tt)
+        #     stop[0] = False
+        #     j = (tt.get_ind(r_chain[-1]) + 1) % 3
+        #     s = self.pts[tt.pts[j]]
+        #     # self.triangles.discard(tt)
+        #     # self.DrawResult("step")
+        #     l_neis.append(tt.neis[j])
+        #     r_neis.append(tt.nei(j + 2))
+        #     if turn(q, r, s) <= 0:
+        #         while not stop[0]:
+        #             cutright()
+        #         r_chain.append(tt.pts[j])
+        #         tt = l_neis[-1]
+        #         l_neis.pop()
+        #     elif turn(q, l, s) >= 0:
+        #         while not stop[0]:
+        #             cutleft()
+        #         l_chain.append(tt.pts[j])
+        #         tt = r_neis[-1]
+        #         r_neis.pop()
+        #     else:
+        #         while (not stop[0]) and len(r_chain) > 2:
+        #             cutright()
+        #         stop[0] = False
+        #         while (not stop[0]) and len(l_chain) > 2:
+        #             cutleft()
+        #         rsgn = turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0
+        #         lsgn = turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0
+        #         if not rsgn:
+        #             l = s
+        #             l_chain.append(tt.pts[j])
+        #             tt = r_neis[-1]
+        #             r_neis.pop()
+        #         elif not lsgn:
+        #             r = s
+        #             r_chain.append(tt.pts[j])
+        #             tt = l_neis[-1]
+        #             l_neis.pop()
+        #         else:
+        #             r_chain.append(tt.pts[j])
+        #             break
+        # #print(len(r_chain), len(l_chain))
+        # ri = 1
+        # while ri < len(r_chain) - 1 and turn(self.pts[r_chain[ri - 1]], self.pts[r_chain[ri]], self.pts[r_chain[ri + 1]]) > 0:
+        #     ri += 1
+        # li = 1
+        # while li < len(l_chain) - 1 and turn(self.pts[l_chain[li - 1]], self.pts[l_chain[li]], self.pts[l_chain[li + 1]]) < 0:
+        #     li += 1
+        # #print(ri, li)
+        # while turn(self.pts[l_chain[li]], self.pts[r_chain[ri]], self.pts[r_chain[ri - 1]]) >= 0:
+        #     li -= 1
+        # while turn(self.pts[l_chain[li - 1]], self.pts[l_chain[li]], self.pts[r_chain[ri]]) >= 0:
+        #     ri -= 1
+        # #print(ri, li)
+        
+        # if ri < len(r_chain) - 1 or li < len(l_chain) - 1:
+        #     r_chain = r_chain[:ri + 1]
+        #     l_chain = l_chain[:li + 1]
+        #     r_neis = r_neis[:ri]
+        #     l_neis = l_neis[:li]
+        #     tt = t
+        # cands = []
+        # r_neis.append(tt)
+        # neis = r_neis + l_neis[::-1]
+        # polygon = r_chain + l_chain[:0:-1]
 
 
+        cands = []
+        score = len(polygon)
+        dt = Data("",[],[],[],[],[])
+        dt.pts = [self.pts[i] for i in polygon]
+        dt.region_boundary = list(range(len(polygon)))
+        dt.triangles = set()
+        dt.triangulate()
+        dt.delaunay_triangulate()
+        dt.fp_ind = len(polygon)
+        for i in range(len(polygon)):
+            # projections
+            p1 = polygon[i - 1]
+            p2 = polygon[i]
+            tt = self.find_triangle(polygon[i], polygon[i - 1])
+            for j in range(len(polygon)):
+                if j == i - 1 or j == i:
+                    continue
+                pp = projection(self.pts[polygon[j]], self.pts[p1], self.pts[p2])
+                if self.is_on(p1, p2, pp):
+                    dt.add_steiner(pp)
+                    cnt = 0
+                    for t in dt.triangles:
+                        if dt.is_obtuse(t):
+                            cnt += 1
+                    if tt:
+                        cnt += 1
+                    if cnt < score:
+                        score = cnt
+                        cands = [pp]
+                    elif cnt == score:
+                        cands.append(pp)
+                    dt.delete_steiner(len(polygon))
+            # when it has neighboring facing triangle
+            if tt:
+                j = tt.get_ind(polygon[i - 1])
+                p = self.pts[tt.pt(j + 1)]
+                pp = projection(p, self.pts[p1], self.pts[p2])
+                if self.is_on(p1, p2, pp):
+                    dt.add_steiner(pp)
+                    cnt = 0
+                    for t in dt.triangles:
+                        if dt.is_obtuse(t):
+                            cnt += 1
+                    if cnt < score:
+                        score = cnt
+                        cands = [pp]
+                    elif cnt == score:
+                        cands.append(pp)
+                    dt.delete_steiner(len(polygon))
+
+        for i in range(-1, len(polygon)):
+            for ii in range(i + 1, len(polygon)):
+                for pp in intersections_of_orthogonals(self.pts[polygon[i - 1]], self.pts[polygon[i]], self.pts[polygon[ii - 1]], self.pts[polygon[ii]]):
+                    check = True
+                    for iii in range(len(polygon)):
+                        if turn(self.pts[polygon[iii - 1]], self.pts[polygon[iii]], pp) <= 0 or sqdist(pp, self.pts[polygon[iii]]) <= MINDIST:
+                            check = False
+                            break
+                    if check:
+                        dt.add_steiner(pp)
+                        cnt = 0
+                        for t in dt.triangles:
+                            if dt.is_obtuse(t):
+                                cnt += 1
+                        if cnt < score:
+                            score = cnt
+                            cands = [pp]
+                        elif cnt == score:
+                            cands.append(pp)
+                        dt.delete_steiner(len(polygon))
+                for pp in intersections_of_disks(midpoint(self.pts[polygon[i - 1]], self.pts[polygon[i]]), sqdist(self.pts[polygon[i - 1]], self.pts[polygon[i]]) / 4, midpoint(self.pts[polygon[ii - 1]], self.pts[polygon[ii]]), sqdist(self.pts[polygon[ii - 1]], self.pts[polygon[ii]]) / 4):
+                    check = True
+                    for iii in range(len(polygon)):
+                        if turn(self.pts[polygon[iii - 1]], self.pts[polygon[iii]], pp) <= 0 or sqdist(pp, self.pts[polygon[iii]]) <= MINDIST:
+                            check = False
+                            break
+                    if check:
+                        dt.add_steiner(pp)
+                        cnt = 0
+                        for t in dt.triangles:
+                            if dt.is_obtuse(t):
+                                cnt += 1
+                        if cnt < score:
+                            score = cnt
+                            cands = [pp]
+                        elif cnt == score:
+                            cands.append(pp)
+                        dt.delete_steiner(len(polygon))
+                for pp in intersections_of_ortho_disk(self.pts[polygon[i - 1]], self.pts[polygon[i]], self.pts[polygon[ii - 1]], self.pts[polygon[ii]]):
+                    check = True
+                    for iii in range(len(polygon)):
+                        if turn(self.pts[polygon[iii - 1]], self.pts[polygon[iii]], pp) <= 0 or sqdist(pp, self.pts[polygon[iii]]) <= MINDIST:
+                            check = False
+                            break
+                    if check:
+                        dt.add_steiner(pp)
+                        cnt = 0
+                        for t in dt.triangles:
+                            if dt.is_obtuse(t):
+                                cnt += 1
+                        if cnt < score:
+                            score = cnt
+                            cands = [pp]
+                        elif cnt == score:
+                            cands.append(pp)
+                        dt.delete_steiner(len(polygon))
+        # print(dt.pts)
+        # print(dt.region_boundary)
+        # print(score)
+        if cands:
+            stp = random.choice(cands)
+            self.add_steiner(stp)
+        # else:
+        #     for t in self.triangles:
+        #         del t
+        #     self.triangles = set()
+        #     self.triangulate()
+        #     self.delaunay_triangulate()
             
     def make_non_obtuse(self, t:Triangle):
         #print("resolve obtuse")
@@ -1579,6 +2033,7 @@ class Data:
                 self.delaunay_triangulate()
 
     def make_non_obtuse3(self, t:Triangle):
+        # print(IMP, MINDIST)
         #print("resolve obtuse")
         #self.print_triangle(t)
         if angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0:
@@ -1591,14 +2046,14 @@ class Data:
         if t.neis[i]:
             tt = t.neis[i]
             j = (tt.get_ind(t.pts[i]) + 1) % 3
-            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0:
+            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0 and turn(self.pts[tt.pts[j]], self.pts[t.pts[i]], self.pts[t.pt(i + 2)]) < 0:
                 return self.make_non_obtuse3(tt)
         if t.nei(i + 2):
             tt = t.nei(i + 2)
             j = (tt.get_ind(t.pt(i + 2)) + 1) % 3
-            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0:
+            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0 and turn(self.pts[tt.pts[j]], self.pts[t.pts[i]], self.pts[t.pt(i + 1)]) > 0:
                 return self.make_non_obtuse3(tt)
-        self.triangles.discard(t)
+        # self.triangles.discard(t)
         q = self.pts[t.pts[i]]
         r = self.pts[t.pt(i + 1)]
         l = self.pts[t.pt(i + 2)]
@@ -1651,7 +2106,7 @@ class Data:
             stop[0] = False
             j = (tt.get_ind(r_chain[-1]) + 1) % 3
             s = self.pts[tt.pts[j]]
-            self.triangles.discard(tt)
+            # self.triangles.discard(tt)
             # self.DrawResult("step")
             l_neis.append(tt.neis[j])
             r_neis.append(tt.nei(j + 2))
@@ -1728,11 +2183,11 @@ class Data:
                 self.add_steiner(stp)
                 return
             elif tt != t and self.is_obtuse(tt):
-                for t in self.triangles:
-                    del t
-                self.triangles = set()
-                self.triangulate()
-                self.delaunay_triangulate()
+                # for t in self.triangles:
+                #     del t
+                # self.triangles = set()
+                # self.triangulate()
+                # self.delaunay_triangulate()
                 return
         cands = []
         r_neis.append(tt)
@@ -1747,8 +2202,8 @@ class Data:
             stp = random.choice(cands)
             self.add_steiner(stp)
         else:
-            for i in range(len(chain)):
-                for ii in range(i, len(chain)):
+            for i in range(-1, len(chain)):
+                for ii in range(i + 1, len(chain)):
                     for pp in intersections_of_orthogonals(self.pts[chain[i - 1]], self.pts[chain[i]], self.pts[chain[ii - 1]], self.pts[chain[ii]]):
                         check = self.is_in_circumcircle(t, pp)
                         for iii in range(len(chain)):
@@ -1797,12 +2252,717 @@ class Data:
             if bcands:
                 stp = random.choice(bcands)
                 self.add_steiner(stp)
+            # else:
+            #     for t in self.triangles:
+            #         del t
+            #     self.triangles = set()
+            #     self.triangulate()
+            #     self.delaunay_triangulate()
+
+    def make_non_obtuse4(self, t:Triangle):
+        #print("resolve obtuse")
+        #self.print_triangle(t)
+        if angle(self.pts[t.pts[2]], self.pts[t.pts[0]], self.pts[t.pts[1]]) > 0:
+            i = 0
+        if angle(self.pts[t.pts[0]], self.pts[t.pts[1]], self.pts[t.pts[2]]) > 0:
+            i = 1
+        if angle(self.pts[t.pts[1]], self.pts[t.pts[2]], self.pts[t.pts[0]]) > 0:
+            i = 2
+        #print("obtuse at", i)
+        if t.neis[i]:
+            tt = t.neis[i]
+            j = (tt.get_ind(t.pts[i]) + 1) % 3
+            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0 and turn(self.pts[tt.pts[j]], self.pts[t.pts[i]], self.pts[t.pt(i + 2)]) < 0:
+                return self.make_non_obtuse4(tt)
+        if t.nei(i + 2):
+            tt = t.nei(i + 2)
+            j = (tt.get_ind(t.pt(i + 2)) + 1) % 3
+            if angle(self.pts[tt.pt(j + 1)], self.pts[tt.pts[j]], self.pts[tt.pt(j + 2)]) > 0 and turn(self.pts[tt.pts[j]], self.pts[t.pts[i]], self.pts[t.pt(i + 1)]) > 0:
+                return self.make_non_obtuse4(tt)
+        # self.triangles.discard(t)
+        q = self.pts[t.pts[i]]
+        r = self.pts[t.pt(i + 1)]
+        l = self.pts[t.pt(i + 2)]
+        l_neis = []
+        r_neis = []
+        l_chain = []
+        r_chain = []
+        r_chain.append(t.pts[i])
+        r_chain.append(t.pt(i + 1))
+        l_chain.append(t.pts[i])
+        l_chain.append(t.pt(i + 2))
+        r_neis.append(t.neis[i])
+        l_neis.append(t.nei(i + 2))
+        tt = t.nei(i + 1)
+        stop = [False]
+        s = q
+        j = i
+        def cutright():
+            if turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0:
+                stop[0] = True
             else:
-                for t in self.triangles:
-                    del t
-                self.triangles = set()
-                self.triangulate()
-                self.delaunay_triangulate()
+                nt = Triangle(tt.pts[j], r_chain[-2], r_chain[-1])
+                self.triangles.add(nt)
+                nt.neis[2] = r_neis[-1]
+                r_neis.pop()
+                nt.neis[1] = r_neis[-1]
+                r_neis.pop()
+                r_neis.append(nt)
+                r_chain.pop()
+                #print("line 697")
+                #self.print_triangle(nt)
+        def cutleft():
+            if turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0:
+                stop[0] = True
+            else:
+                nt = Triangle(l_chain[-1], l_chain[-2], tt.pts[j])
+                self.triangles.add(nt)
+                nt.neis[2] = l_neis[-1]
+                l_neis.pop()
+                nt.neis[0] = l_neis[-1]
+                l_neis.pop()
+                l_neis.append(nt)
+                l_chain.pop()
+                #print("line 715")
+                #self.print_triangle(nt)
+        while True:
+            if not tt:
+                break
+            #self.print_triangle(tt)
+            stop[0] = False
+            j = (tt.get_ind(r_chain[-1]) + 1) % 3
+            s = self.pts[tt.pts[j]]
+            # self.triangles.discard(tt)
+            # self.DrawResult("step")
+            l_neis.append(tt.neis[j])
+            r_neis.append(tt.nei(j + 2))
+            if turn(q, r, s) <= 0:
+                while not stop[0]:
+                    cutright()
+                r_chain.append(tt.pts[j])
+                tt = l_neis[-1]
+                l_neis.pop()
+            elif turn(q, l, s) >= 0:
+                while not stop[0]:
+                    cutleft()
+                l_chain.append(tt.pts[j])
+                tt = r_neis[-1]
+                r_neis.pop()
+            else:
+                while (not stop[0]) and len(r_chain) > 2:
+                    cutright()
+                stop[0] = False
+                while (not stop[0]) and len(l_chain) > 2:
+                    cutleft()
+                rsgn = turn(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) <= 0 or angle(self.pts[r_chain[-2]], self.pts[r_chain[-1]], s) > 0
+                lsgn = turn(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) >= 0 or angle(self.pts[l_chain[-2]], self.pts[l_chain[-1]], s) > 0
+                if not rsgn:
+                    l = s
+                    l_chain.append(tt.pts[j])
+                    tt = r_neis[-1]
+                    r_neis.pop()
+                elif not lsgn:
+                    r = s
+                    r_chain.append(tt.pts[j])
+                    tt = l_neis[-1]
+                    l_neis.pop()
+                else:
+                    r_chain.append(tt.pts[j])
+                    break
+        #print(len(r_chain), len(l_chain))
+        ri = 1
+        while ri < len(r_chain) - 1 and turn(self.pts[r_chain[ri - 1]], self.pts[r_chain[ri]], self.pts[r_chain[ri + 1]]) > 0:
+            ri += 1
+        li = 1
+        while li < len(l_chain) - 1 and turn(self.pts[l_chain[li - 1]], self.pts[l_chain[li]], self.pts[l_chain[li + 1]]) < 0:
+            li += 1
+        #print(ri, li)
+        while turn(self.pts[l_chain[li]], self.pts[r_chain[ri]], self.pts[r_chain[ri - 1]]) >= 0:
+            li -= 1
+        while turn(self.pts[l_chain[li - 1]], self.pts[l_chain[li]], self.pts[r_chain[ri]]) >= 0:
+            ri -= 1
+        #print(ri, li)
+        
+        if ri < len(r_chain) - 1 or li < len(l_chain) - 1:
+            r_chain = r_chain[:ri + 1]
+            l_chain = l_chain[:li + 1]
+            r_neis = r_neis[:ri]
+            l_neis = l_neis[:li]
+            tt = t
+        flag = len(l_chain) == 2 and angle(self.pts[t.pts[i]], self.pts[l_chain[1]], self.pts[r_chain[-1]]) < 0
+        flag = flag or (len(r_chain) == 2 and angle(self.pts[t.pts[i]], self.pts[r_chain[1]], self.pts[l_chain[-1]]) < 0)
+        if flag:
+            if not tt:
+                cands = []
+                pp = projection(self.pts[t.pts[i]], self.pts[l_chain[-1]], self.pts[r_chain[-1]])
+                if self.is_on(l_chain[-1], r_chain[-1], pp) and self.is_in_circumcircle(t, pp) and self.check_bans(pp):
+                    cands.append(pp)
+                if (l_neis[0] and self.is_obtuse(l_neis[0])) or len(l_chain) > 2:
+                    lp = right_angle_point(self.pts[r_chain[1]], self.pts[t.pts[i]], self.pts[l_chain[-1]], self.pts[r_chain[-1]])
+                    if lp and self.is_on(l_chain[-1], r_chain[-1], lp) and self.is_in_circumcircle(t, lp) and self.check_bans(lp):
+                        cands.append(lp)
+                if (r_neis[0] and self.is_obtuse(r_neis[0])) or len(r_chain) > 2:
+                    rp = right_angle_point(self.pts[l_chain[1]], self.pts[t.pts[i]], self.pts[l_chain[-1]], self.pts[r_chain[-1]])
+                    if rp and self.is_on(l_chain[-1], r_chain[-1], rp) and self.is_in_circumcircle(t, rp) and self.check_bans(rp):
+                        cands.append(rp)
+                stp = random.choice(cands)
+                self.add_steiner(stp)
+                return
+            elif tt != t and self.is_obtuse(tt):
+                # for t in self.triangles:
+                #     del t
+                # self.triangles = set()
+                # self.triangulate()
+                # self.delaunay_triangulate()
+                return
+        cands = []
+        r_neis.append(tt)
+        neis = r_neis + l_neis[::-1]
+        chain = r_chain + l_chain[:0:-1]
+        for i in range(2, len(chain)):
+            if not neis[i - 1] and angle(self.pts[chain[i - 1]], self.pts[chain[0]], self.pts[chain[i]]) > 0:
+                pp = projection(self.pts[chain[0]], self.pts[chain[i - 1]], self.pts[chain[i]])
+                if self.is_on(chain[i - 1], chain[i], pp) and self.is_in_circumcircle(t, pp) and self.check_bans(pp):
+                    cands.append(pp)
+        if cands:
+            stp = random.choice(cands)
+            self.add_steiner(stp)
+        else:
+            for i in range(len(chain)):
+                for ii in range(i, len(chain)):
+                    for pp in intersections_of_orthogonals(self.pts[chain[i - 1]], self.pts[chain[i]], self.pts[chain[ii - 1]], self.pts[chain[ii]]):
+                        check = self.is_in_circumcircle(t, pp)
+                        for iii in range(len(chain)):
+                            if turn(self.pts[chain[iii - 1]], self.pts[chain[iii]], pp) <= 0 or sqdist(pp, self.pts[chain[iii]]) <= MINDIST:
+                                check = False
+                                break
+                        if check and self.check_bans(pp):
+                            cands.append(pp)
+                    for pp in intersections_of_disks(midpoint(self.pts[chain[i - 1]], self.pts[chain[i]]), sqdist(self.pts[chain[i - 1]], self.pts[chain[i]]) / 4, midpoint(self.pts[chain[ii - 1]], self.pts[chain[ii]]), sqdist(self.pts[chain[ii - 1]], self.pts[chain[ii]]) / 4):
+                        check = self.is_in_circumcircle(t, pp)
+                        for iii in range(len(chain)):
+                            if turn(self.pts[chain[iii - 1]], self.pts[chain[iii]], pp) <= 0 or sqdist(pp, self.pts[chain[iii]]) <= MINDIST:
+                                check = False
+                                break
+                        if check and self.check_bans(pp):
+                            cands.append(pp)
+                    for pp in intersections_of_ortho_disk(self.pts[chain[i - 1]], self.pts[chain[i]], self.pts[chain[ii - 1]], self.pts[chain[ii]]):
+                        check = self.is_in_circumcircle(t, pp)
+                        for iii in range(len(chain)):
+                            if turn(self.pts[chain[iii - 1]], self.pts[chain[iii]], pp) <= 0 or sqdist(pp, self.pts[chain[iii]]) <= MINDIST:
+                                check = False
+                                break
+                        if check and self.check_bans(pp):
+                            cands.append(pp)
+            bcands = []
+            conedges = []
+            for i in range(len(chain)):
+                if not neis[i - 1] and ((chain[i], chain[i - 1]) in self.constraints or (chain[i - 1], chain[i]) in self.constraints):
+                    conedges.append(i)
+            bscore = (0, 0)
+            for pp in cands:
+                score = 0
+                cscore = 0
+                for i in conedges:
+                    if angle(self.pts[chain[i]], pp, self.pts[chain[i - 1]]) <= 0:
+                        cscore += 1
+                for i in range(len(chain)):
+                    if angle(self.pts[chain[i]], self.pts[chain[i - 1]], pp) <= 0 and angle(self.pts[chain[i - 1]], self.pts[chain[i]], pp) <= 0 and angle(self.pts[chain[i]], pp, self.pts[chain[i - 1]]) <= 0:
+                        score += 1
+                if (cscore, score) < bscore:
+                    continue
+                if (cscore, score) > bscore:
+                    bscore = (cscore, score)
+                    bcands = []
+                bcands.append(pp)
+            if bcands:
+                stp = random.choice(bcands)
+                self.add_steiner(stp)
+            # else:
+            #     for t in self.triangles:
+            #         del t
+            #     self.triangles = set()
+            #     self.triangulate()
+            #     self.delaunay_triangulate()
+
+    def check_bans(self, p:Point):
+        check = True
+        for i, j in self.bans:
+            mp = midpoint(self.pts[i], self.pts[j])
+            if sqdist(mp, self.pts[i]) > sqdist(mp, p):
+                check = False
+                break
+        return check
+
+    def delete_steiner(self, i:int):
+        if i > len(self.pts):
+            raise Exception("There is no such point to delete")
+        if i < self.fp_ind:
+            pass
+        if i in self.region_boundary:
+            self.region_boundary.remove(i)
+        i_connect = []
+        e_list = []
+        for e in self.constraints:
+            if e[0]==i:
+                i_connect.append(e[1])
+                e_list.append(e)
+            if e[1]==i:
+                i_connect.append(e[0])
+                e_list.append(e)
+        if i_connect:
+            self.constraints.add(tuple(i_connect))
+        for e in e_list:
+            self.const_dict[tuple(i_connect)] = self.const_dict[e]
+            self.constraints.remove(e)
+            del self.const_dict[e]
+        if i!=len(self.pts) - 1:
+            self.pts[i] = self.pts[-1]
+            # for t in self.triangles:
+            #     if t.get_ind(len(self.pts) - 1) != -1:
+            #         t.pts[t.get_ind(len(self.pts)-1)] = i
+            for j in range(len(self.region_boundary)):
+                if self.region_boundary[j] == len(self.pts) - 1:
+                    self.region_boundary[j] = i
+            delcon = set()
+            newcon = set()
+            for con in self.constraints:
+                if con[0] == len(self.pts) - 1:
+                    delcon.add(con)
+                    newcon.add((i, con[1]))
+                    self.const_dict[(i, con[1])] = self.const_dict[con]
+                    del self.const_dict[con]
+                elif con[1] == len(self.pts) - 1:
+                    delcon.add(con)
+                    newcon.add((con[0], i))
+                    self.const_dict[(con[0], i)] = self.const_dict[con]
+                    del self.const_dict[con]
+            for con in delcon:
+                self.constraints.remove(con)
+            for con in newcon:
+                self.constraints.add(con)
+        self.pts.pop()
+        for t in self.triangles:
+           del t
+        self.triangles = set()
+        self.triangulate()
+        self.delaunay_triangulate()
+
+    def delete_steiners(self, l:list):
+        l.sort(reverse=True)
+        for i in l:
+            if i > len(self.pts):
+                raise Exception("There is no such point to delete")
+        for i in l:
+            if i < self.fp_ind:
+                pass
+            if i in self.region_boundary:
+                self.region_boundary.remove(i)
+            i_connect = []
+            e_list = []
+            for e in self.constraints:
+                if e[0]==i:
+                    i_connect.append(e[1])
+                    e_list.append(e)
+                if e[1]==i:
+                    i_connect.append(e[0])
+                    e_list.append(e)
+            if i_connect:
+                self.constraints.add(tuple(i_connect))
+            for e in e_list:
+                self.const_dict[tuple(i_connect)] = self.const_dict[e]
+                self.constraints.remove(e)
+                del self.const_dict[e]
+            if i!=len(self.pts) - 1:
+                self.pts[i] = self.pts[-1]
+                # for t in self.triangles:
+                #     if t.get_ind(len(self.pts) - 1) != -1:
+                #         t.pts[t.get_ind(len(self.pts)-1)] = i
+                for j in range(len(self.region_boundary)):
+                    if self.region_boundary[j] == len(self.pts) - 1:
+                        self.region_boundary[j] = i
+                delcon = set()
+                newcon = set()
+                for con in self.constraints:
+                    if con[0] == len(self.pts) - 1:
+                        delcon.add(con)
+                        newcon.add((i, con[1]))
+                        self.const_dict[(i, con[1])] = self.const_dict[con]
+                        del self.const_dict[con]
+                    elif con[1] == len(self.pts) - 1:
+                        delcon.add(con)
+                        newcon.add((con[0], i))
+                        self.const_dict[(con[0], i)] = self.const_dict[con]
+                        del self.const_dict[con]
+                for con in delcon:
+                    self.constraints.remove(con)
+                for con in newcon:
+                    self.constraints.add(con)
+            self.pts.pop()
+        for t in self.triangles:
+            del t
+        self.triangles = set()
+        self.triangulate()
+        self.delaunay_triangulate()
+
+    def dfs(self, merged_e):
+        checked = dict()
+        for t in self.triangles:
+            checked[t] = False
+        score = dict()
+        for i in range(len(merged_e)):
+            for _e1 in merged_e[i]:
+                score[(i,_e1)] = (False, (-1,-1),[],set())
+        for i in range(len(merged_e)):
+            for _e1 in merged_e[i]:
+                if score[(i,_e1)][0]:
+                    continue
+                st:Triangle = self.find_triangle(i, _e1)
+                if st==None:
+                    score[(i,_e1)] = (True, (float("INF"),float("INF")),[],set())
+                    continue
+                p_score = 0
+                p_obt = 0
+                p_stei = set()
+                p_tri = set()
+                stack = [(st, st.get_ind(i))]
+                bound = [(i,_e1)]
+                while stack:
+                    t, ind = stack.pop()
+                    if checked[t]:
+                        continue
+                    p_score += 1
+                    p_tri.add(t)
+                    if self.is_obtuse(t):
+                        p_obt += 1
+                    checked[t] = True
+                    for ii in range(3):
+                        if t.pt(ii)>=self.fp_ind:
+                            p_stei.add(t.pt(ii))
+                    if (t.pt(ind+1), t.pt(ind+2)) not in score:
+                        tt = self.find_triangle(t.pt(ind+2), t.pt(ind+1))
+                        if tt!=None and checked[tt]!=True:
+                            stack.append((tt, tt.get_ind(t.pt(ind+2))))
+                    else:
+                        bound.append((t.pt(ind+1), t.pt(ind+2)))
+                    if (t.pt(ind+2), t.pt(ind)) not in score:
+                        tt = self.find_triangle(t.pt(ind), t.pt(ind+2))
+                        if tt!=None and checked[tt]!=True:
+                            stack.append((tt, tt.get_ind(t.pt(ind))))
+                    else:
+                        bound.append((t.pt(ind+2), t.pt(ind)))
+                for b in bound:
+                    score[b] = (True, (p_obt, p_score), list(p_stei), p_tri)
+        return score
+
+    def partial_datas(self):
+        bds = self.dfs_constraint()
+        bds.sort(key=len, reverse=True)
+        bds.pop(0)
+        dts = []
+        for lb in bds:
+            cs = []
+            for i in range(len(lb)):
+                if (lb[i-1], lb[i]) in self.constraints:
+                    cs.append(((len(lb)+i-1)%len(lb), i))
+                if (lb[i], lb[i-1]) in self.constraints:
+                    cs.append((i,(len(lb)+i-1)%len(lb)))
+            dt = Data(input="", pts = [self.pts[i] for i in lb], constraints = set(), bds = list(range(len(lb))), fp_ind=len(lb), triangles=set())
+            dt.ban = set(cs)
+            dts.append(dt)
+            del dt
+        return dts
+    def dfs_constraint(self):
+        total_bound = []
+        checked = dict()
+        for t in self.triangles:
+            checked[t] = False
+        for _ in range(len(self.region_boundary)):
+            st = self.find_triangle(self.region_boundary[_-1], self.region_boundary[_])
+            if checked[st]:
+                continue
+            # bd = [self.region_boundary[_]]
+            bd = [self.region_boundary[_]]
+            stack = [(st, st.get_ind(self.region_boundary[_]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                # print(t.pts, ind)
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        # bd.append(t.pt(ind+i+1))
+                        # print(bd)
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        for e in self.constraints:
+            st = self.find_triangle(e[0], e[1])
+            if checked[st]:
+                continue
+            bd = [e[1]]
+            stack = [(st, st.get_ind(e[1]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        for e in self.constraints:
+            st = self.find_triangle(e[1], e[0])
+            if checked[st]:
+                continue
+            bd = [e[0]]
+            stack = [(st, st.get_ind(e[0]))]
+            while stack:
+                t, ind = stack.pop()
+                if t==None:
+                    bd.append(ind)
+                    continue
+                if checked[t]:
+                    continue
+                checked[t] = True
+                for i in range(1,-1,-1):
+                    tt = t.nei(ind+i)
+                    if tt==None:
+                        stack.append((None, t.pt(ind+i+1)))
+                        continue
+                    if checked[tt]:
+                        continue
+                    p_ind = tt.get_ind(t.pt(ind+i))
+                    stack.append((tt, p_ind))
+            total_bound.append(bd)
+        return total_bound
+
+    def exterior_mandatory_st(self):
+        apt = 0
+        next = True
+        while next:
+            next = False
+            obtuse = False
+            for t in self.triangles:
+                obt = -1
+                q1 = self.pts[t.pts[0]]
+                q2 = self.pts[t.pts[1]]
+                q3 = self.pts[t.pts[2]]
+                if (angle(q1,q2,q3) > MyNum(0)): obt = 1
+                if (angle(q2,q3,q1) > MyNum(0)): obt = 2
+                if (angle(q3,q1,q2) > MyNum(0)): obt = 0
+                if obt==-1:
+                    obtuse = True
+                    continue
+                e1 = (t.pt(obt+1),t.pt(obt+2))
+                e2 = (t.pt(obt+2),t.pt(obt+1))
+                if e1 in self.constraints or e2 in self.constraints:
+                    # e11 = (t.pt(obt),t.pt(obt+1))
+                    # e12 = (t.pt(obt+1),t.pt(obt))
+                    # e21 = (t.pt(obt+2),t.pt(obt))
+                    # e22 = (t.pt(obt),t.pt(obt+2))
+                    # if e11 in self.constraints or e12 in self.constraints or e21 in self.constraints or e22 in self.constraints:
+                    p = projection(self.pts[t.pt(obt)], self.pts[t.pt(obt+1)], self.pts[t.pt(obt+2)])
+                    # print(p.x.toString(), p.y.toString())
+                    self.add_steiner(p)
+                    apt+=1
+                    self.DrawResult(f"step_{apt}")
+                    next = True
+                    break
+                    
+
+
+
+            if not obtuse:
+                return
+    def delete_random_steiner(self, del_num):
+        while del_num>0:
+            bp = False
+            dn = random.randint(1,del_num)
+            del_num -= dn
+            ind = 0
+            del_pts = set()
+            checked = dict()
+            qt = None
+            for t in self.triangles:
+                if self.is_obtuse(t):
+                    qt = t
+                checked[t] = False
+            if qt==None:
+                break
+            q = collections.deque([qt])
+            while q:
+                if bp:
+                    break
+                newt = q.popleft()
+                if checked[newt]:
+                    continue
+                checked[newt] = True
+                for p in newt.pts:
+                    if p>=self.fp_ind:
+                        del_pts.add(p)
+                        if len(del_pts)==dn:
+                            bp = True
+                            break
+                if bp:
+                    break
+                for t in newt.neis:
+                    if t!=None and checked[t]==False:
+                        q.append(t)
+            
+            self.delete_steiners(list(del_pts))
+
+    def delete_random_steiner_query(self, _i, dn):
+        bp = False
+        ind = 0
+        del_pts = set()
+        checked = dict()
+        qt = None
+        for t in self.triangles:
+            checked[t] = False
+        for t in self.triangles:
+            if _i in t.pts:
+                qt = t
+                if self.is_obtuse(t):
+                    break
+        if qt==None:
+            return
+        q = collections.deque([qt])
+        while q:
+            if bp:
+                break
+            newt = q.popleft()
+            if checked[newt]:
+                continue
+            checked[newt] = True
+            for p in newt.pts:
+                if p>=self.fp_ind:
+                    del_pts.add(p)
+                    if len(del_pts)==dn:
+                        bp = True
+                        break
+                        
+            if bp:
+                break
+            for t in newt.neis:
+                if t!=None and checked[t]==False:
+                    q.append(t)
+        # for p in del_pts:
+        self.delete_steiners(list(del_pts))
+
+    def merge_result(self, dt):
+        e1 = [set() for _ in range(self.fp_ind)]
+        e2 = [set() for _ in range(self.fp_ind)]
+        for t in self.triangles:
+            for i in range(3):
+                if t.pts[i]<self.fp_ind and t.pts[i-1]<self.fp_ind:
+                    e1[t.pts[i]].add(t.pts[i-1])
+                    e1[t.pts[i-1]].add(t.pts[i])
+        for t in dt.triangles:
+            for i in range(3):
+                if t.pts[i]<self.fp_ind and t.pts[i-1]<self.fp_ind:
+                    e2[t.pts[i]].add(t.pts[i-1])
+                    e2[t.pts[i-1]].add(t.pts[i])
+        merged_e = [set() for _ in range(self.fp_ind)]
+        for i in range(self.fp_ind):
+            merged_e[i] = e1[i].intersection(e2[i])
+        score_1 = self.dfs(merged_e)
+        score_2 = dt.dfs(merged_e)
+        new_ind1 = [-1]*len(self.pts)
+        new_ind2 = [-1]*len(dt.pts)
+        add_pts = []
+        add_e = []
+        for key in score_1.keys():
+            if score_1[key][1]>score_2[key][1]:
+                for t in score_2[key][3]:
+                    ind0, ind1, ind2 = t.pts[0], t.pts[1], t.pts[2]
+                    if ind0>=self.fp_ind:
+                        if new_ind2[ind0]==-1:
+                            new_ind2[ind0] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind0])
+                        ind0 = new_ind2[ind0]
+                    if ind1>=self.fp_ind:
+                        if new_ind2[ind1]==-1:
+                            new_ind2[ind1] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind1])
+                        ind1 = new_ind2[ind1]
+                    if ind2>=self.fp_ind:
+                        if new_ind2[ind2]==-1:
+                            new_ind2[ind2] = len(add_pts)+self.fp_ind
+                            add_pts.append(dt.pts[ind2])
+                        ind2 = new_ind2[ind2]
+                    add_e.append((ind0,ind1))
+                    add_e.append((ind1,ind2))
+                    add_e.append((ind2,ind0))
+            else:
+                for t in score_1[key][3]:
+                    ind0, ind1, ind2 = t.pts[0], t.pts[1], t.pts[2]
+                    if ind0>=self.fp_ind:
+                        if new_ind1[ind0]==-1:
+                            new_ind1[ind0] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind0])
+                        ind0 = new_ind1[ind0]
+                    if ind1>=self.fp_ind:
+                        if new_ind1[ind1]==-1:
+                            new_ind1[ind1] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind1])
+                        ind1 = new_ind1[ind1]
+                    if ind2>=self.fp_ind:
+                        if new_ind1[ind2]==-1:
+                            new_ind1[ind2] = len(add_pts)+self.fp_ind
+                            add_pts.append(self.pts[ind2])
+                        ind2 = new_ind1[ind2]
+                    add_e.append((ind0,ind1))
+                    add_e.append((ind1,ind2))
+                    add_e.append((ind2,ind0))
+                    
+        print("Find new Sol! merging....")
+        
+        self.delete_steiners(list(range(self.fp_ind, len(self.pts))))
+        for t in self.triangles:
+            del t
+        self.triangles = set()
+        # new_ind = [-1]*len(self.pts)
+        # add_pts = []
+        # i = 0
+        # for key in score_1.keys():
+        #     for t in score_1[key][3]:
+        #         for _i in range(3):
+        #             print(t.pts[_i])
+        #             if new_ind[t.pts[_i]]==-1:
+        #                 new_ind[t.pts[_i]] = i
+        #                 if t.pts[_i]>=self.fp_ind:
+        #                     add_pts.append(self.pts(t.pts[_i]))
+        #                 i+=1
+        # while len(self.pts)>self.fp_ind:
+        #     self.delete_steiner(len(self.pts)-1)
+        self.triangulate()
+        self.DrawResult("step")
+        self.add_steiners(add_pts)
+        self.DrawResult("step")
+        for e in add_e:
+            if self.find_triangle(e[0],e[1])==-1 and self.find_triangle(e[1],e[0])!=-1:
+                self.resolve_cross(e)
+                self.DrawResult("step")
+
 
     def make_non_obtuse_boundary(self):
         inserting = []
@@ -2020,102 +3180,111 @@ class Data:
                     p2 = self.pts[t.pt(j + 2)]
                     if angle(p2, p0, p1) > 0:
                         npts.append(projection(self.pts[t.pts[j]], self.pts[t.pt(j + 1)], self.pts[t.pt(j + 2)]))
-                    else:
-                        if p1.x == p2.x or p1.y == p2.y:
-                            continue
-                        elif (p1.x < p2.x) == (p1.y < p2.y):
-                            q = Point(p1.x, p2.y)
-                            if p1.x < p2.x:
-                                d = 1
-                            else:
-                                d = 3
-                        else:
-                            q = Point(p2.x, p1.y)
-                            if p1.x < p2.x:
-                                d = 0
-                            else:
-                                d = 2
+                for con1, con2 in self.constraints:
+                    for c1, c2 in [(con1, con2), (con2, con1)]:
+                        t = self.find_triangle(c1, c2)
+                        i = (t.get_ind(c2) + 1) % 3
+                        p0 = self.pts[t.pts[i]]
+                        p1 = self.pts[t.pt(i + 1)]
+                        p2 = self.pts[t.pt(i + 2)]
+                        if angle(p2, p0, p1) > 0:
+                            npts.append(projection(p0, p1, p2))
                 if npts:
                     self.add_steiners(npts)
                 else:
                     break
-            done = True
+            oblist = []
             for t in self.triangles:
                 if self.is_obtuse(t):
-                    p0 = self.pts[t.pts[0]]
-                    p1 = self.pts[t.pts[1]]
-                    p2 = self.pts[t.pts[2]]
-                    if angle(p2, p0, p1) > 0:
-                        q, r = p0, p1
-                        i = 0
-                    elif angle(p0, p1, p2) > 0:
-                        q, r = p1, p2
-                        i = 1
-                    else:
-                        q, r = p2, p0
-                        i = 2
-                    if q.x <= r.x and q.y > r.y:
-                        self.insert_grid_point(q, t, 0)
-                    elif q.x < r.x and q.y <= r.y:
-                        self.insert_grid_point(q, t, 1)
-                    elif q.x >= r.x and q.y < r.y:
-                        self.insert_grid_point(q, t, 2)
-                    else:
-                        self.insert_grid_point(q, t, 3)
-                    done = False
-                    break
-            self.DrawResult("step")
-            print(self.score())
-            #input()
-            if done:
+                    oblist.append(t)
+            if oblist:
+                t = random.choice(oblist)
+                p0 = self.pts[t.pts[0]]
+                p1 = self.pts[t.pts[1]]
+                p2 = self.pts[t.pts[2]]
+                if angle(p2, p0, p1) > 0:
+                    q, r = p0, p1
+                    i = 0
+                elif angle(p0, p1, p2) > 0:
+                    q, r = p1, p2
+                    i = 1
+                else:
+                    q, r = p2, p0
+                    i = 2
+                if q.x <= r.x and q.y > r.y:
+                    self.insert_grid_point(q, t, 0)
+                elif q.x < r.x and q.y <= r.y:
+                    self.insert_grid_point(q, t, 1)
+                elif q.x >= r.x and q.y < r.y:
+                    self.insert_grid_point(q, t, 2)
+                else:
+                    self.insert_grid_point(q, t, 3)
+            else:
                 break
+            self.DrawResult("step")
+            self.WriteData()
+            print(self.instance_name, len(self.pts) - self.fp_ind, self.score())
+            if len(self.pts) - self.fp_ind >= 5000:
+                break
+            #input()
     
     def insert_grid_point(self, p:Point, t:Triangle, d:int):
         p0, p1, p2 = [self.pts[t.pts[i]] for i in range(3)]
         # print(p, p0, p1, p2, d)
+        # self.print_triangle(t)
         # input()
         midx = p0.x + p1.x + p2.x - min(p0.x, p1.x, p2.x) - max(p0.x, p1.x, p2.x)
         midy = p0.y + p1.y + p2.y - min(p0.y, p1.y, p2.y) - max(p0.y, p1.y, p2.y)
         if d == 0:
             q = Point(midx, p.y)
             if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
-                self.add_steiner(q)
-            elif p0.y < p.y and p1.y > p.y:
+                self.add_steiner_del(q)
+            elif p0.y < p.y and p1.y > p.y and t.neis[0]:
                 return self.insert_grid_point(p, t.neis[0], 0)
-            elif p1.y < p.y and p2.y > p.y:
+            elif p1.y < p.y and p2.y > p.y and t.neis[1]:
                 return self.insert_grid_point(p, t.neis[1], 0)
-            else:
+            elif p2.y < p.y and p0.y > p.y and t.neis[2]:
                 return self.insert_grid_point(p, t.neis[2], 0)
+            else:
+                self.add_steiner_del(q)
         elif d == 1:
             q = Point(p.x, midy)
             if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
-                self.add_steiner(q)
-            elif p0.x > p.x and p1.x < p.x:
+                self.add_steiner_del(q)
+            elif p0.x > p.x and p1.x < p.x and t.neis[0]:
                 return self.insert_grid_point(p, t.neis[0], 1)
-            elif p1.x > p.x and p2.x < p.x:
+            elif p1.x > p.x and p2.x < p.x and t.neis[1]:
                 return self.insert_grid_point(p, t.neis[1], 1)
-            else:
+            elif p2.x > p.x and p0.x < p.x and t.neis[2]:
                 return self.insert_grid_point(p, t.neis[2], 1)
+            else:
+                self.add_steiner_del(q)
         elif d == 2:
             q = Point(midx, p.y)
             if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
-                self.add_steiner(q)
-            elif p0.y > p.y and p1.y < p.y:
+                self.add_steiner_del(q)
+            elif p0.y > p.y and p1.y < p.y and t.neis[0]:
                 return self.insert_grid_point(p, t.neis[0], 2)
-            elif p1.y > p.y and p2.y < p.y:
+            elif p1.y > p.y and p2.y < p.y and t.neis[1]:
                 return self.insert_grid_point(p, t.neis[1], 2)
-            else:
+            elif p2.y > p.y and p0.y < p.y and t.neis[2]:
                 return self.insert_grid_point(p, t.neis[2], 2)
+            else:
+                self.add_steiner_del(q)
         else:
             q = Point(p.x, midy)
+            # self.print_triangle(t)
+            # print(p, q)
             if self.is_in(t, q) and q != p0 and q != p1 and q != p2:
                 self.add_steiner(q)
-            elif p0.x < p.x and p1.x > p.x:
+            elif p0.x < p.x and p1.x > p.x and t.neis[0]:
                 return self.insert_grid_point(p, t.neis[0], 3)
-            elif p1.x < p.x and p2.x > p.x:
+            elif p1.x < p.x and p2.x > p.x and t.neis[1]:
                 return self.insert_grid_point(p, t.neis[1], 3)
-            else:
+            elif p2.x < p.x and p0.x > p.x and t.neis[2]:
                 return self.insert_grid_point(p, t.neis[2], 3)
+            else:
+                self.add_steiner_del(q)
         # print(q)
 
     def insert_point_on(self, e1:int, e2:int, p:Point):
@@ -2181,21 +3350,29 @@ class Data:
             # self.print_triangle(target)
             self.make_non_obtuse3(target)
             self.delaunay_triangulate()
-            obtt = []
-            for t in self.triangles:
-                if self.is_obtuse(t):
-                    obtt.append(t)
-            if not obtt:
-                # print("Done!")
-                self.done = True
+
+    def step_real(self):
+        #self.make_non_obtuse_boundary()
+        obtt = []
+        for t in self.triangles:
+            if self.is_obtuse(t):
+                obtt.append(t)
+        if not obtt:
+            # print("Done!")
+            self.done = True
+        else:
+            self.done - False
+            target = random.choice(obtt)
+            # self.print_triangle(target)
+            self.make_non_obtuse_real(target)
 
     def step_proj(self):
         obtt = []
         for t in self.triangles:
             if self.is_obtuse(t):
                 obtt.append(t)
-        if not obtt:
-            print("Done!")
+        # if not obtt:
+        #     print("Done!")
         else:
             target = random.choice(obtt)
             if (angle(self.pts[target.pts[0]], self.pts[target.pts[1]], self.pts[target.pts[2]]) > 0):
@@ -2206,6 +3383,17 @@ class Data:
                 i = 0
             pp = projection(self.pts[target.pts[i]], self.pts[target.pt(i + 1)], self.pts[target.pt(i + 2)])
             self.add_steiner(pp)
+
+    def chain_proj(self, t:Triangle, p:Point):
+        if not t:
+            return []
+        if self.is_on(t.pts[0], t.pts[1], p):
+            i = 0
+        elif self.is_on(t.pts[1], t.pts[2], p):
+            i = 1
+        else:
+            i = 2
+        return []
 
     def resolve_dense_pts(self):
         mdist = sqdist(self.pts[self.fp_ind], self.pts[self.fp_ind + 1])
@@ -2274,6 +3462,17 @@ class Data:
         print(t.neis[0])
         print(t.neis[1])
         print(t.neis[2])
+
+    def del_nearest(self, i:int):
+        p = self.pts[i]
+        dist = 10000000000
+        for j in range(self.fp_ind, len(self.pts)):
+            if dist > sqdist(p, self.pts[j]):
+                dist = sqdist(p, self.pts[j])
+                ind = j
+        print("delete", ind)
+        self.delete_steiner(ind)
+
 
 
 def angle(p1:Point, p2:Point, p3:Point):
@@ -2425,10 +3624,16 @@ def intersections_of_ortho_disk(p1:Point, p2:Point, p3:Point, p4:Point):
     return res
 
 def imprecise_points(x:float, y:float):
+    # print(IMP)
     xi = int(x * IMP)
     yi = int(y * IMP)
     res = []
     for i in range(- (GRID // 2), GRID - (GRID // 2)):
         for j in range(- (GRID // 2), GRID - (GRID // 2)):
-            res.append(Point(xi + i, yi + j))
+            res.append(Point(MyNum(xi + i, IMP), MyNum(yi + j, IMP)))
     return res
+
+def increase_IMP():
+    global IMP, MINDIST
+    IMP += 1
+    MINDIST = MyNum((GRID - (GRID // 2)) * (GRID - (GRID // 2)), IMP * IMP)
